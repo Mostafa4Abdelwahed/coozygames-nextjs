@@ -47,6 +47,13 @@ body {
   overflow-y: scroll;
 }
 
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+}
+
 a {
   text-decoration: none;
   font-weight: 700;
