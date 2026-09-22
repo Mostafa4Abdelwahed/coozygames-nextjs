@@ -1,93 +1,17 @@
 'use client'
 
 import { useState } from 'react'
+import { Suspense } from 'react'
 import type { ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import type { IconType } from 'react-icons'
-import {
-  MdAdjust,
-  MdBook,
-  MdDirectionsCar,
-  MdExtension,
-  MdFavorite,
-  MdFlashOn,
-  MdGridOn,
-  MdGroup,
-  MdHelp,
-  MdHistory,
-  MdHome,
-  MdLanguage,
-  MdLightbulb,
-  MdMap,
-  MdMenu,
-  MdNewReleases,
-  MdSearch,
-  MdSettings,
-  MdSportsSoccer,
-  MdStyle,
-  MdTouchApp,
-  MdUpdate,
-  MdVideogameAsset,
-  MdWhatshot,
-} from 'react-icons/md'
+import { MdMenu, MdSearch } from 'react-icons/md'
+import { SidebarNav, SidebarNavStatic } from './sidebar-nav'
 
 const SearchOverlay = dynamic(
   () => import('@/components/search-overlay').then((m) => m.SearchOverlay),
   { ssr: false },
 )
-
-const SIDEBAR_TOP = [
-  { label: 'الرئيسية', href: '/', icon: MdHome, active: true },
-  { label: 'لُعبت مؤخرًا', href: '', icon: MdHistory, disabled: true },
-  { label: 'جديد', href: '/games/?sort=new', icon: MdNewReleases },
-  { label: 'ألعاب رائجة', href: '/games/?sort=hot', icon: MdWhatshot },
-  { label: 'محدّثة', href: '/games/?sort=updated', icon: MdUpdate },
-  { label: 'Multiplayer', href: '/game-tag/multiplayer/', icon: MdGroup },
-]
-
-const SIDEBAR_CATS = [
-  { label: '.io', slug: 'io', icon: MdLanguage },
-  { label: 'Action', slug: 'action', icon: MdFlashOn },
-  { label: 'Adventure', slug: 'adventure', icon: MdMap },
-  { label: 'Arcade', slug: 'arcade', icon: MdVideogameAsset },
-  { label: 'Beauty', slug: 'beauty', icon: MdFavorite },
-  { label: 'Board', slug: 'board', icon: MdGridOn },
-  { label: 'Card', slug: 'card', icon: MdStyle },
-  { label: 'Clicker', slug: 'clicker', icon: MdTouchApp },
-  { label: 'Driving', slug: 'driving', icon: MdDirectionsCar },
-  { label: 'Puzzle', slug: 'puzzle', icon: MdExtension },
-  { label: 'Shooting', slug: 'shooting', icon: MdAdjust },
-  { label: 'Simulation', slug: 'simulation', icon: MdSettings },
-  { label: 'Sports', slug: 'sports', icon: MdSportsSoccer },
-  { label: 'Strategy', slug: 'strategy', icon: MdLightbulb },
-  { label: 'Trivia', slug: 'trivia', icon: MdHelp },
-  { label: 'Word', slug: 'word', icon: MdBook },
-]
-
-function SidebarItem({ label, href, icon: ItemIcon, active, disabled, forceLabels }: { label: string; href: string; icon: IconType; active?: boolean; disabled?: boolean; forceLabels?: boolean }) {
-  const inner = (
-    <div
-      className={`flex h-8.5 w-sidebar items-center border-start-6 select-none ${
-        active ? 'border-start-brand' : ''
-      } ${disabled ? 'opacity-30' : 'hover:cursor-pointer'}`}
-    >
-      <span className="flex h-8.5 w-sidebar-collapsed shrink-0 items-center justify-center -ms-1.5">
-        <ItemIcon size={22} className={active ? 'text-brand-60' : 'text-mist-30'} />
-      </span>
-      <div
-        className={`max-w-fit overflow-hidden text-start text-[15px] font-semibold whitespace-nowrap text-ellipsis transition-all ${
-          active ? 'text-brand-60' : 'text-white'
-        } invisible opacity-0 max-sm:visible max-sm:opacity-100 sm:group-hover:visible sm:group-hover:opacity-100 min-[1910px]:visible min-[1910px]:opacity-100${forceLabels ? ' sm:visible sm:opacity-100' : ''}`}
-      >
-        {label}
-      </div>
-    </div>
-  )
-
-  if (disabled || !href) return <div aria-label={label}>{inner}</div>
-  return <Link aria-label={label} href={href}>{inner}</Link>
-}
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -167,21 +91,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
           }}
           className="flex h-full w-full flex-col overflow-x-hidden overflow-y-auto pt-4 pb-7.5 no-scrollbar"
         >
-          {SIDEBAR_TOP.map((item) => (
-            <SidebarItem key={item.label} {...item} forceLabels={sidebarOpen} />
-          ))}
-
-          <div role="separator" className="mx-4 my-2 border-t border-night-60" />
-
-          {SIDEBAR_CATS.map((cat) => (
-            <SidebarItem
-              key={cat.slug}
-              label={cat.label}
-              href={`/game-category/${cat.slug}/`}
-              icon={cat.icon}
-              forceLabels={sidebarOpen}
-            />
-          ))}
+          <Suspense fallback={<SidebarNavStatic forceLabels={sidebarOpen} />}>
+            <SidebarNav forceLabels={sidebarOpen} />
+          </Suspense>
         </div>
       </nav>
 
