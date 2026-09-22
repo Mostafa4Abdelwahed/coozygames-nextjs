@@ -2,13 +2,22 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { FcGoogle } from 'react-icons/fc'
 import { MdVisibility, MdVisibilityOff } from 'react-icons/md'
-import { COUNTRY_CODES, validatePhoneNumber } from '@/lib/phone'
+import { authClient } from '@/lib/auth-client'
+import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from '@/lib/phone'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
+function toServerMessage(message: string): string {
+  if (message.includes('already exists') || message.includes('already registered'))
+    return 'هذا الحساب مسجل بالفعل، سجل الدخول'
+  return 'حدث خطأ، حاول مرة أخرى'
+}
+
 export function RegisterForm() {
+  const router = useRouter()
   const [name, setName] = useState('')
   const [region, setRegion] = useState('EG')
   const [phone, setPhone] = useState('')
@@ -17,13 +26,19 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [terms, setTerms] = useState(false)
   const [errors, setErrors] = useState<{ name?: string; phone?: string; email?: string; password?: string; terms?: string }>({})
-  const [done, setDone] = useState(false)
+  const [serverError, setServerError] = useState('')
+  const [pending, setPending] = useState(false)
 
   const inputClass =
     'h-12 w-full rounded-xl border border-transparent bg-night-40 px-4 text-start text-base font-bold text-white outline-none placeholder:text-mist-50 focus:border-brand-100'
   const errorInput = 'border-red-500 focus:border-red-500'
 
-  function handleSubmit(e: React.FormEvent) {
+  function clearError(key: keyof typeof errors) {
+    setErrors((p) => ({ ...p, [key]: undefined }))
+    setServerError('')
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const next: typeof errors = {}
     if (name.trim().length < 2) next.name = 'الاسم يجب أن يكون حرفين على الأقل'
@@ -33,7 +48,65 @@ export function RegisterForm() {
     if (password.length < 8) next.password = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'
     if (!terms) next.terms = 'يجب الموافقة على الشروط والأحكام'
     setErrors(next)
-    setDone(Object.keys(next).length === 0)
+    setServerError('')
+    if (Object.keys(next).length > 0) return
+
+    const normalizedPhone = normalizePhoneNumber(phone, region)
+    if (!normalizedPhone) {
+      setErrors({ phone: 'رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة' })
+      setPending(false)
+      return
+    }
+    const fullPhone = normalizedPhone
+
+    setPending(true)
+    try {
+      const checkRes = await fetch(
+        `/api/check-unique?email=${encodeURIComponent(email.trim())}&phoneNumber=${encodeURIComponent(fullPhone)}`,
+      )
+      const check = (await checkRes.json()) as { emailTaken: boolean; phoneTaken: boolean }
+      const taken: typeof errors = {}
+      if (check.emailTaken) taken.email = 'هذا البريد مسجل بالفعل، سجل الدخول'
+      if (check.phoneTaken) taken.phone = 'هذا الرقم مسجل بالفعل، سجل الدخول'
+      if (Object.keys(taken).length > 0) {
+        setErrors(taken)
+        setPending(false)
+        return
+      }
+    } catch {
+      // Pre-check failed (network); the database constraints still guarantee uniqueness
+    }
+
+    const { error } = await authClient.signUp.email({
+      name: name.trim(),
+      email: email.trim(),
+      password,
+      phoneNumber: fullPhone,
+    })
+    setPending(false)
+    if (error) {
+      const message = error.message ?? ''
+      if (message.toLowerCase().includes('phone')) {
+        setErrors({ phone: 'هذا الرقم مسجل بالفعل، سجل الدخول' })
+      } else if (message.toLowerCase().includes('email')) {
+        setErrors({ email: 'هذا البريد مسجل بالفعل، سجل الدخول' })
+      } else {
+        // Pre-check passed but creation failed: almost certainly a duplicate race
+        setServerError('قد يكون هذا الحساب مسجلًا بالفعل، سجل الدخول')
+      }
+      return
+    }
+    router.push('/')
+    router.refresh()
+  }
+
+  async function handleGoogle() {
+    setServerError('')
+    const { error } = await authClient.signIn.social({
+      provider: 'google',
+      callbackURL: '/',
+    })
+    if (error) setServerError(toServerMessage(error.message ?? ''))
   }
 
   function fieldError(message?: string, id?: string) {
@@ -49,6 +122,7 @@ export function RegisterForm() {
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-4">
       <button
         type="button"
+        onClick={handleGoogle}
         className="flex h-12 items-center justify-center gap-2 rounded-xl bg-night-60 text-sm font-extrabold text-white transition hover:bg-night-40"
       >
         <FcGoogle size={20} />
@@ -73,8 +147,7 @@ export function RegisterForm() {
           value={name}
           onChange={(e) => {
             setName(e.target.value)
-            setErrors((p) => ({ ...p, name: undefined }))
-            setDone(false)
+            clearError('name')
           }}
           placeholder="مثال: أحمد محمد"
           aria-invalid={!!errors.name}
@@ -93,8 +166,7 @@ export function RegisterForm() {
             value={region}
             onChange={(e) => {
               setRegion(e.target.value)
-              setErrors((p) => ({ ...p, phone: undefined }))
-              setDone(false)
+              clearError('phone')
             }}
             aria-label="كود الدولة"
             className="h-12 w-28 shrink-0 rounded-xl border border-transparent bg-night-40 px-2 text-left text-sm font-bold text-white outline-none focus:border-brand-100"
@@ -114,8 +186,7 @@ export function RegisterForm() {
             value={phone}
             onChange={(e) => {
               setPhone(e.target.value)
-              setErrors((p) => ({ ...p, phone: undefined }))
-              setDone(false)
+              clearError('phone')
             }}
             onBlur={() => {
               if (phone) {
@@ -146,8 +217,7 @@ export function RegisterForm() {
           value={email}
           onChange={(e) => {
             setEmail(e.target.value)
-            setErrors((p) => ({ ...p, email: undefined }))
-            setDone(false)
+            clearError('email')
           }}
           placeholder="you@example.com"
           aria-invalid={!!errors.email}
@@ -170,8 +240,7 @@ export function RegisterForm() {
             value={password}
             onChange={(e) => {
               setPassword(e.target.value)
-              setErrors((p) => ({ ...p, password: undefined }))
-              setDone(false)
+              clearError('password')
             }}
             placeholder="8 أحرف على الأقل"
             aria-invalid={!!errors.password}
@@ -197,8 +266,7 @@ export function RegisterForm() {
             checked={terms}
             onChange={(e) => {
               setTerms(e.target.checked)
-              setErrors((p) => ({ ...p, terms: undefined }))
-              setDone(false)
+              clearError('terms')
             }}
             className="h-4 w-4 accent-brand-100"
           />
@@ -207,18 +275,19 @@ export function RegisterForm() {
         {fieldError(errors.terms, 'register-terms-error')}
       </div>
 
-      <button
-        type="submit"
-        className="flex h-12 items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70"
-      >
-        إنشاء حساب
-      </button>
-
-      {done && (
-        <p role="status" className="rounded-xl bg-emerald-500/15 px-4 py-2.5 text-center text-sm font-bold text-emerald-400">
-          تم إنشاء الحساب بنجاح (وضع تجريبي)
+      {serverError && (
+        <p role="alert" className="rounded-xl bg-red-500/15 px-4 py-2.5 text-center text-sm font-bold text-red-400">
+          {serverError}
         </p>
       )}
+
+      <button
+        type="submit"
+        disabled={pending}
+        className="flex h-12 items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70 disabled:opacity-60"
+      >
+        {pending ? 'جارٍ إنشاء الحساب...' : 'إنشاء حساب'}
+      </button>
 
       <p className="text-center text-sm font-semibold text-mist-50">
         لديك حساب بالفعل؟{' '}

@@ -1,4 +1,4 @@
-import { PhoneNumberUtil } from 'google-libphonenumber'
+import { PhoneNumberFormat, PhoneNumberUtil } from 'google-libphonenumber'
 
 export const COUNTRY_CODES = [
   { code: 'EG', dial: '+20', label: 'مصر' },
@@ -26,14 +26,23 @@ export function validatePhoneNumber(value: string, region: string): string {
   if (!NATIONAL_NUMBER_RE.test(digits)) {
     return 'رقم الهاتف يجب أن يكون من 6 إلى 14 رقمًا'
   }
-  try {
-    const util = PhoneNumberUtil.getInstance()
-    const number = util.parse(digits, region)
-    if (!util.isValidNumber(number)) {
-      return 'رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة'
-    }
-  } catch {
+  if (!normalizePhoneNumber(value, region)) {
     return 'رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة'
   }
   return ''
+}
+
+/**
+ * Normalizes any valid number to E.164 (e.g. "01014426851" EG -> "+201014426851").
+ * Returns null when the number is not valid. Always store/compare this form.
+ */
+export function normalizePhoneNumber(value: string, region?: string): string | null {
+  try {
+    const util = PhoneNumberUtil.getInstance()
+    const number = util.parse(value.replace(/[\s-]/g, ''), region)
+    if (!util.isValidNumber(number)) return null
+    return util.format(number, PhoneNumberFormat.E164)
+  } catch {
+    return null
+  }
 }

@@ -1,13 +1,23 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { MdChevronLeft, MdHome } from 'react-icons/md'
+import { auth } from '@/lib/auth'
 import { LoginForm } from '@/components/login-form'
 
 export const metadata: Metadata = {
   title: 'تسجيل الدخول | Coozy Games',
 }
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  if (session) {
+    redirect('/profile/')
+  }
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6 p-3 sm:gap-8 sm:p-5">
       <nav aria-label="مسار التنقل" className="flex items-center gap-1 text-sm font-semibold text-mist-50">

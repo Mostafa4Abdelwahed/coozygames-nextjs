@@ -2,11 +2,21 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { FcGoogle } from 'react-icons/fc'
 import { MdVisibility, MdVisibilityOff } from 'react-icons/md'
-import { COUNTRY_CODES, validatePhoneNumber } from '@/lib/phone'
+import { authClient } from '@/lib/auth-client'
+import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from '@/lib/phone'
+
+function toServerMessage(message: string): string {
+  if (message.includes('Invalid phone number or password')) return 'رقم الهاتف أو كلمة المرور غير صحيحة'
+  if (message.includes('not found') || message.includes('User not found')) return 'لا يوجد حساب بهذا الرقم'
+  if (message.includes('not verified')) return 'رقم الهاتف غير مؤكد'
+  return 'حدث خطأ، حاول مرة أخرى'
+}
 
 export function LoginForm() {
+  const router = useRouter()
   const [region, setRegion] = useState('EG')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
@@ -14,7 +24,8 @@ export function LoginForm() {
   const [remember, setRemember] = useState(true)
   const [phoneError, setPhoneError] = useState('')
   const [passwordError, setPasswordError] = useState('')
-  const [done, setDone] = useState(false)
+  const [serverError, setServerError] = useState('')
+  const [pending, setPending] = useState(false)
 
   function validatePhone(value: string): string {
     return validatePhoneNumber(value, region)
@@ -23,21 +34,50 @@ export function LoginForm() {
   const inputClass =
     'h-12 w-full rounded-xl border border-transparent bg-night-40 px-4 text-start text-base font-bold text-white outline-none placeholder:text-mist-50 focus:border-brand-100'
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const phoneErr = validatePhone(phone)
+    const passErr = password ? '' : 'كلمة المرور مطلوبة'
+    setPhoneError(phoneErr)
+    setPasswordError(passErr)
+    setServerError('')
+    if (phoneErr || passErr) return
+
+    setPending(true)
+    const normalized = normalizePhoneNumber(phone, region)
+    if (!normalized) {
+      setPending(false)
+      setPhoneError('رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة')
+      return
+    }
+    const { error } = await authClient.signIn.phoneNumber({
+      phoneNumber: normalized,
+      password,
+      rememberMe: remember,
+    })
+    setPending(false)
+    if (error) {
+      setServerError(toServerMessage(error.message ?? ''))
+      return
+    }
+    router.push('/')
+    router.refresh()
+  }
+
+  async function handleGoogle() {
+    setServerError('')
+    const { error } = await authClient.signIn.social({
+      provider: 'google',
+      callbackURL: '/',
+    })
+    if (error) setServerError(toServerMessage(error.message ?? ''))
+  }
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        const phoneErr = validatePhone(phone)
-        const passErr = password ? '' : 'كلمة المرور مطلوبة'
-        setPhoneError(phoneErr)
-        setPasswordError(passErr)
-        setDone(phoneErr === '' && passErr === '')
-      }}
-      noValidate
-      className="flex w-full flex-col gap-4"
-    >
+    <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-4">
       <button
         type="button"
+        onClick={handleGoogle}
         className="flex h-12 items-center justify-center gap-2 rounded-xl bg-night-60 text-sm font-extrabold text-white transition hover:bg-night-40"
       >
         <FcGoogle size={20} />
@@ -60,7 +100,7 @@ export function LoginForm() {
             onChange={(e) => {
               setRegion(e.target.value)
               setPhoneError('')
-              setDone(false)
+              setServerError('')
             }}
             aria-label="كود الدولة"
             className="h-12 w-28 shrink-0 rounded-xl border border-transparent bg-night-40 px-2 text-left text-sm font-bold text-white outline-none focus:border-brand-100"
@@ -81,7 +121,7 @@ export function LoginForm() {
             onChange={(e) => {
               setPhone(e.target.value)
               setPhoneError('')
-              setDone(false)
+              setServerError('')
             }}
             onBlur={() => {
               if (phone) setPhoneError(validatePhone(phone))
@@ -113,7 +153,7 @@ export function LoginForm() {
             onChange={(e) => {
               setPassword(e.target.value)
               setPasswordError('')
-              setDone(false)
+              setServerError('')
             }}
             placeholder="••••••••"
             aria-invalid={passwordError !== ''}
@@ -146,18 +186,19 @@ export function LoginForm() {
         ابقَ مسجل الدخول
       </label>
 
-      <button
-        type="submit"
-        className="flex h-12 items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70"
-      >
-        تسجيل الدخول
-      </button>
-
-      {done && (
-        <p role="status" className="rounded-xl bg-emerald-500/15 px-4 py-2.5 text-center text-sm font-bold text-emerald-400">
-          تم تسجيل الدخول بنجاح (وضع تجريبي)
+      {serverError && (
+        <p role="alert" className="rounded-xl bg-red-500/15 px-4 py-2.5 text-center text-sm font-bold text-red-400">
+          {serverError}
         </p>
       )}
+
+      <button
+        type="submit"
+        disabled={pending}
+        className="flex h-12 items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70 disabled:opacity-60"
+      >
+        {pending ? 'جارٍ تسجيل الدخول...' : 'تسجيل الدخول'}
+      </button>
 
       <p className="text-center text-sm font-semibold text-mist-50">
         جديد هنا؟{' '}

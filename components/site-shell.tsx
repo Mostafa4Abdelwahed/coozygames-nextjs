@@ -5,7 +5,9 @@ import { Suspense } from 'react'
 import type { ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { MdMenu, MdSearch } from 'react-icons/md'
+import { useRouter } from 'next/navigation'
+import { MdLogout, MdMenu, MdSearch } from 'react-icons/md'
+import { authClient, useSession } from '@/lib/auth-client'
 import { SidebarNav, SidebarNavStatic } from './sidebar-nav'
 
 const SearchOverlay = dynamic(
@@ -14,8 +16,16 @@ const SearchOverlay = dynamic(
 )
 
 export function SiteShell({ children }: { children: ReactNode }) {
+  const router = useRouter()
+  const { data: session, isPending } = useSession()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+
+  async function handleLogout() {
+    await authClient.signOut()
+    router.push('/')
+    router.refresh()
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col items-stretch bg-night-100">
@@ -56,12 +66,34 @@ export function SiteShell({ children }: { children: ReactNode }) {
           >
             <MdSearch size={22} />
           </button>
-          <Link
-            className="flex h-9 items-center justify-center rounded-[30px] bg-brand-100 px-3 text-sm font-extrabold whitespace-nowrap text-mist-100 transition hover:bg-brand-80 active:opacity-70 sm:h-10 sm:px-4 sm:text-base"
-            href="/login/"
-          >
-            <span>تسجيل الدخول</span>
-          </Link>
+          {isPending ? (
+            <span aria-hidden="true" className="h-9 w-24 animate-pulse rounded-[30px] bg-night-60 sm:h-10" />
+          ) : session ? (
+            <>
+              <Link
+                href="/profile/"
+                aria-label="حسابي"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#6842ff,#22d3ee)] text-sm font-extrabold text-white sm:h-10 sm:w-10"
+              >
+                {(session.user.name ?? '؟').charAt(0)}
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                aria-label="تسجيل الخروج"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-mist-90 transition hover:text-mist-50 sm:h-10 sm:w-10"
+              >
+                <MdLogout size={20} />
+              </button>
+            </>
+          ) : (
+            <Link
+              className="flex h-9 items-center justify-center rounded-[30px] bg-brand-100 px-3 text-sm font-extrabold whitespace-nowrap text-mist-100 transition hover:bg-brand-80 active:opacity-70 sm:h-10 sm:px-4 sm:text-base"
+              href="/login/"
+            >
+              <span>تسجيل الدخول</span>
+            </Link>
+          )}
         </div>
       </div>
 
