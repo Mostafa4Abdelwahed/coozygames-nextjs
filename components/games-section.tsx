@@ -2,7 +2,18 @@ import Link from 'next/link'
 import type { Game } from '@/lib/games'
 import { GameCard } from './game-card'
 
-export function GamesSection({ title, href, games }: { title: string; href: string; games: Game[] }) {
+export function GamesSection({
+  title,
+  href,
+  games,
+  priorityCount = 0,
+}: {
+  title: string
+  href: string
+  games: Game[]
+  /** When > 0, the first card is treated as the page LCP candidate. */
+  priorityCount?: number
+}) {
   return (
     <section>
       <div className="mb-3 flex items-center justify-between">
@@ -12,8 +23,8 @@ export function GamesSection({ title, href, games }: { title: string; href: stri
         </Link>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7">
-        {games.map((game) => (
-          <GameCard key={game.slug} game={game} />
+        {games.map((game, i) => (
+          <GameCard key={game.slug} game={game} priority={priorityCount > 0 && i === 0} />
         ))}
       </div>
     </section>

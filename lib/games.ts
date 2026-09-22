@@ -1,22 +1,5 @@
 import type { IconType } from 'react-icons'
-import {
-  MdAdjust,
-  MdBook,
-  MdDirectionsCar,
-  MdExtension,
-  MdFavorite,
-  MdFlashOn,
-  MdGridOn,
-  MdGroup,
-  MdLanguage,
-  MdLightbulb,
-  MdMap,
-  MdSettings,
-  MdSportsSoccer,
-  MdStyle,
-  MdTouchApp,
-  MdVideogameAsset,
-} from 'react-icons/md'
+import { categoryStyle } from './category-meta'
 import catalog from '@/data/games.json'
 
 export type GameCategory = {
@@ -48,64 +31,6 @@ type RawGame = {
   image: string
   url: string
   categories?: GameCategory[]
-}
-
-const FALLBACK_STYLE = { icon: MdVideogameAsset, gradient: 'from-violet-500 to-cyan-400' }
-
-const CATEGORY_STYLE: Record<string, { icon: IconType; gradient: string }> = {
-  io: { icon: MdLanguage, gradient: 'from-fuchsia-500 to-violet-500' },
-  action: { icon: MdFlashOn, gradient: 'from-rose-500 to-amber-400' },
-  adventure: { icon: MdMap, gradient: 'from-purple-500 to-indigo-900' },
-  arcade: { icon: MdVideogameAsset, gradient: 'from-violet-500 to-cyan-400' },
-  beauty: { icon: MdFavorite, gradient: 'from-pink-400 to-rose-500' },
-  'dress-up': { icon: MdFavorite, gradient: 'from-pink-400 to-rose-500' },
-  girls: { icon: MdFavorite, gradient: 'from-pink-400 to-rose-500' },
-  board: { icon: MdGridOn, gradient: 'from-stone-400 to-stone-700' },
-  mahjong: { icon: MdGridOn, gradient: 'from-stone-400 to-stone-700' },
-  card: { icon: MdStyle, gradient: 'from-indigo-400 to-purple-600' },
-  cards: { icon: MdStyle, gradient: 'from-indigo-400 to-purple-600' },
-  clicker: { icon: MdTouchApp, gradient: 'from-lime-400 to-emerald-600' },
-  idle: { icon: MdTouchApp, gradient: 'from-lime-400 to-emerald-600' },
-  driving: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
-  car: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
-  racing: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
-  moto: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
-  parking: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
-  puzzle: { icon: MdExtension, gradient: 'from-amber-400 to-rose-400' },
-  merge: { icon: MdExtension, gradient: 'from-amber-400 to-rose-400' },
-  brain: { icon: MdLightbulb, gradient: 'from-amber-300 to-orange-500' },
-  shooting: { icon: MdAdjust, gradient: 'from-slate-500 to-slate-800' },
-  sniper: { icon: MdAdjust, gradient: 'from-slate-500 to-slate-800' },
-  zombie: { icon: MdAdjust, gradient: 'from-green-600 to-emerald-900' },
-  simulation: { icon: MdSettings, gradient: 'from-teal-400 to-emerald-700' },
-  cooking: { icon: MdSettings, gradient: 'from-orange-300 to-amber-600' },
-  sports: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
-  soccer: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
-  football: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
-  basketball: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
-  tennis: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
-  pool: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
-  strategy: { icon: MdLightbulb, gradient: 'from-orange-400 to-red-600' },
-  'tower-defense': { icon: MdLightbulb, gradient: 'from-orange-400 to-red-600' },
-  trivia: { icon: MdBook, gradient: 'from-teal-400 to-blue-600' },
-  word: { icon: MdBook, gradient: 'from-yellow-300 to-amber-600' },
-  escape: { icon: MdMap, gradient: 'from-teal-500 to-emerald-800' },
-  platform: { icon: MdVideogameAsset, gradient: 'from-sky-400 to-blue-700' },
-  stickman: { icon: MdFlashOn, gradient: 'from-zinc-500 to-zinc-800' },
-  multiplayer: { icon: MdGroup, gradient: 'from-indigo-500 to-cyan-400' },
-  'two-player': { icon: MdGroup, gradient: 'from-indigo-500 to-cyan-400' },
-  skill: { icon: MdExtension, gradient: 'from-cyan-400 to-blue-600' },
-  flash: { icon: MdFlashOn, gradient: 'from-yellow-300 to-orange-500' },
-  fighting: { icon: MdFlashOn, gradient: 'from-red-500 to-orange-500' },
-  decoration: { icon: MdStyle, gradient: 'from-purple-300 to-pink-400' },
-  new: { icon: MdLightbulb, gradient: 'from-emerald-300 to-teal-500' },
-  animals: { icon: MdFavorite, gradient: 'from-green-300 to-emerald-500' },
-  farm: { icon: MdSettings, gradient: 'from-lime-400 to-emerald-600' },
-  restaurant: { icon: MdSettings, gradient: 'from-orange-300 to-amber-600' },
-}
-
-export function categoryStyle(slug: string): { icon: IconType; gradient: string } {
-  return CATEGORY_STYLE[slug] ?? FALLBACK_STYLE
 }
 
 // Fallback classifier used only when a catalog entry has no categories.
@@ -215,4 +140,9 @@ export function resolveCategorySlug(slug: string): string {
 
 export function getGameBySlug(slug: string): Game | undefined {
   return ALL_GAMES.find((g) => g.slug === slug)
+}
+
+/** All game slugs (for static generation of /game/[slug]). */
+export function allGameSlugs(): string[] {
+  return ALL_GAMES.map((g) => g.slug)
 }

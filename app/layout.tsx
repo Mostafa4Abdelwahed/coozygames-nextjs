@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import { SiteShell } from "@/components/site-shell";
+import { navCategories } from "@/lib/categories";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -20,7 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="ar"
       className={`${cairo.className} h-full antialiased`}
     >
-      <body dir="rtl" className="min-h-full flex flex-col"><SiteShell>{children}</SiteShell></body>
+      <body dir="rtl" className="min-h-full flex flex-col"><SiteShell categories={navCategories()}>{children}</SiteShell></body>
     </html>
   );
 }

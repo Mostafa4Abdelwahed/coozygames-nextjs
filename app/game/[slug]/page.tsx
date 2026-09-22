@@ -2,10 +2,18 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { MdCategory, MdChevronLeft, MdHome, MdPlayArrow, MdStar, MdVideogameAsset } from 'react-icons/md'
-import { getGameBySlug, getGamesByCategory } from '@/lib/games'
-import { categoryLabelAr } from '@/lib/categories'
+import { allGameSlugs, getGameBySlug, getGamesByCategory } from '@/lib/games'
+import { categoryLabelAr } from '@/lib/category-meta'
+import { HEADER_THUMB_WIDTH, thumbUrl } from '@/lib/image'
 import { GameCard } from '@/components/game-card'
 import { GamePlayer } from '@/components/game-player'
+
+// Prerender every game page: no per-request data is needed, so these are
+// static HTML (CDN-cacheable, cheap prefetch). Unknown slugs still 404 on demand.
+export function generateStaticParams() {
+  return allGameSlugs().map((slug) => ({ slug }))
+}
+import Image from 'next/image'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -41,7 +49,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
       <div className="flex items-center gap-3 sm:gap-4">
         <span className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-night-80 sm:h-20 sm:w-20">
           {game.thumb ? (
-            <img src={game.thumb} alt={game.title} width={160} height={160} className="h-full w-full object-cover" />
+            <Image src={thumbUrl(game.thumb, HEADER_THUMB_WIDTH) as string} alt={game.title} width={160} height={160} sizes="80px" decoding="async" className="h-full w-full object-cover" />
           ) : (
             <span className="flex h-full w-full items-center justify-center text-brand-60">
               <game.icon size={36} />

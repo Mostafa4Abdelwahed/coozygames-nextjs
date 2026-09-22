@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { MdVideogameAsset } from 'react-icons/md'
+import { categoryStyle } from '@/lib/category-meta'
 import { getCategory } from '@/lib/categories'
 import { getGamesByCategory } from '@/lib/games'
 import { GameCard } from '@/components/game-card'
@@ -28,7 +29,7 @@ export default async function CategoryPage({
   const totalPages = Math.max(1, Math.ceil(games.length / PAGE_SIZE))
   const page = Math.min(Math.max(1, parseInt(pageParam ?? '1', 10) || 1), totalPages)
   const visible = games.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-  const Icon = category.icon
+  const Icon = categoryStyle(category.slug).icon
 
   return (
     <div className="flex flex-col gap-6 p-3 sm:gap-8 sm:p-5">

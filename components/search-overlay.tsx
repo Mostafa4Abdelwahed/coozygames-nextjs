@@ -1,23 +1,66 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { MdChevronLeft, MdClose, MdSearch, MdTrendingUp } from 'react-icons/md'
-import { ALL_GAMES } from '@/lib/games'
-import { categoryLabelAr } from '@/lib/categories'
+import { categoryLabelAr, categoryStyle } from '@/lib/category-meta'
+import { MINI_THUMB_WIDTH, thumbUrl } from '@/lib/image'
+import Image from 'next/image'
 
 const POPULAR_SEARCHES = ['Race', 'Puzzle', 'Football', 'Chess', 'Action']
 
 const DEBOUNCE_MS = 300
 
+type SearchResult = {
+  slug: string
+  title: string
+  categorySlug: string
+  categoryLabel: string
+  plays: string
+  rating: number
+  thumb?: string
+}
+
 export function SearchOverlay({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
+  // Results carry the query they were fetched for, so a stale response never
+  // renders under a newer query (and no separate loading flag is needed).
+  const [resolved, setResolved] = useState<{ query: string; results: SearchResult[] }>({
+    query: '',
+    results: [],
+  })
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query.trim()), DEBOUNCE_MS)
     return () => clearTimeout(t)
   }, [query])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const q = debouncedQuery
+
+    async function run() {
+      if (!q) {
+        setResolved({ query: '', results: [] })
+        return
+      }
+      let results: SearchResult[] = []
+      try {
+        const res = await fetch(`/api/games/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+        if (res.ok) {
+          const data: { results?: SearchResult[] } = await res.json()
+          results = data.results ?? []
+        }
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return
+      }
+      setResolved({ query: q, results })
+    }
+
+    run()
+    return () => controller.abort()
+  }, [debouncedQuery])
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -31,18 +74,8 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
     }
   }, [onClose])
 
-  const results = useMemo(() => {
-    if (!debouncedQuery) return []
-    const q = debouncedQuery.toLowerCase()
-    return ALL_GAMES.filter(
-      (g) =>
-        g.title.toLowerCase().includes(q) ||
-        g.category.toLowerCase().includes(q) ||
-        categoryLabelAr(g.categorySlug, g.category).includes(debouncedQuery.trim()),
-    ).slice(0, 7)
-  }, [debouncedQuery])
-
-  const isTyping = query.trim() !== debouncedQuery
+  const results = resolved.results
+  const isTyping = query.trim() !== debouncedQuery || resolved.query !== debouncedQuery
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4" role="dialog" aria-modal="true" aria-label="بحث">
@@ -121,17 +154,20 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
                   >
                     <span className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-night-60">
                       {game.thumb ? (
-                        <img src={game.thumb} alt="" width={80} height={80} loading="lazy" className="h-full w-full object-cover" />
+                        <Image src={thumbUrl(game.thumb, MINI_THUMB_WIDTH) as string} alt="" width={80} height={80} sizes="40px" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                       ) : (
                         <span className="flex h-full w-full items-center justify-center text-brand-60">
-                          <game.icon size={22} />
+                          {(() => {
+                            const Icon = categoryStyle(game.categorySlug).icon
+                            return <Icon size={22} />
+                          })()}
                         </span>
                       )}
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col text-start">
                       <span className="truncate text-[15px] font-bold text-white">{game.title}</span>
                       <span className="text-xs font-semibold text-mist-50">
-                        {categoryLabelAr(game.categorySlug, game.category)} • {game.plays} • ★ {game.rating}
+                        {categoryLabelAr(game.categorySlug, game.categoryLabel)} • {game.plays} • ★ {game.rating}
                       </span>
                     </span>
                     <MdChevronLeft size={20} className="shrink-0 text-mist-50" />

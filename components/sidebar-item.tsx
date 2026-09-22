@@ -12,7 +12,7 @@ export function SidebarItem({ label, href, icon: ItemIcon, active, disabled, for
         <ItemIcon size={22} className={active ? 'text-brand-60' : 'text-mist-30'} />
       </span>
       <div
-        className={`max-w-fit overflow-hidden text-start text-[15px] font-semibold whitespace-nowrap text-ellipsis transition-all ${
+        className={`max-w-fit overflow-hidden text-start text-[15px] font-semibold whitespace-nowrap text-ellipsis transition-[opacity,transform] ${
           active ? 'text-brand-60' : 'text-white'
         } invisible opacity-0 max-sm:visible max-sm:opacity-100 sm:group-hover:visible sm:group-hover:opacity-100 min-[1910px]:visible min-[1910px]:opacity-100${forceLabels ? ' sm:visible sm:opacity-100' : ''}`}
       >

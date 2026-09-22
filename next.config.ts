@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['react-icons'],
   },
+  images: {
+    localPatterns: [{ pathname: '/image/**' }],
+  },
   async headers() {
     return [
       {

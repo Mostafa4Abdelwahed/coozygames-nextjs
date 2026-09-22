@@ -4,6 +4,8 @@ import { useRef, useState } from 'react'
 import { MdFullscreen, MdPlayArrow, MdRefresh } from 'react-icons/md'
 import { ensureProxy, openGameFrame } from '@/lib/proxy'
 import type { SjFrame } from '@/lib/proxy'
+import { POSTER_THUMB_WIDTH, thumbUrl } from '@/lib/image'
+import Image from 'next/image'
 
 export function GamePlayer({ title, thumb, playUrl }: { title: string; thumb?: string; playUrl?: string }) {
   const [playing, setPlaying] = useState(false)
@@ -47,12 +49,16 @@ export function GamePlayer({ title, thumb, playUrl }: { title: string; thumb?: s
           className="group absolute inset-0 z-10 flex h-full w-full flex-col items-center justify-center gap-3"
         >
           {thumb && (
-            <img
-              src={thumb}
+            <Image
+              src={thumbUrl(thumb, POSTER_THUMB_WIDTH) as string}
               alt=""
               aria-hidden="true"
               width={628}
               height={628}
+              sizes="100vw"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="absolute inset-0 h-full w-full object-cover opacity-40 transition duration-300 group-hover:opacity-50"
             />
           )}
@@ -96,7 +102,7 @@ export function GamePlayer({ title, thumb, playUrl }: { title: string; thumb?: s
           type="button"
           onClick={goFullscreen}
           aria-label="ملء الشاشة"
-          className="absolute end-3 bottom-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+          className="absolute inset-e-3 bottom-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
         >
           <MdFullscreen size={22} />
         </button>

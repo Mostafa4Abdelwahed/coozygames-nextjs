@@ -5,9 +5,9 @@ import { Suspense } from 'react'
 import type { ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { MdLogout, MdMenu, MdSearch } from 'react-icons/md'
-import { authClient, useSession } from '@/lib/auth-client'
+import { MdMenu, MdSearch } from 'react-icons/md'
+import type { NavCategory } from '@/lib/category-meta'
+import { AuthArea } from './auth-area'
 import { SidebarNav, SidebarNavStatic } from './sidebar-nav'
 
 const SearchOverlay = dynamic(
@@ -15,17 +15,9 @@ const SearchOverlay = dynamic(
   { ssr: false },
 )
 
-export function SiteShell({ children }: { children: ReactNode }) {
-  const router = useRouter()
-  const { data: session, isPending } = useSession()
+export function SiteShell({ children, categories }: { children: ReactNode; categories: NavCategory[] }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-
-  async function handleLogout() {
-    await authClient.signOut()
-    router.push('/')
-    router.refresh()
-  }
 
   return (
     <div className="relative flex min-h-screen flex-col items-stretch bg-night-100">
@@ -66,34 +58,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
           >
             <MdSearch size={22} />
           </button>
-          {isPending ? (
-            <span aria-hidden="true" className="h-9 w-24 animate-pulse rounded-[30px] bg-night-60 sm:h-10" />
-          ) : session ? (
-            <>
-              <Link
-                href="/profile/"
-                aria-label="حسابي"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#6842ff,#22d3ee)] text-sm font-extrabold text-white sm:h-10 sm:w-10"
-              >
-                {(session.user.name ?? '؟').charAt(0)}
-              </Link>
-              <button
-                type="button"
-                onClick={handleLogout}
-                aria-label="تسجيل الخروج"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-mist-90 transition hover:text-mist-50 sm:h-10 sm:w-10"
-              >
-                <MdLogout size={20} />
-              </button>
-            </>
-          ) : (
-            <Link
-              className="flex h-9 items-center justify-center rounded-[30px] bg-brand-100 px-3 text-sm font-extrabold whitespace-nowrap text-mist-100 transition hover:bg-brand-80 active:opacity-70 sm:h-10 sm:px-4 sm:text-base"
-              href="/login/"
-            >
-              <span>تسجيل الدخول</span>
-            </Link>
-          )}
+          <AuthArea />
         </div>
       </div>
 
@@ -110,7 +75,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <nav
         id="mainNav"
         aria-label="التنقل بين الألعاب"
-        className={`group fixed top-header-mobile inset-s-0 z-30 h-[calc(100dvh-56px)] w-sidebar border-e border-night-60 bg-night-100 transition-all duration-200 ease-in-out sm:top-header sm:z-5 sm:h-[calc(100vh-60px)] min-[1910px]:w-sidebar ${
+        className={`group fixed top-header-mobile inset-s-0 z-30 h-[calc(100dvh-56px)] w-sidebar border-e border-night-60 bg-night-100 transition-[width] duration-200 ease-in-out sm:top-header sm:z-5 sm:h-[calc(100vh-60px)] min-[1910px]:w-sidebar ${
           sidebarOpen ? 'sm:w-sidebar' : 'sm:w-sidebar-collapsed'
         } ${
           sidebarOpen ? 'max-sm:translate-x-0' : 'max-sm:-translate-x-full max-sm:rtl:translate-x-full'
@@ -123,8 +88,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
           }}
           className="flex h-full w-full flex-col overflow-x-hidden overflow-y-auto pt-4 pb-7.5 no-scrollbar"
         >
-          <Suspense fallback={<SidebarNavStatic forceLabels={sidebarOpen} />}>
-            <SidebarNav forceLabels={sidebarOpen} />
+          <Suspense fallback={<SidebarNavStatic forceLabels={sidebarOpen} categories={categories} />}>
+            <SidebarNav forceLabels={sidebarOpen} categories={categories} />
           </Suspense>
         </div>
       </nav>
