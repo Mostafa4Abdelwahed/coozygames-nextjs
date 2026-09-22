@@ -3,12 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/build-proxy-assets.mjs && next dev",
+    "build": "node scripts/build-proxy-assets.mjs && next build",
     "start": "next start",
+    "wisp": "cd proxy-server && npm start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@mercuryworkshop/bare-mux": "^2.1.9",
+    "@mercuryworkshop/epoxy-transport": "^2.1.28",
+    "@mercuryworkshop/scramjet": "^1.1.0",
     "better-auth": "^1.7.5",
     "google-libphonenumber": "^3.2.46",
     "next": "16.3.5",
@@ -26,6 +30,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "puppeteer-core": "^25.11.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

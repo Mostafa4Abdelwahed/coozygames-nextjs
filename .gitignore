@@ -17,6 +17,17 @@
 /.next/
 /out/
 
+# game thumbnail disk cache
+/image-cache/
+
+# scramjet/epoxy/baremux vendor bundles (built by scripts/build-proxy-assets.mjs)
+/public/scram/
+/public/epoxy/
+/public/baremux/
+/public/sw.js
+/public/scramjet-init.js
+/public/register-sw.js
+
 # production
 /build
 

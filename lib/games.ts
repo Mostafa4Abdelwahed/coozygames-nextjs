@@ -7,16 +7,16 @@ import {
   MdFavorite,
   MdFlashOn,
   MdGridOn,
-  MdGroup,
-  MdHelp,
   MdLanguage,
   MdLightbulb,
   MdMap,
   MdSettings,
   MdSportsSoccer,
+  MdStyle,
+  MdTouchApp,
   MdVideogameAsset,
-  MdWhatshot,
 } from 'react-icons/md'
+import catalog from '@/data/games.json'
 
 export type Game = {
   slug: string
@@ -26,49 +26,116 @@ export type Game = {
   rating: number
   icon: IconType
   gradient: string
+  /** Local cached thumbnail, e.g. `/image/<hash>/<file>` */
+  thumb?: string
+  /** Real playable game URL (proxied at play time) */
+  playUrl?: string
 }
 
-export const TRENDING_GAMES: Game[] = [
-  { slug: 'metro-runner', title: 'عدّاء المترو', category: 'Arcade', plays: '8.3M', rating: 4.7, icon: MdVideogameAsset, gradient: 'from-violet-500 to-cyan-400' },
-  { slug: 'heroes-battle', title: 'معركة الأبطال', category: 'Action', plays: '5.2M', rating: 4.6, icon: MdFlashOn, gradient: 'from-rose-500 to-amber-400' },
-  { slug: 'multiplayer-arena', title: 'ساحة اللعب الجماعي', category: 'Multiplayer', plays: '6.1M', rating: 4.7, icon: MdGroup, gradient: 'from-indigo-500 to-cyan-400' },
-  { slug: 'super-football', title: 'كرة القدم الخارقة', category: 'Sports', plays: '4.0M', rating: 4.8, icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
-  { slug: 'io-race-arena', title: 'حلبة السباق الجماعي', category: '.io', plays: '3.7M', rating: 4.5, icon: MdLanguage, gradient: 'from-fuchsia-500 to-violet-500' },
-  { slug: 'mind-puzzle', title: 'لغز العقول', category: 'Puzzle', plays: '3.1M', rating: 4.9, icon: MdExtension, gradient: 'from-amber-400 to-rose-400' },
-  { slug: 'car-racing-pro', title: 'سباق السيارات الاحترافي', category: 'Driving', plays: '2.4M', rating: 4.8, icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
-  { slug: 'elite-sniper', title: 'القناص المحترف', category: 'Shooting', plays: '2.9M', rating: 4.5, icon: MdAdjust, gradient: 'from-slate-500 to-slate-800' },
+type RawGame = {
+  name: string
+  image: string
+  url: string
+}
+
+const CATEGORY_STYLE: Record<string, { icon: IconType; gradient: string }> = {
+  '.io': { icon: MdLanguage, gradient: 'from-fuchsia-500 to-violet-500' },
+  Action: { icon: MdFlashOn, gradient: 'from-rose-500 to-amber-400' },
+  Adventure: { icon: MdMap, gradient: 'from-purple-500 to-indigo-900' },
+  Arcade: { icon: MdVideogameAsset, gradient: 'from-violet-500 to-cyan-400' },
+  Beauty: { icon: MdFavorite, gradient: 'from-pink-400 to-rose-500' },
+  Board: { icon: MdGridOn, gradient: 'from-stone-400 to-stone-700' },
+  Card: { icon: MdStyle, gradient: 'from-indigo-400 to-purple-600' },
+  Clicker: { icon: MdTouchApp, gradient: 'from-lime-400 to-emerald-600' },
+  Driving: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
+  Puzzle: { icon: MdExtension, gradient: 'from-amber-400 to-rose-400' },
+  Shooting: { icon: MdAdjust, gradient: 'from-slate-500 to-slate-800' },
+  Simulation: { icon: MdSettings, gradient: 'from-teal-400 to-emerald-700' },
+  Sports: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
+  Strategy: { icon: MdLightbulb, gradient: 'from-orange-400 to-red-600' },
+  Trivia: { icon: MdBook, gradient: 'from-teal-400 to-blue-600' },
+  Word: { icon: MdBook, gradient: 'from-yellow-300 to-amber-600' },
+}
+
+// Ordered: specific matches first, general last
+const CLASSIFIER: { label: string; keywords: string[] }[] = [
+  { label: '.io', keywords: ['.io', 'agar', 'slither', 'surviv', 'snake', 'worm', 'arena'] },
+  { label: 'Word', keywords: ['word', 'crossword', 'letter', 'typing', 'spelling', 'wordle'] },
+  { label: 'Trivia', keywords: ['trivia', 'quiz', 'guess the', 'who is', 'riddle'] },
+  { label: 'Card', keywords: ['card', 'poker', 'solitaire', 'uno', 'blackjack'] },
+  { label: 'Board', keywords: ['chess', 'checkers', 'ludo', 'mahjong', 'domino', 'backgammon'] },
+  { label: 'Clicker', keywords: ['clicker', 'idle', 'click '] },
+  { label: 'Driving', keywords: ['race', 'racing', 'drive', 'driving', 'drift', 'parking', 'truck', 'moto', 'bike', 'traffic', 'kart'] },
+  { label: 'Shooting', keywords: ['shoot', 'sniper', 'gun', 'zombie', 'archer', 'archery', 'tank', 'bullet', 'strike'] },
+  { label: 'Sports', keywords: ['soccer', 'football', 'basketball', 'tennis', 'golf', 'baseball', 'cricket', 'hockey', 'boxing', 'wrestling', 'skate', 'surfing', 'pool', 'billiard', 'bowling', 'fishing', 'ski', 'cycling', 'wrestle'] },
+  { label: 'Simulation', keywords: ['simulator', 'tycoon', 'farm', 'cooking', 'cook', 'restaurant', 'hospital', 'airport', 'doctor', 'dentist', 'pet', 'baby'] },
+  { label: 'Beauty', keywords: ['beauty', 'dress', 'makeup', 'fashion', 'hair', 'nail', 'princess', 'wedding', 'barbie'] },
+  { label: 'Strategy', keywords: ['strategy', 'tower', 'defense', 'empire', 'kingdom', 'civilization', 'tactics'] },
+  { label: 'Puzzle', keywords: ['puzzle', 'block', 'match', 'merge', 'jewel', 'candy', 'sudoku', 'maze', 'brain', '2048', 'jigsaw', 'bubble', 'tetris'] },
+  { label: 'Shooting', keywords: ['war ', 'battlefield'] },
+  { label: 'Action', keywords: ['action', 'fight', 'fighter', 'battle', 'warrior', 'stickman', 'samurai', 'dragon', 'ninja', 'assassin', 'hero'] },
+  { label: 'Adventure', keywords: ['adventure', 'quest', 'journey', 'island', 'pirate', 'treasure', 'escape', 'temple'] },
+  { label: 'Arcade', keywords: ['arcade', 'runner', 'dash', 'stack', 'pong'] },
 ]
 
-export const NEW_GAMES: Game[] = [
-  { slug: 'candy-match', title: 'مطابقة الحلوى', category: 'Puzzle', plays: '450K', rating: 4.5, icon: MdFavorite, gradient: 'from-pink-400 to-rose-500' },
-  { slug: 'ninja-run', title: 'ركضة النينجا', category: 'Action', plays: '320K', rating: 4.4, icon: MdFlashOn, gradient: 'from-neutral-700 to-black' },
-  { slug: 'farm-simulator', title: 'محاكي المزرعة', category: 'Simulation', plays: '2.2M', rating: 4.6, icon: MdSettings, gradient: 'from-lime-400 to-emerald-600' },
-  { slug: 'war-strategy', title: 'حرب الاستراتيجية', category: 'Strategy', plays: '1.5M', rating: 4.6, icon: MdLightbulb, gradient: 'from-orange-400 to-red-600' },
-  { slug: 'quiz-challenge', title: 'تحدي المعلومات', category: 'Trivia', plays: '700K', rating: 4.3, icon: MdHelp, gradient: 'from-teal-400 to-blue-600' },
-  { slug: 'crosswords', title: 'كلمات متقاطعة', category: 'Word', plays: '900K', rating: 4.4, icon: MdBook, gradient: 'from-yellow-300 to-amber-600' },
-  { slug: 'kings-chess', title: 'شطرنج الملوك', category: 'Board', plays: '1.2M', rating: 4.9, icon: MdGridOn, gradient: 'from-stone-400 to-stone-700' },
-  { slug: 'space-adventure', title: 'مغامرات الفضاء', category: 'Adventure', plays: '1.8M', rating: 4.7, icon: MdMap, gradient: 'from-purple-500 to-indigo-900' },
-]
+function classify(name: string): string {
+  const lower = ` ${name.toLowerCase()} `
+  for (const { label, keywords } of CLASSIFIER) {
+    if (keywords.some((k) => lower.includes(k))) return label
+  }
+  return 'Arcade'
+}
 
-export const ACTION_GAMES: Game[] = [
-  { slug: 'street-fighter-2d', title: 'مقاتل الشوارع', category: 'Action', plays: '3.0M', rating: 4.6, icon: MdFlashOn, gradient: 'from-red-500 to-orange-500' },
-  { slug: 'dragon-fight', title: 'قتال التنين', category: 'Action', plays: '2.3M', rating: 4.8, icon: MdWhatshot, gradient: 'from-orange-500 to-yellow-500' },
-  { slug: 'zombie-hunter', title: 'صائد الزومبي', category: 'Action', plays: '2.0M', rating: 4.5, icon: MdFlashOn, gradient: 'from-green-500 to-emerald-800' },
-  { slug: 'robot-war', title: 'حرب الروبوتات', category: 'Action', plays: '1.6M', rating: 4.5, icon: MdSettings, gradient: 'from-slate-400 to-slate-700' },
-  { slug: 'shadow-strike', title: 'ضربة الظل', category: 'Action', plays: '1.1M', rating: 4.6, icon: MdFlashOn, gradient: 'from-zinc-600 to-black' },
-  { slug: 'ninja-blade', title: 'سيف النينجا', category: 'Action', plays: '890K', rating: 4.7, icon: MdWhatshot, gradient: 'from-red-600 to-zinc-900' },
-]
+function slugify(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return slug || 'game'
+}
 
-export const PUZZLE_GAMES: Game[] = [
-  { slug: 'brain-test-tricky', title: 'اختبار العقل', category: 'Puzzle', plays: '2.7M', rating: 4.7, icon: MdLightbulb, gradient: 'from-amber-300 to-orange-500' },
-  { slug: 'block-puzzle-wood', title: 'مكعبات الخشب', category: 'Puzzle', plays: '1.9M', rating: 4.5, icon: MdExtension, gradient: 'from-yellow-600 to-amber-800' },
-  { slug: 'jewel-quest', title: 'رحلة الجواهر', category: 'Puzzle', plays: '1.4M', rating: 4.6, icon: MdFavorite, gradient: 'from-cyan-400 to-blue-600' },
-  { slug: 'match-3-mania', title: 'جنون المطابقة', category: 'Puzzle', plays: '1.1M', rating: 4.3, icon: MdExtension, gradient: 'from-pink-400 to-purple-600' },
-  { slug: 'maze-escape', title: 'الهروب من المتاهة', category: 'Puzzle', plays: '950K', rating: 4.6, icon: MdMap, gradient: 'from-teal-500 to-emerald-800' },
-  { slug: 'sudoku-classic', title: 'سودوكو كلاسيك', category: 'Puzzle', plays: '800K', rating: 4.4, icon: MdGridOn, gradient: 'from-sky-300 to-indigo-500' },
-]
+function pseudoStats(index: number): { plays: string; rating: number } {
+  const playsNum = 0.3 + ((index * 7919) % 8500) / 1000
+  const plays = playsNum >= 1 ? `${playsNum.toFixed(1)}M` : `${Math.round(playsNum * 1000)}K`
+  const rating = 4 + ((index * 13) % 9) / 10
+  return { plays, rating: Math.round(rating * 10) / 10 }
+}
 
-export const ALL_GAMES: Game[] = [...TRENDING_GAMES, ...NEW_GAMES, ...ACTION_GAMES, ...PUZZLE_GAMES]
+function buildGames(): Game[] {
+  const seen = new Map<string, number>()
+  return (catalog as RawGame[]).map((raw, index) => {
+    const base = slugify(raw.name)
+    const count = seen.get(base) ?? 0
+    seen.set(base, count + 1)
+    const slug = count === 0 ? base : `${base}-${count + 1}`
+    const category = classify(raw.name)
+    const style = CATEGORY_STYLE[category] ?? CATEGORY_STYLE.Arcade
+    const { plays, rating } = pseudoStats(index)
+    return {
+      slug,
+      title: raw.name,
+      category,
+      plays,
+      rating,
+      icon: style.icon,
+      gradient: style.gradient,
+      thumb: `/image/${raw.image}`,
+      playUrl: raw.url,
+    }
+  })
+}
+
+export const ALL_GAMES: Game[] = buildGames()
+
+const byPlays = [...ALL_GAMES].sort((a, b) => {
+  const num = (p: string) => (p.endsWith('M') ? parseFloat(p) * 1000 : parseFloat(p))
+  return num(b.plays) - num(a.plays)
+})
+
+export const TRENDING_GAMES: Game[] = byPlays.slice(0, 8)
+export const NEW_GAMES: Game[] = ALL_GAMES.slice(400, 408)
+export const ACTION_GAMES: Game[] = ALL_GAMES.filter((g) => g.category === 'Action').slice(0, 6)
+export const PUZZLE_GAMES: Game[] = ALL_GAMES.filter((g) => g.category === 'Puzzle').slice(0, 6)
 
 const SLUG_TO_LABEL: Record<string, string> = {
   io: '.io',
@@ -77,4 +144,8 @@ const SLUG_TO_LABEL: Record<string, string> = {
 export function getGamesByCategory(slug: string): Game[] {
   const label = SLUG_TO_LABEL[slug] ?? slug
   return ALL_GAMES.filter((g) => g.category.toLowerCase() === label.toLowerCase())
+}
+
+export function getGameBySlug(slug: string): Game | undefined {
+  return ALL_GAMES.find((g) => g.slug === slug)
 }

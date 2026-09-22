@@ -2,55 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import type { IconType } from 'react-icons'
-import {
-  MdAdjust,
-  MdBook,
-  MdChevronLeft,
-  MdClose,
-  MdDirectionsCar,
-  MdExtension,
-  MdFlashOn,
-  MdGridOn,
-  MdGroup,
-  MdHelp,
-  MdLanguage,
-  MdLightbulb,
-  MdMap,
-  MdSearch,
-  MdSettings,
-  MdSportsSoccer,
-  MdTrendingUp,
-  MdVideogameAsset,
-} from 'react-icons/md'
+import { MdChevronLeft, MdClose, MdSearch, MdTrendingUp } from 'react-icons/md'
+import { ALL_GAMES } from '@/lib/games'
 
-type MockGame = {
-  slug: string
-  title: string
-  category: string
-  plays: string
-  rating: number
-  icon: IconType
-}
-
-const MOCK_GAMES: MockGame[] = [
-  { slug: 'car-racing-pro', title: 'سباق السيارات الاحترافي', category: 'Driving', plays: '2.4M', rating: 4.8, icon: MdDirectionsCar },
-  { slug: 'space-adventure', title: 'مغامرات الفضاء', category: 'Adventure', plays: '1.8M', rating: 4.7, icon: MdMap },
-  { slug: 'mind-puzzle', title: 'لغز العقول', category: 'Puzzle', plays: '3.1M', rating: 4.9, icon: MdExtension },
-  { slug: 'heroes-battle', title: 'معركة الأبطال', category: 'Action', plays: '5.2M', rating: 4.6, icon: MdFlashOn },
-  { slug: 'super-football', title: 'كرة القدم الخارقة', category: 'Sports', plays: '4.0M', rating: 4.8, icon: MdSportsSoccer },
-  { slug: 'elite-sniper', title: 'القناص المحترف', category: 'Shooting', plays: '2.9M', rating: 4.5, icon: MdAdjust },
-  { slug: 'metro-runner', title: 'عدّاء المترو', category: 'Arcade', plays: '8.3M', rating: 4.7, icon: MdVideogameAsset },
-  { slug: 'kings-chess', title: 'شطرنج الملوك', category: 'Board', plays: '1.2M', rating: 4.9, icon: MdGridOn },
-  { slug: 'crosswords', title: 'كلمات متقاطعة', category: 'Word', plays: '900K', rating: 4.4, icon: MdBook },
-  { slug: 'quiz-challenge', title: 'تحدي المعلومات', category: 'Trivia', plays: '700K', rating: 4.3, icon: MdHelp },
-  { slug: 'war-strategy', title: 'حرب الاستراتيجية', category: 'Strategy', plays: '1.5M', rating: 4.6, icon: MdLightbulb },
-  { slug: 'io-race-arena', title: 'حلبة السباق الجماعي', category: '.io', plays: '3.7M', rating: 4.5, icon: MdLanguage },
-  { slug: 'multiplayer-arena', title: 'ساحة اللعب الجماعي', category: 'Multiplayer', plays: '6.1M', rating: 4.7, icon: MdGroup },
-  { slug: 'farm-simulator', title: 'محاكي المزرعة', category: 'Simulation', plays: '2.2M', rating: 4.6, icon: MdSettings },
-]
-
-const POPULAR_SEARCHES = ['سباق', 'كرة القدم', 'Puzzle', 'شطرنج', 'Action']
+const POPULAR_SEARCHES = ['Race', 'Puzzle', 'Football', 'Chess', 'Action']
 
 const DEBOUNCE_MS = 300
 
@@ -78,7 +33,7 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
   const results = useMemo(() => {
     if (!debouncedQuery) return []
     const q = debouncedQuery.toLowerCase()
-    return MOCK_GAMES.filter(
+    return ALL_GAMES.filter(
       (g) => g.title.toLowerCase().includes(q) || g.category.toLowerCase().includes(q),
     ).slice(0, 7)
   }, [debouncedQuery])
@@ -160,8 +115,14 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
                     onClick={onClose}
                     className="flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-night-60"
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-night-60 text-brand-60">
-                      <game.icon size={22} />
+                    <span className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-night-60">
+                      {game.thumb ? (
+                        <img src={game.thumb} alt="" width={80} height={80} loading="lazy" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center text-brand-60">
+                          <game.icon size={22} />
+                        </span>
+                      )}
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col text-start">
                       <span className="truncate text-[15px] font-bold text-white">{game.title}</span>
@@ -178,13 +139,13 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
             <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
               <MdSearch size={36} className="text-mist-50" />
               <p className="font-bold text-white">لا توجد نتائج لـ &quot;{debouncedQuery}&quot;</p>
-              <p className="text-sm text-mist-50">جرّب كلمة مختلفة (النتائج تجريبية)</p>
+              <p className="text-sm text-mist-50">جرّب كلمة مختلفة</p>
             </div>
           )}
         </div>
 
         <div className="border-t border-night-60 px-4 py-2 text-xs text-mist-50">
-          نتائج تجريبية (mock) — تُفلتر محليًا بعد {DEBOUNCE_MS}ms من التوقف عن الكتابة
+          {ALL_GAMES.length} لعبة — تُفلتر محليًا بعد {DEBOUNCE_MS}ms من التوقف عن الكتابة
         </div>
       </div>
     </div>
