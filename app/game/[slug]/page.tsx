@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { MdCategory, MdChevronLeft, MdHome, MdPlayArrow, MdStar, MdVideogameAsset } from 'react-icons/md'
 import { getGameBySlug, getGamesByCategory } from '@/lib/games'
+import { categoryLabelAr } from '@/lib/categories'
 import { GameCard } from '@/components/game-card'
 import { GamePlayer } from '@/components/game-player'
 
@@ -31,7 +32,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         </Link>
         <MdChevronLeft size={16} />
         <Link href={`/game-category/${catSlug}/`} className="transition hover:text-white">
-          {game.category}
+          {categoryLabelAr(catSlug, game.category)}
         </Link>
         <MdChevronLeft size={16} />
         <span className="truncate text-white">{game.title}</span>
@@ -54,7 +55,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
               <MdCategory size={15} />
               {game.categories.map((cat) => (
                 <Link key={cat.slug} href={`/game-category/${cat.slug}/`} className="rounded-full bg-night-60 px-2.5 py-0.5 transition hover:bg-brand-100 hover:text-white">
-                  {cat.label}
+                  {categoryLabelAr(cat.slug, cat.label)}
                 </Link>
               ))}
             </span>

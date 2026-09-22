@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { MdChevronLeft, MdClose, MdSearch, MdTrendingUp } from 'react-icons/md'
 import { ALL_GAMES } from '@/lib/games'
+import { categoryLabelAr } from '@/lib/categories'
 
 const POPULAR_SEARCHES = ['Race', 'Puzzle', 'Football', 'Chess', 'Action']
 
@@ -34,7 +35,10 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
     if (!debouncedQuery) return []
     const q = debouncedQuery.toLowerCase()
     return ALL_GAMES.filter(
-      (g) => g.title.toLowerCase().includes(q) || g.category.toLowerCase().includes(q),
+      (g) =>
+        g.title.toLowerCase().includes(q) ||
+        g.category.toLowerCase().includes(q) ||
+        categoryLabelAr(g.categorySlug, g.category).includes(debouncedQuery.trim()),
     ).slice(0, 7)
   }, [debouncedQuery])
 
@@ -127,7 +131,7 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
                     <span className="flex min-w-0 flex-1 flex-col text-start">
                       <span className="truncate text-[15px] font-bold text-white">{game.title}</span>
                       <span className="text-xs font-semibold text-mist-50">
-                        {game.category} • {game.plays} • ★ {game.rating}
+                        {categoryLabelAr(game.categorySlug, game.category)} • {game.plays} • ★ {game.rating}
                       </span>
                     </span>
                     <MdChevronLeft size={20} className="shrink-0 text-mist-50" />
@@ -145,7 +149,7 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="border-t border-night-60 px-4 py-2 text-xs text-mist-50">
-          {ALL_GAMES.length} لعبة — تُفلتر محليًا بعد {DEBOUNCE_MS}ms من التوقف عن الكتابة
+          ابحث بالعربية أو الإنجليزية عن أي لعبة أو تصنيف
         </div>
       </div>
     </div>

@@ -1,26 +1,33 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { MdVideogameAsset } from 'react-icons/md'
-import { allCategorySlugs, getCategory } from '@/lib/categories'
-import { LEGACY_CATEGORY_SLUGS, getGamesByCategory } from '@/lib/games'
+import { getCategory } from '@/lib/categories'
+import { getGamesByCategory } from '@/lib/games'
 import { GameCard } from '@/components/game-card'
-
-export function generateStaticParams() {
-  return [...allCategorySlugs(), ...LEGACY_CATEGORY_SLUGS].map((slug) => ({ slug }))
-}
+import { Pager, PAGE_SIZE } from '@/components/pager'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const category = getCategory(slug)
-  return { title: category ? `${category.label} | Coozy Games` : 'Coozy Games' }
+  return { title: category ? `${category.labelAr} | Coozy Games` : 'Coozy Games' }
 }
 
-export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ page?: string }>
+}) {
   const { slug } = await params
+  const { page: pageParam } = await searchParams
   const category = getCategory(slug)
   if (!category) notFound()
 
-  const games = getGamesByCategory(slug)
+  const games = getGamesByCategory(category.slug)
+  const totalPages = Math.max(1, Math.ceil(games.length / PAGE_SIZE))
+  const page = Math.min(Math.max(1, parseInt(pageParam ?? '1', 10) || 1), totalPages)
+  const visible = games.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
   const Icon = category.icon
 
   return (
@@ -30,17 +37,20 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           <Icon size={26} />
         </span>
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-extrabold text-white sm:text-2xl">{category.label}</h1>
+          <h1 className="truncate text-xl font-extrabold text-white sm:text-2xl">{category.labelAr}</h1>
           <p className="text-sm font-semibold text-mist-50">{games.length} لعبة</p>
         </div>
       </div>
 
       {games.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-          {games.map((game) => (
-            <GameCard key={game.slug} game={game} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+            {visible.map((game) => (
+              <GameCard key={game.slug} game={game} />
+            ))}
+          </div>
+          <Pager page={page} totalPages={totalPages} basePath={`/game-category/${category.slug}/`} />
+        </>
       ) : (
         <div className="flex flex-col items-center gap-2 py-16 text-center">
           <MdVideogameAsset size={40} className="text-mist-50" />

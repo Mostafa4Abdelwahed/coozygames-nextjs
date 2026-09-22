@@ -189,8 +189,10 @@ const byPlays = [...ALL_GAMES].sort((a, b) => {
   return num(b.plays) - num(a.plays)
 })
 
-export const TRENDING_GAMES: Game[] = byPlays.slice(0, 8)
-export const NEW_GAMES: Game[] = ALL_GAMES.slice(400, 408)
+export const TRENDING_GAMES: Game[] = byPlays.slice(0, 12)
+export const TRENDING_ALL: Game[] = byPlays
+export const NEW_ALL: Game[] = [...ALL_GAMES].reverse()
+export const NEW_GAMES: Game[] = ALL_GAMES.slice(400, 412)
 export const ACTION_GAMES: Game[] = ALL_GAMES.filter((g) => g.categorySlug === 'action').slice(0, 6)
 export const PUZZLE_GAMES: Game[] = ALL_GAMES.filter((g) => g.categorySlug === 'puzzle').slice(0, 6)
 

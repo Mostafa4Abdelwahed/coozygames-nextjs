@@ -37,7 +37,7 @@ function SidebarNavList({ forceLabels, activeKey }: { forceLabels: boolean; acti
         return (
           <SidebarItem
             key={cat.slug}
-            label={cat.label}
+            label={cat.labelAr}
             href={href}
             icon={cat.icon}
             active={normalize(href) === activeKey}

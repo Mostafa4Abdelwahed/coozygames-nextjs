@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Game } from '@/lib/games'
+import { categoryLabelAr } from '@/lib/categories'
 
 export function GameCard({ game }: { game: Game }) {
   const Icon = game.icon
@@ -31,7 +32,7 @@ export function GameCard({ game }: { game: Game }) {
       <div className="p-2.5">
         <h3 className="truncate text-sm font-bold text-white">{game.title}</h3>
         <p className="mt-0.5 truncate text-xs font-semibold text-mist-50">
-          {game.category} • {game.plays}
+          {categoryLabelAr(game.categorySlug, game.category)} • {game.plays}
         </p>
       </div>
     </Link>
