@@ -4,10 +4,31 @@ import { pool } from './db'
 
 const hasGoogleOAuth = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
 
+// Max concurrent devices (sessions) per account.
+// When a new session is created beyond the limit, the oldest one is revoked.
+const MAX_SESSIONS_PER_USER = 2
+
 export const auth = betterAuth({
   database: pool,
   emailAndPassword: {
     enabled: true,
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        async before(session) {
+          const active = await pool.query(
+            'SELECT id FROM "session" WHERE "userId" = $1 AND "expiresAt" > NOW() ORDER BY "createdAt" ASC',
+            [session.userId],
+          )
+          const excess = (active.rowCount ?? 0) - (MAX_SESSIONS_PER_USER - 1)
+          if (excess > 0) {
+            const ids = active.rows.slice(0, excess).map((row: { id: string }) => row.id)
+            await pool.query('DELETE FROM "session" WHERE id = ANY($1)', [ids])
+          }
+        },
+      },
+    },
   },
   ...(hasGoogleOAuth
     ? {
