@@ -7,6 +7,7 @@ import {
   MdFavorite,
   MdFlashOn,
   MdGridOn,
+  MdGroup,
   MdLanguage,
   MdLightbulb,
   MdMap,
@@ -18,10 +19,20 @@ import {
 } from 'react-icons/md'
 import catalog from '@/data/games.json'
 
+export type GameCategory = {
+  slug: string
+  label: string
+}
+
 export type Game = {
   slug: string
   title: string
+  /** Primary category label (first entry of `categories`) */
   category: string
+  /** Primary category slug */
+  categorySlug: string
+  /** All real categories from the catalog (primary first) */
+  categories: GameCategory[]
   plays: string
   rating: number
   icon: IconType
@@ -36,28 +47,68 @@ type RawGame = {
   name: string
   image: string
   url: string
+  categories?: GameCategory[]
 }
+
+const FALLBACK_STYLE = { icon: MdVideogameAsset, gradient: 'from-violet-500 to-cyan-400' }
 
 const CATEGORY_STYLE: Record<string, { icon: IconType; gradient: string }> = {
-  '.io': { icon: MdLanguage, gradient: 'from-fuchsia-500 to-violet-500' },
-  Action: { icon: MdFlashOn, gradient: 'from-rose-500 to-amber-400' },
-  Adventure: { icon: MdMap, gradient: 'from-purple-500 to-indigo-900' },
-  Arcade: { icon: MdVideogameAsset, gradient: 'from-violet-500 to-cyan-400' },
-  Beauty: { icon: MdFavorite, gradient: 'from-pink-400 to-rose-500' },
-  Board: { icon: MdGridOn, gradient: 'from-stone-400 to-stone-700' },
-  Card: { icon: MdStyle, gradient: 'from-indigo-400 to-purple-600' },
-  Clicker: { icon: MdTouchApp, gradient: 'from-lime-400 to-emerald-600' },
-  Driving: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
-  Puzzle: { icon: MdExtension, gradient: 'from-amber-400 to-rose-400' },
-  Shooting: { icon: MdAdjust, gradient: 'from-slate-500 to-slate-800' },
-  Simulation: { icon: MdSettings, gradient: 'from-teal-400 to-emerald-700' },
-  Sports: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
-  Strategy: { icon: MdLightbulb, gradient: 'from-orange-400 to-red-600' },
-  Trivia: { icon: MdBook, gradient: 'from-teal-400 to-blue-600' },
-  Word: { icon: MdBook, gradient: 'from-yellow-300 to-amber-600' },
+  io: { icon: MdLanguage, gradient: 'from-fuchsia-500 to-violet-500' },
+  action: { icon: MdFlashOn, gradient: 'from-rose-500 to-amber-400' },
+  adventure: { icon: MdMap, gradient: 'from-purple-500 to-indigo-900' },
+  arcade: { icon: MdVideogameAsset, gradient: 'from-violet-500 to-cyan-400' },
+  beauty: { icon: MdFavorite, gradient: 'from-pink-400 to-rose-500' },
+  'dress-up': { icon: MdFavorite, gradient: 'from-pink-400 to-rose-500' },
+  girls: { icon: MdFavorite, gradient: 'from-pink-400 to-rose-500' },
+  board: { icon: MdGridOn, gradient: 'from-stone-400 to-stone-700' },
+  mahjong: { icon: MdGridOn, gradient: 'from-stone-400 to-stone-700' },
+  card: { icon: MdStyle, gradient: 'from-indigo-400 to-purple-600' },
+  cards: { icon: MdStyle, gradient: 'from-indigo-400 to-purple-600' },
+  clicker: { icon: MdTouchApp, gradient: 'from-lime-400 to-emerald-600' },
+  idle: { icon: MdTouchApp, gradient: 'from-lime-400 to-emerald-600' },
+  driving: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
+  car: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
+  racing: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
+  moto: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
+  parking: { icon: MdDirectionsCar, gradient: 'from-sky-400 to-indigo-600' },
+  puzzle: { icon: MdExtension, gradient: 'from-amber-400 to-rose-400' },
+  merge: { icon: MdExtension, gradient: 'from-amber-400 to-rose-400' },
+  brain: { icon: MdLightbulb, gradient: 'from-amber-300 to-orange-500' },
+  shooting: { icon: MdAdjust, gradient: 'from-slate-500 to-slate-800' },
+  sniper: { icon: MdAdjust, gradient: 'from-slate-500 to-slate-800' },
+  zombie: { icon: MdAdjust, gradient: 'from-green-600 to-emerald-900' },
+  simulation: { icon: MdSettings, gradient: 'from-teal-400 to-emerald-700' },
+  cooking: { icon: MdSettings, gradient: 'from-orange-300 to-amber-600' },
+  sports: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
+  soccer: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
+  football: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
+  basketball: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
+  tennis: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
+  pool: { icon: MdSportsSoccer, gradient: 'from-emerald-400 to-sky-500' },
+  strategy: { icon: MdLightbulb, gradient: 'from-orange-400 to-red-600' },
+  'tower-defense': { icon: MdLightbulb, gradient: 'from-orange-400 to-red-600' },
+  trivia: { icon: MdBook, gradient: 'from-teal-400 to-blue-600' },
+  word: { icon: MdBook, gradient: 'from-yellow-300 to-amber-600' },
+  escape: { icon: MdMap, gradient: 'from-teal-500 to-emerald-800' },
+  platform: { icon: MdVideogameAsset, gradient: 'from-sky-400 to-blue-700' },
+  stickman: { icon: MdFlashOn, gradient: 'from-zinc-500 to-zinc-800' },
+  multiplayer: { icon: MdGroup, gradient: 'from-indigo-500 to-cyan-400' },
+  'two-player': { icon: MdGroup, gradient: 'from-indigo-500 to-cyan-400' },
+  skill: { icon: MdExtension, gradient: 'from-cyan-400 to-blue-600' },
+  flash: { icon: MdFlashOn, gradient: 'from-yellow-300 to-orange-500' },
+  fighting: { icon: MdFlashOn, gradient: 'from-red-500 to-orange-500' },
+  decoration: { icon: MdStyle, gradient: 'from-purple-300 to-pink-400' },
+  new: { icon: MdLightbulb, gradient: 'from-emerald-300 to-teal-500' },
+  animals: { icon: MdFavorite, gradient: 'from-green-300 to-emerald-500' },
+  farm: { icon: MdSettings, gradient: 'from-lime-400 to-emerald-600' },
+  restaurant: { icon: MdSettings, gradient: 'from-orange-300 to-amber-600' },
 }
 
-// Ordered: specific matches first, general last
+export function categoryStyle(slug: string): { icon: IconType; gradient: string } {
+  return CATEGORY_STYLE[slug] ?? FALLBACK_STYLE
+}
+
+// Fallback classifier used only when a catalog entry has no categories.
 const CLASSIFIER: { label: string; keywords: string[] }[] = [
   { label: '.io', keywords: ['.io', 'agar', 'slither', 'surviv', 'snake', 'worm', 'arena'] },
   { label: 'Word', keywords: ['word', 'crossword', 'letter', 'typing', 'spelling', 'wordle'] },
@@ -78,12 +129,15 @@ const CLASSIFIER: { label: string; keywords: string[] }[] = [
   { label: 'Arcade', keywords: ['arcade', 'runner', 'dash', 'stack', 'pong'] },
 ]
 
-function classify(name: string): string {
+function classify(name: string): GameCategory {
   const lower = ` ${name.toLowerCase()} `
   for (const { label, keywords } of CLASSIFIER) {
-    if (keywords.some((k) => lower.includes(k))) return label
+    if (keywords.some((k) => lower.includes(k))) {
+      const slug = label === '.io' ? 'io' : label.toLowerCase()
+      return { slug, label }
+    }
   }
-  return 'Arcade'
+  return { slug: 'arcade', label: 'Arcade' }
 }
 
 function slugify(name: string): string {
@@ -108,13 +162,16 @@ function buildGames(): Game[] {
     const count = seen.get(base) ?? 0
     seen.set(base, count + 1)
     const slug = count === 0 ? base : `${base}-${count + 1}`
-    const category = classify(raw.name)
-    const style = CATEGORY_STYLE[category] ?? CATEGORY_STYLE.Arcade
+    const categories = raw.categories?.length ? raw.categories : [classify(raw.name)]
+    const primary = categories[0]
+    const style = categoryStyle(primary.slug)
     const { plays, rating } = pseudoStats(index)
     return {
       slug,
       title: raw.name,
-      category,
+      category: primary.label,
+      categorySlug: primary.slug,
+      categories,
       plays,
       rating,
       icon: style.icon,
@@ -134,16 +191,24 @@ const byPlays = [...ALL_GAMES].sort((a, b) => {
 
 export const TRENDING_GAMES: Game[] = byPlays.slice(0, 8)
 export const NEW_GAMES: Game[] = ALL_GAMES.slice(400, 408)
-export const ACTION_GAMES: Game[] = ALL_GAMES.filter((g) => g.category === 'Action').slice(0, 6)
-export const PUZZLE_GAMES: Game[] = ALL_GAMES.filter((g) => g.category === 'Puzzle').slice(0, 6)
-
-const SLUG_TO_LABEL: Record<string, string> = {
-  io: '.io',
-}
+export const ACTION_GAMES: Game[] = ALL_GAMES.filter((g) => g.categorySlug === 'action').slice(0, 6)
+export const PUZZLE_GAMES: Game[] = ALL_GAMES.filter((g) => g.categorySlug === 'puzzle').slice(0, 6)
 
 export function getGamesByCategory(slug: string): Game[] {
-  const label = SLUG_TO_LABEL[slug] ?? slug
-  return ALL_GAMES.filter((g) => g.category.toLowerCase() === label.toLowerCase())
+  const resolved = resolveCategorySlug(slug)
+  return ALL_GAMES.filter((g) => g.categories.some((c) => c.slug === resolved))
+}
+
+/** Legacy slugs from the old hardcoded list that no longer exist in data. */
+const LEGACY_ALIASES: Record<string, string> = {
+  word: 'words',
+}
+
+export const LEGACY_CATEGORY_SLUGS: string[] = Object.keys(LEGACY_ALIASES)
+
+/** Resolves old/renamed slugs to current ones. */
+export function resolveCategorySlug(slug: string): string {
+  return LEGACY_ALIASES[slug] ?? slug
 }
 
 export function getGameBySlug(slug: string): Game | undefined {

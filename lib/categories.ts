@@ -1,32 +1,13 @@
 import type { IconType } from 'react-icons'
-import {
-  MdAdjust,
-  MdBook,
-  MdDirectionsCar,
-  MdExtension,
-  MdFavorite,
-  MdFlashOn,
-  MdGridOn,
-  MdHelp,
-  MdHistory,
-  MdHome,
-  MdLanguage,
-  MdLightbulb,
-  MdMap,
-  MdNewReleases,
-  MdSettings,
-  MdSportsSoccer,
-  MdStyle,
-  MdTouchApp,
-  MdUpdate,
-  MdVideogameAsset,
-  MdWhatshot,
-} from 'react-icons/md'
+import { MdGroup, MdHistory, MdHome, MdNewReleases, MdUpdate, MdWhatshot } from 'react-icons/md'
+import { ALL_GAMES, categoryStyle, resolveCategorySlug } from './games'
 
 export type Category = {
   slug: string
   label: string
   icon: IconType
+  /** Number of games in this category */
+  count: number
 }
 
 export const SIDEBAR_TOP: { label: string; href: string; icon: IconType; disabled?: boolean }[] = [
@@ -37,25 +18,39 @@ export const SIDEBAR_TOP: { label: string; href: string; icon: IconType; disable
   { label: 'محدّثة', href: '/games/?sort=updated', icon: MdUpdate },
 ]
 
-export const CATEGORIES: Category[] = [
-  { slug: 'io', label: '.io', icon: MdLanguage },
-  { slug: 'action', label: 'Action', icon: MdFlashOn },
-  { slug: 'adventure', label: 'Adventure', icon: MdMap },
-  { slug: 'arcade', label: 'Arcade', icon: MdVideogameAsset },
-  { slug: 'beauty', label: 'Beauty', icon: MdFavorite },
-  { slug: 'board', label: 'Board', icon: MdGridOn },
-  { slug: 'card', label: 'Card', icon: MdStyle },
-  { slug: 'clicker', label: 'Clicker', icon: MdTouchApp },
-  { slug: 'driving', label: 'Driving', icon: MdDirectionsCar },
-  { slug: 'puzzle', label: 'Puzzle', icon: MdExtension },
-  { slug: 'shooting', label: 'Shooting', icon: MdAdjust },
-  { slug: 'simulation', label: 'Simulation', icon: MdSettings },
-  { slug: 'sports', label: 'Sports', icon: MdSportsSoccer },
-  { slug: 'strategy', label: 'Strategy', icon: MdLightbulb },
-  { slug: 'trivia', label: 'Trivia', icon: MdHelp },
-  { slug: 'word', label: 'Word', icon: MdBook },
-]
+/** Categories with fewer games than this are hidden from navigation. */
+const MIN_CATEGORY_COUNT = 3
+
+function buildCategories(): Category[] {
+  const map = new Map<string, { label: string; count: number }>()
+  for (const game of ALL_GAMES) {
+    for (const cat of game.categories) {
+      const entry = map.get(cat.slug) ?? { label: cat.label, count: 0 }
+      entry.count += 1
+      map.set(cat.slug, entry)
+    }
+  }
+  return [...map.entries()]
+    .map(([slug, { label, count }]) => ({
+      slug,
+      label,
+      icon: categoryStyle(slug).icon,
+      count,
+    }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+}
+
+const ALL_CATEGORIES: Category[] = buildCategories()
+
+/** Categories shown in navigation (hidden when too few games). */
+export const CATEGORIES: Category[] = ALL_CATEGORIES.filter((c) => c.count >= MIN_CATEGORY_COUNT)
+
+/** Every slug present in the data (for static paths, including tiny ones). */
+export function allCategorySlugs(): string[] {
+  return ALL_CATEGORIES.map((c) => c.slug)
+}
 
 export function getCategory(slug: string): Category | undefined {
-  return CATEGORIES.find((c) => c.slug === slug)
+  const resolved = resolveCategorySlug(slug)
+  return ALL_CATEGORIES.find((c) => c.slug === resolved)
 }

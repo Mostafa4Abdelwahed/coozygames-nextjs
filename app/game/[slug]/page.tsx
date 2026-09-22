@@ -3,14 +3,8 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { MdCategory, MdChevronLeft, MdHome, MdPlayArrow, MdStar, MdVideogameAsset } from 'react-icons/md'
 import { getGameBySlug, getGamesByCategory } from '@/lib/games'
-import { getCategory } from '@/lib/categories'
 import { GameCard } from '@/components/game-card'
 import { GamePlayer } from '@/components/game-player'
-
-function categorySlug(label: string): string {
-  if (label === '.io') return 'io'
-  return label.toLowerCase()
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -23,8 +17,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   const game = getGameBySlug(slug)
   if (!game) notFound()
 
-  const catSlug = categorySlug(game.category)
-  const category = getCategory(catSlug)
+  const catSlug = game.categorySlug
   const related = getGamesByCategory(catSlug)
     .filter((g) => g.slug !== game.slug)
     .slice(0, 12)
@@ -57,9 +50,13 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-xl font-extrabold text-white sm:text-2xl">{game.title}</h1>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-mist-50 sm:text-sm">
-            <span className="flex items-center gap-1">
+            <span className="flex flex-wrap items-center gap-1.5">
               <MdCategory size={15} />
-              {game.category}
+              {game.categories.map((cat) => (
+                <Link key={cat.slug} href={`/game-category/${cat.slug}/`} className="rounded-full bg-night-60 px-2.5 py-0.5 transition hover:bg-brand-100 hover:text-white">
+                  {cat.label}
+                </Link>
+              ))}
             </span>
             <span className="flex items-center gap-1">
               <MdPlayArrow size={15} />

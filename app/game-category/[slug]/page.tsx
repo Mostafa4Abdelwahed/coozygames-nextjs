@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { MdVideogameAsset } from 'react-icons/md'
-import { CATEGORIES, getCategory } from '@/lib/categories'
-import { getGamesByCategory } from '@/lib/games'
+import { allCategorySlugs, getCategory } from '@/lib/categories'
+import { LEGACY_CATEGORY_SLUGS, getGamesByCategory } from '@/lib/games'
 import { GameCard } from '@/components/game-card'
 
 export function generateStaticParams() {
-  return CATEGORIES.map((c) => ({ slug: c.slug }))
+  return [...allCategorySlugs(), ...LEGACY_CATEGORY_SLUGS].map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
