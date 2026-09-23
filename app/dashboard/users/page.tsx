@@ -1,16 +1,25 @@
 import { headers } from 'next/headers'
-import { MdSearch, MdPersonAddAlt } from 'react-icons/md'
+import { Search, UserPlus } from 'lucide-react'
 import { Pager } from '@/components/pager'
 import { listUsers, type UserFilters } from '@/lib/dashboard/queries'
 import { auth } from '@/lib/auth'
 import { UserManager } from '@/components/dashboard/user-manager'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 const ROLE_LABELS: Record<string, string> = { admin: 'أدمن', user: 'مستخدم' }
 
-const INPUT_STYLE =
-  'h-10 rounded-xl border border-night-60 bg-night-80 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-mist-30 focus:border-brand-60'
-const SELECT_STYLE =
-  'h-10 rounded-xl border border-night-60 bg-night-80 px-2 text-sm font-semibold text-mist-50 outline-none transition focus:border-brand-60'
+const FILTER_SELECT_STYLE =
+  'h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm whitespace-nowrap outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50'
 
 type SearchParams = { q?: string; role?: string; banned?: string; page?: string }
 
@@ -46,11 +55,16 @@ export default async function DashboardUsersPage({
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="text-xl font-extrabold text-white sm:text-2xl">المستخدمون</h1>
-        <p className="mt-1 text-sm font-semibold text-mist-50">
-          {data.total.toLocaleString('en-US')} مستخدم
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">المستخدمون</h1>
+          <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+            {data.total.toLocaleString('en-US')} مستخدم
+            {(filters.q || filters.role || filters.banned !== 'all') && (
+              <Badge variant="secondary">مفلتر</Badge>
+            )}
+          </p>
+        </div>
       </div>
 
       <form
@@ -59,102 +73,94 @@ export default async function DashboardUsersPage({
         className="flex flex-col gap-2 sm:flex-row sm:flex-wrap"
       >
         <div className="relative min-w-0 flex-1">
-          <MdSearch
-            size={18}
-            className="pointer-events-none absolute top-1/2 start-3 -translate-y-1/2 text-mist-50"
-          />
-          <input
+          <Search className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
             type="search"
             name="q"
             defaultValue={filters.q}
             placeholder="بحث بالاسم أو الإيميل أو الهاتف"
-            className={`${INPUT_STYLE} w-full ps-10`}
+            className="h-9 ps-9"
           />
         </div>
-        <select name="role" defaultValue={filters.role} aria-label="الدور" className={SELECT_STYLE}>
+        <select name="role" defaultValue={filters.role} aria-label="الدور" className={FILTER_SELECT_STYLE}>
           <option value="">كل الأدوار</option>
           <option value="admin">أدمن</option>
           <option value="user">مستخدم</option>
         </select>
-        <select name="banned" defaultValue={filters.banned} aria-label="الحالة" className={SELECT_STYLE}>
+        <select name="banned" defaultValue={filters.banned} aria-label="الحالة" className={FILTER_SELECT_STYLE}>
           <option value="all">كل الحالات</option>
           <option value="banned">محظور</option>
           <option value="active">نشط</option>
         </select>
-        <button
-          type="submit"
-          className="h-10 rounded-xl bg-brand-100 px-5 text-sm font-extrabold text-white transition hover:bg-brand-80"
-        >
+        <Button type="submit" className="h-9">
           عرض
-        </button>
+        </Button>
       </form>
 
-      <div className="overflow-x-auto rounded-2xl border border-night-60">
-        <table className="w-full min-w-max border-collapse text-sm">
-          <thead>
-            <tr className="bg-night-80 text-start text-xs font-extrabold text-mist-50">
-              <th className="px-4 py-3 text-start">المستخدم</th>
-              <th className="px-4 py-3 text-start">الهاتف</th>
-              <th className="px-4 py-3 text-start">الدور</th>
-              <th className="px-4 py-3 text-start">الحالة</th>
-              <th className="px-4 py-3 text-start">تاريخ التسجيل</th>
-              <th className="px-4 py-3 text-start">إدارة</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="overflow-hidden rounded-xl border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>المستخدم</TableHead>
+              <TableHead>الهاتف</TableHead>
+              <TableHead>الدور</TableHead>
+              <TableHead>الحالة</TableHead>
+              <TableHead>تاريخ التسجيل</TableHead>
+              <TableHead>إدارة</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {data.rows.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-mist-50">
-                  <MdPersonAddAlt size={28} className="mx-auto mb-2" />
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
+                  <UserPlus className="mx-auto mb-2 size-7" />
                   لا يوجد مستخدمون مطابقون
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               data.rows.map((user) => (
-                <tr key={user.id} className="border-t border-night-60 bg-night-100">
-                  <td className="px-4 py-3">
-                    <div className="font-bold text-white">{user.name || <span className="text-mist-50">—</span>}</div>
-                    <div className="text-xs text-mist-50" dir="ltr">
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <div className="font-medium text-foreground">
+                      {user.name || <span className="text-muted-foreground">—</span>}
+                    </div>
+                    <div className="text-xs text-muted-foreground" dir="ltr">
                       {user.email}
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-mist-50" dir="ltr">
-                    {user.phoneNumber ?? <span className="text-mist-30">—</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-extrabold ${
-                        user.role === 'admin' ? 'bg-brand-100 text-white' : 'bg-night-60 text-mist-50'
-                      }`}
-                    >
+                  </TableCell>
+                  <TableCell className="text-muted-foreground" dir="ltr">
+                    {user.phoneNumber ?? <Badge variant="outline">—</Badge>}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
                       {ROLE_LABELS[(user.role ?? 'user')] ?? user.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
                     {user.banned ? (
-                      <span className="rounded-full bg-red-500/20 px-2.5 py-0.5 text-xs font-extrabold text-red-400">
-                        محظور
-                      </span>
+                      <Badge variant="destructive">محظور</Badge>
                     ) : (
-                      <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-extrabold text-emerald-400">
+                      <Badge variant="secondary" className="border-emerald-500/50 bg-emerald-500/10 text-emerald-400">
                         نشط
-                      </span>
+                      </Badge>
                     )}
-                  </td>
-                  <td className="px-4 py-3 text-mist-50">{formatDate(user.createdAt)}</td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    <span dir="ltr">{formatDate(user.createdAt)}</span>
+                  </TableCell>
+                  <TableCell>
                     <UserManager
                       userId={user.id}
                       role={user.role}
                       banned={user.banned}
                       isSelf={user.id === currentUserId}
                     />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <Pager

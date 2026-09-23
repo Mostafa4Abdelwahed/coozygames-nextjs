@@ -1,13 +1,27 @@
 'use client'
 
-import { useActionState } from 'react'
-import { MdEdit, MdRestartAlt } from 'react-icons/md'
+import { useState } from 'react'
+import { Pencil, RotateCcw } from 'lucide-react'
 import {
   clearGameOverride,
   upsertGameOverride,
   type OverrideState,
 } from '@/app/dashboard/games/actions'
 import type { GameOverride } from '@/lib/dashboard/overrides'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export type OverrideInitial = Pick<GameOverride, 'hidden' | 'featured' | 'sortWeight' | 'titleAr' | 'thumb'>
 
@@ -15,109 +29,153 @@ const initState: OverrideState = { done: false }
 
 function ErrorMessage({ state }: { state: OverrideState }) {
   if (!state.error) return null
-  return <p className="text-xs font-bold text-red-400">{state.error}</p>
+  return (
+    <Alert variant="destructive">
+      <AlertDescription>{state.error}</AlertDescription>
+    </Alert>
+  )
 }
 
 export function GameOverrideForm({ slug, initial }: { slug: string; initial: OverrideInitial }) {
-  const [state, formAction, saving] = useActionState(upsertGameOverride, initState)
-  const [clearState, clearAction, clearing] = useActionState(clearGameOverride, initState)
+  const [open, setOpen] = useState(false)
+  const [hidden, setHidden] = useState(initial.hidden)
+  const [featured, setFeatured] = useState(initial.featured)
+  const [state, setState] = useState<OverrideState>(initState)
+  const [clearState, setClearState] = useState<OverrideState>(initState)
+  const [saving, setSaving] = useState(false)
+  const [clearing, setClearing] = useState(false)
+
+  async function handleSave(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSaving(true)
+    setState(initState)
+    const result = await upsertGameOverride(initState, new FormData(e.currentTarget))
+    setState(result)
+    setSaving(false)
+    if (result.done && !result.error) setOpen(false)
+  }
+
+  async function handleClear(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setClearing(true)
+    setClearState(initState)
+    const result = await clearGameOverride(initState, new FormData(e.currentTarget))
+    setClearState(result)
+    setClearing(false)
+    if (result.done && !result.error) setOpen(false)
+  }
 
   return (
-    <details className="rounded-xl border border-night-60 bg-night-100">
-      <summary className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm font-extrabold text-brand-60 transition hover:text-white">
-        <MdEdit size={16} />
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button variant="secondary" size="sm" className="gap-1.5 w-full" />}>
+        <Pencil className="size-3.5" />
         تعديل العرض
-      </summary>
+      </DialogTrigger>
 
-      <div className="flex flex-col gap-3 p-3">
-        <form action={formAction} className="flex flex-col gap-3">
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>تعديل عرض اللعبة</DialogTitle>
+          <DialogDescription dir="ltr" className="text-xs">
+            {slug}
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSave} className="grid gap-4">
           <input type="hidden" name="slug" value={slug} />
 
-          <label className="flex items-center gap-2 text-sm font-bold text-mist-50">
-            <input
-              type="checkbox"
-              name="hidden"
-              defaultChecked={initial.hidden}
-              className="h-4 w-4 accent-brand-100"
-            />
-            إخفاء اللعبة
-          </label>
+          <div className="grid gap-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id={`hidden-${slug}`}
+                checked={hidden}
+                onCheckedChange={(checked) => setHidden(Boolean(checked))}
+              />
+              <Label htmlFor={`hidden-${slug}`} className="text-foreground">
+                إخفاء اللعبة
+              </Label>
+              <input type="hidden" name="hidden" value={hidden ? 'on' : ''} />
+            </div>
 
-          <label className="flex items-center gap-2 text-sm font-bold text-mist-50">
-            <input
-              type="checkbox"
-              name="featured"
-              defaultChecked={initial.featured}
-              className="h-4 w-4 accent-brand-100"
-            />
-            تمييز (أول القائمة)
-          </label>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id={`featured-${slug}`}
+                checked={featured}
+                onCheckedChange={(checked) => setFeatured(Boolean(checked))}
+              />
+              <Label htmlFor={`featured-${slug}`} className="text-foreground">
+                تمييز (أول القائمة)
+              </Label>
+              <input type="hidden" name="featured" value={featured ? 'on' : ''} />
+            </div>
+          </div>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor={`weight-${slug}`} className="text-xs font-bold text-mist-50">
+          <div className="grid gap-2">
+            <Label htmlFor={`weight-${slug}`} className="text-muted-foreground">
               وزن الترتيب (تنازلي)
-            </label>
-            <input
+            </Label>
+            <Input
               id={`weight-${slug}`}
               type="number"
               name="sortWeight"
               defaultValue={initial.sortWeight}
-              className="h-9 rounded-lg border border-night-60 bg-night-80 px-2 text-sm font-semibold text-white outline-none focus:border-brand-60"
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor={`title-${slug}`} className="text-xs font-bold text-mist-50">
+          <div className="grid gap-2">
+            <Label htmlFor={`title-${slug}`} className="text-muted-foreground">
               عنوان عربي
-            </label>
-            <input
+            </Label>
+            <Input
               id={`title-${slug}`}
               type="text"
               name="titleAr"
               defaultValue={initial.titleAr ?? ''}
               placeholder="يُترك فارغًا لاستخدام العنوان الأصلي"
-              className="h-9 rounded-lg border border-night-60 bg-night-80 px-2 text-sm font-semibold text-white outline-none placeholder:text-mist-30 focus:border-brand-60"
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor={`thumb-${slug}`} className="text-xs font-bold text-mist-50">
+          <div className="grid gap-2">
+            <Label htmlFor={`thumb-${slug}`} className="text-muted-foreground">
               صورة مصغّرة (تبدأ بـ /image/)
-            </label>
-            <input
+            </Label>
+            <Input
               id={`thumb-${slug}`}
               type="text"
               name="thumb"
               defaultValue={initial.thumb ?? ''}
               placeholder="/image/..."
               dir="ltr"
-              className="h-9 rounded-lg border border-night-60 bg-night-80 px-2 text-sm font-semibold text-white outline-none placeholder:text-mist-30 focus:border-brand-60"
             />
           </div>
 
           <ErrorMessage state={state} />
-          <button
-            type="submit"
-            disabled={saving}
-            className="h-9 rounded-lg bg-brand-100 px-4 text-sm font-extrabold text-white transition hover:bg-brand-80 disabled:opacity-50"
-          >
+
+          <Button type="submit" disabled={saving}>
             {saving ? 'جارٍ الحفظ...' : 'حفظ'}
-          </button>
+          </Button>
         </form>
 
-        <form action={clearAction} className="border-t border-night-60 pt-3">
+        <form onSubmit={handleClear} className="border-t pt-4">
           <input type="hidden" name="slug" value={slug} />
           <ErrorMessage state={clearState} />
-          <button
+          <Button
             type="submit"
+            variant="destructive"
+            size="sm"
+            className="w-full gap-1.5"
             disabled={clearing}
-            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-night-60 px-4 text-sm font-extrabold text-mist-50 transition hover:border-red-500/50 hover:text-red-400 disabled:opacity-50"
           >
-            <MdRestartAlt size={16} />
+            <RotateCcw className="size-3.5" />
             {clearing ? 'جارٍ الإزالة...' : 'إعادة تعيين (حذف الـ override)'}
-          </button>
+          </Button>
         </form>
-      </div>
-    </details>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            إغلاق
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

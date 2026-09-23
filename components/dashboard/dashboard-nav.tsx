@@ -2,27 +2,32 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { MdDashboard, MdPeople, MdVideogameAsset, MdHome, MdBarChart, MdBuild } from 'react-icons/md'
+import { LayoutDashboard, Users, Gamepad2, BarChart3, Wrench, Home } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { buttonVariants } from '@/components/ui/button'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'نظرة عامة', icon: MdDashboard, exact: true },
-  { href: '/dashboard/users', label: 'المستخدمون', icon: MdPeople },
-  { href: '/dashboard/games', label: 'الألعاب', icon: MdVideogameAsset },
-  { href: '/dashboard/analytics', label: 'التحليلات', icon: MdBarChart },
-  { href: '/dashboard/ops', label: 'التشغيل', icon: MdBuild },
+  { href: '/dashboard', label: 'نظرة عامة', icon: LayoutDashboard, exact: true },
+  { href: '/dashboard/users', label: 'المستخدمون', icon: Users },
+  { href: '/dashboard/games', label: 'الألعاب', icon: Gamepad2 },
+  { href: '/dashboard/analytics', label: 'التحليلات', icon: BarChart3 },
+  { href: '/dashboard/ops', label: 'التشغيل', icon: Wrench },
 ]
 
 export function DashboardNav() {
   const pathname = usePathname()
 
   return (
-    <nav aria-label="أقسام لوحة التحكم" className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+    <nav aria-label="أقسام لوحة التحكم" className="no-scrollbar flex items-center gap-1.5 overflow-x-auto">
       <Link
         href="/"
-        className="flex h-9 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-bold text-mist-50 transition hover:bg-night-80 hover:text-white"
+        className={cn(
+          buttonVariants({ variant: 'ghost', size: 'sm' }),
+          'h-8 shrink-0 gap-2 text-muted-foreground',
+        )}
       >
-        <MdHome size={18} />
-        <span className="hidden sm:inline">العودة للموقع</span>
+        <Home size={15} />
+        <span className="hidden sm:inline">الموقع</span>
       </Link>
 
       {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => {
@@ -32,11 +37,13 @@ export function DashboardNav() {
             key={href}
             href={href}
             aria-current={isActive ? 'page' : undefined}
-            className={`flex h-9 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-bold transition ${
-              isActive ? 'bg-brand-100 text-white' : 'text-mist-50 hover:bg-night-80 hover:text-white'
-            }`}
+            className={cn(
+              buttonVariants({ variant: isActive ? 'secondary' : 'ghost', size: 'sm' }),
+              'h-8 shrink-0 gap-2',
+              !isActive && 'text-muted-foreground',
+            )}
           >
-            <Icon size={18} />
+            <Icon size={15} />
             <span>{label}</span>
           </Link>
         )

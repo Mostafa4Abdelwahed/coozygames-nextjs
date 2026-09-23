@@ -1,36 +1,39 @@
-import { MdGroup, MdSchedule, MdVideogameAsset, MdCategory, MdPlayArrow } from 'react-icons/md'
+import { Users, Activity, Gamepad2, Tags, Play, Timer } from 'lucide-react'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { getDashboardCounts } from '@/lib/dashboard/queries'
-
-const CARD_STYLE = 'flex flex-col gap-1 rounded-2xl bg-night-80 p-4 sm:p-5'
 
 export default async function DashboardOverviewPage() {
   const counts = await getDashboardCounts()
 
   const cards = [
-    { label: 'المستخدمون', value: counts.users.toLocaleString('en-US'), icon: MdGroup },
-    { label: 'الجلسات النشطة', value: counts.activeSessions.toLocaleString('en-US'), icon: MdSchedule },
-    { label: 'لعب آخر 24 ساعة', value: counts.plays24h.toLocaleString('en-US'), icon: MdPlayArrow },
-    { label: 'إجمالي اللعب', value: counts.playsTotal.toLocaleString('en-US'), icon: MdPlayArrow },
-    { label: 'الألعاب', value: counts.games.toLocaleString('en-US'), icon: MdVideogameAsset },
-    { label: 'التصنيفات', value: counts.categories.toLocaleString('en-US'), icon: MdCategory },
+    { label: 'المستخدمون', value: counts.users.toLocaleString('en-US'), icon: Users },
+    { label: 'الجلسات النشطة', value: counts.activeSessions.toLocaleString('en-US'), icon: Activity },
+    { label: 'لعب آخر 24 ساعة', value: counts.plays24h.toLocaleString('en-US'), icon: Play },
+    { label: 'إجمالي اللعب', value: counts.playsTotal.toLocaleString('en-US'), icon: Timer },
+    { label: 'الألعاب', value: counts.games.toLocaleString('en-US'), icon: Gamepad2 },
+    { label: 'التصنيفات', value: counts.categories.toLocaleString('en-US'), icon: Tags },
   ]
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-extrabold text-white sm:text-2xl">نظرة عامة</h1>
-        <p className="mt-1 text-sm font-semibold text-mist-50">أرقام سريعة عن الموقع</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">نظرة عامة</h1>
+        <p className="text-sm font-medium text-muted-foreground">أرقام سريعة عن الموقع</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         {cards.map(({ label, value, icon: Icon }) => (
-          <div key={label} className={CARD_STYLE}>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-night-60 text-brand-60">
-              <Icon size={20} />
-            </span>
-            <span className="text-2xl font-extrabold text-white">{value}</span>
-            <span className="text-sm font-bold text-mist-50">{label}</span>
-          </div>
+          <Card key={label}>
+            <CardHeader className="px-4 pt-4">
+              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <Icon className="size-4" />
+              </span>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-0.5 px-4 pb-4">
+              <span className="text-2xl font-bold tracking-tight">{value}</span>
+              <span className="text-xs font-medium text-muted-foreground">{label}</span>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>

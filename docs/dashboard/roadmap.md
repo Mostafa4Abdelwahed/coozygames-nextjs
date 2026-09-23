@@ -89,6 +89,29 @@
 
 ---
 
+## الواجهة (shadcn/ui)
+
+> **الحالة (2026-09-23):** لوحة `/dashboard` أُعيدت كتابتها على
+> [shadcn/ui](https://ui.shadcn.com) (v4، مبني على Base UI) بالتنسيق الداكن للعلامة.
+> التفعيل في `/dashboard` فقط من الناحية العملية؛ رموز CSS الموجودة في
+> `app/globals.css` عامة لكن قيمها مأخوذة من لوحة `brand/night` الحالية.
+
+- [x] `shadcn@latest init` + مكوّنات: button, card, table, input, select, badge,
+      dialog, alert, alert-dialog, separator, label, checkbox, avatar,
+      dropdown-menu, skeleton.
+- [x] `components.json` (style `base-nova`, alias `@/components/ui`), `lib/utils.ts`
+      (`cn`), ربط `tw-animate-css` و`shadcn/tailwind.css` في `globals.css`.
+- [x] `shell.tsx` (عميل) + قائمة تنقّل بأيقونات lucide + قائمة مستخدم
+      (DropdownMenu) مع خروج `signOut`.
+- [x] صفحات: العدّادات، المستخدمون (Table)، الألعاب (بطاقات + نموذج override في
+      Dialog)، التحليلات (Cards)، التشغيل (Cards + Table) — كلها مؤكّدة،
+      build (1502 صفحة) وlint ناجحان.
+- ملاحظات قاعدة Base UI: `Checkbox` ليس `<input>` أصليًا → رُبط بحقل `hidden`
+      لكي تُرسل قيمه إلى Server Action؛ نموذج الـ override يدير نجاحه ذاتيًا
+      (`setState` في الـ handler) بدل `useActionState` لتجنّب auto-close.
+
+---
+
 ## الملفات المتوقّع إضافتها/تعديلها
 
 ```

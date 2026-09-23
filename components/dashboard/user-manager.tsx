@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { useActionState } from 'react'
-import { MdAdminPanelSettings, MdBlock, MdCheck, MdLogout, MdPerson } from 'react-icons/md'
+import { ShieldCheck, Ban, Unlock, LogOut, UserRoundCog } from 'lucide-react'
 import {
   banUser,
   revokeUserSessions,
@@ -9,12 +10,30 @@ import {
   unbanUser,
   type UserActionState,
 } from '@/app/dashboard/users/actions'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
 
 const initState: UserActionState = { done: false }
 
+const ROLE_SELECT_STYLE =
+  'h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm whitespace-nowrap outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50'
+
 function Msg({ state, success }: { state: UserActionState; success: string }) {
   return state.done ? (
-    <p className={`text-xs font-bold ${state.error ? 'text-red-400' : 'text-emerald-400'}`}>
+    <p
+      className={`text-xs font-medium ${state.error ? 'text-destructive' : 'text-emerald-400'}`}
+    >
       {state.error ?? success}
     </p>
   ) : null
@@ -31,99 +50,129 @@ export function UserManager({
   banned: boolean
   isSelf: boolean
 }) {
+  const [open, setOpen] = useState(false)
   const [roleState, roleAction, roleSaving] = useActionState(setUserRole, initState)
   const [unbanState, unbanAction, unbanSaving] = useActionState(unbanUser, initState)
   const [banState, banAction, banSaving] = useActionState(banUser, initState)
   const [revokeState, revokeAction, revokeSaving] = useActionState(revokeUserSessions, initState)
 
   return (
-    <details className="rounded-xl border border-night-60 bg-night-100">
-      <summary className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm font-extrabold text-brand-60 transition hover:text-white">
-        {role === 'admin' ? <MdAdminPanelSettings size={16} /> : <MdPerson size={16} />}
-        إدارة الحساب
-      </summary>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button variant="outline" size="sm" className="gap-1.5" />}>
+        <UserRoundCog className="size-3.5" />
+        إدارة
+      </DialogTrigger>
 
-      <div className="flex flex-col gap-3 p-3">
-        <form action={roleAction} className="flex items-end gap-2">
-          <input type="hidden" name="userId" value={userId} />
-          <div className="flex flex-1 flex-col gap-1">
-            <label htmlFor={`role-${userId}`} className="text-xs font-bold text-mist-50">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>إدارة الحساب</DialogTitle>
+          <DialogDescription dir="ltr" className="text-xs">
+            {userId}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4">
+          <form action={roleAction} className="grid gap-2">
+            <input type="hidden" name="userId" value={userId} />
+            <Label htmlFor={`role-${userId}`} className="text-muted-foreground">
               الدور
-            </label>
-            <select
-              id={`role-${userId}`}
-              name="role"
-              defaultValue={role ?? 'user'}
-              disabled={isSelf}
-              className="h-9 rounded-lg border border-night-60 bg-night-80 px-2 text-sm font-semibold text-white outline-none focus:border-brand-60 disabled:opacity-50"
-            >
-              <option value="user">مستخدم</option>
-              <option value="admin">أدمن</option>
-            </select>
-          </div>
-          <button
-            type="submit"
-            disabled={roleSaving || isSelf}
-            className="h-9 rounded-lg bg-brand-100 px-4 text-sm font-extrabold text-white transition hover:bg-brand-80 disabled:opacity-50"
-          >
-            حفظ
-          </button>
-        </form>
-        <Msg state={roleState} success="تم تحديث الدور" />
-
-        {banned ? (
-          <form action={unbanAction} className="flex flex-col gap-2">
-            <input type="hidden" name="userId" value={userId} />
-            <Msg state={unbanState} success="تم فك الحظر" />
-            <button
-              type="submit"
-              disabled={unbanSaving || isSelf}
-              className="flex h-9 items-center justify-center gap-2 rounded-lg border border-night-60 px-4 text-sm font-extrabold text-mist-50 transition hover:border-emerald-500/50 hover:text-emerald-400 disabled:opacity-50"
-            >
-              <MdCheck size={16} />
-              {unbanSaving ? 'جارٍ التنفيذ...' : 'فك الحظر'}
-            </button>
+            </Label>
+            <div className="flex items-end gap-2">
+              <select
+                id={`role-${userId}`}
+                name="role"
+                defaultValue={role ?? 'user'}
+                disabled={isSelf}
+                className={`${ROLE_SELECT_STYLE} flex-1`}
+              >
+                <option value="user">مستخدم</option>
+                <option value="admin">أدمن</option>
+              </select>
+              <Button type="submit" size="sm" disabled={roleSaving || isSelf}>
+                <ShieldCheck className="size-3.5" />
+                حفظ
+              </Button>
+            </div>
+            <Msg state={roleState} success="تم تحديث الدور" />
+            {isSelf && (
+              <p className="text-xs text-muted-foreground">لا يمكنك تغيير دورك من هنا.</p>
+            )}
           </form>
-        ) : (
-          <form action={banAction} className="flex flex-col gap-2">
-            <input type="hidden" name="userId" value={userId} />
-            <input
-              type="text"
-              name="banReason"
-              placeholder="سبب الحظر (اختياري)"
-              className="h-9 rounded-lg border border-night-60 bg-night-80 px-2 text-sm font-semibold text-white outline-none placeholder:text-mist-30 focus:border-brand-60"
-            />
-            <input
-              type="number"
-              name="banExpiresIn"
-              placeholder="مدة الحظر بالثواني (فارغة = دائم)"
-              className="h-9 rounded-lg border border-night-60 bg-night-80 px-2 text-sm font-semibold text-white outline-none placeholder:text-mist-30 focus:border-brand-60"
-            />
-            <Msg state={banState} success="تم الحظر" />
-            <button
-              type="submit"
-              disabled={banSaving || isSelf}
-              className="flex h-9 items-center justify-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-4 text-sm font-extrabold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
-            >
-              <MdBlock size={16} />
-              {banSaving ? 'جارٍ التنفيذ...' : 'حظر'}
-            </button>
-          </form>
-        )}
 
-        <form action={revokeAction} className="border-t border-night-60 pt-3">
-          <input type="hidden" name="userId" value={userId} />
-          <Msg state={revokeState} success="تم إنهاء كل الجلسات" />
-          <button
-            type="submit"
-            disabled={revokeSaving || isSelf}
-            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-night-60 px-4 text-sm font-extrabold text-mist-50 transition hover:border-amber-500/50 hover:text-amber-400 disabled:opacity-50"
-          >
-            <MdLogout size={16} />
-            {revokeSaving ? 'جارٍ التنفيذ...' : 'إنهاء كل الجلسات'}
-          </button>
-        </form>
-      </div>
-    </details>
+          <div className="h-px bg-border" />
+
+          {banned ? (
+            <form action={unbanAction} className="grid gap-2">
+              <input type="hidden" name="userId" value={userId} />
+              <Msg state={unbanState} success="تم فك الحظر" />
+              <Button
+                type="submit"
+                variant="outline"
+                className="border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10"
+                disabled={unbanSaving || isSelf}
+              >
+                <Unlock className="size-4" />
+                {unbanSaving ? 'جارٍ التنفيذ...' : 'فك الحظر'}
+              </Button>
+            </form>
+          ) : (
+            <form action={banAction} className="grid gap-2">
+              <input type="hidden" name="userId" value={userId} />
+              <Label htmlFor={`ban-reason-${userId}`} className="text-muted-foreground">
+                سبب الحظر (اختياري)
+              </Label>
+              <Input
+                id={`ban-reason-${userId}`}
+                type="text"
+                name="banReason"
+                placeholder="سبب الحظر (اختياري)"
+              />
+              <Label htmlFor={`ban-expires-${userId}`} className="text-muted-foreground">
+                مدة الحظر بالثواني (فارغة = دائم)
+              </Label>
+              <Input
+                id={`ban-expires-${userId}`}
+                type="number"
+                name="banExpiresIn"
+                placeholder="فارغة = دائم"
+              />
+              <Msg state={banState} success="تم الحظر" />
+              <Button
+                type="submit"
+                variant="destructive"
+                disabled={banSaving || isSelf}
+              >
+                <Ban className="size-4" />
+                {banSaving ? 'جارٍ التنفيذ...' : 'حظر'}
+              </Button>
+            </form>
+          )}
+
+          <form action={revokeAction} className="grid gap-2">
+            <input type="hidden" name="userId" value={userId} />
+            <Msg state={revokeState} success="تم إنهاء كل الجلسات" />
+            <Button
+              type="submit"
+              variant="outline"
+              className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+              disabled={revokeSaving || isSelf}
+            >
+              <LogOut className="size-4" />
+              {revokeSaving ? 'جارٍ التنفيذ...' : 'إنهاء كل الجلسات'}
+            </Button>
+          </form>
+
+          <Badge variant={banned ? 'destructive' : isSelf ? 'secondary' : 'outline'} className="w-fit">
+            {banned ? 'محظور' : isSelf ? 'أنت' : 'نشط'}
+          </Badge>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            إغلاق
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
