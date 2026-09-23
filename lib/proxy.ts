@@ -40,10 +40,9 @@ export function ensureProxy(): Promise<void> {
   if (!proxyLoadPromise) {
     proxyLoadPromise = (async () => {
       for (const src of PROXY_SCRIPTS) {
-        // eslint-disable-next-line no-await-in-loop
         await loadScript(src)
       }
-      await window.registerSW(process.env.NEXT_PUBLIC_WISP_URL)
+      await window.registerSW(normalizeWispUrl(process.env.NEXT_PUBLIC_WISP_URL))
       // Wait until the worker is actually active; otherwise the game frame
       // navigates before interception starts and Next answers 404.
       await navigator.serviceWorker.ready
@@ -59,4 +58,13 @@ export function ensureProxy(): Promise<void> {
 /** Creates the Scramjet frame bound to an iframe (call once per iframe). */
 export function createGameFrame(iframe: HTMLIFrameElement): SjFrame {
   return window.scramjet.createFrame(iframe)
+}
+
+/**
+ * Browsers refuse WebSocket connections to 0.0.0.0; rewrite it to the page's
+ * own host so a misconfigured NEXT_PUBLIC_WISP_URL can never break the game.
+ */
+function normalizeWispUrl(url?: string): string | undefined {
+  if (!url || typeof window === 'undefined') return url
+  return url.replace(/^ws:\/\/(?:0\.0\.0\.0|\[::\])/, `ws://${window.location.hostname}`)
 }
