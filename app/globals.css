@@ -108,7 +108,6 @@ body {
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-.dark,
 :root {
   --background: #0c0d14;
   --foreground: #f9faff;

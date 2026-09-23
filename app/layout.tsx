@@ -21,7 +21,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="ar"
       className={`${cairo.className} h-full antialiased`}
     >
-      <body dir="rtl" className="min-h-full flex flex-col"><SiteShell categories={navCategories()}>{children}</SiteShell></body>
+      <body dir="rtl" className="min-h-full flex flex-col">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var p=location.pathname;document.documentElement.classList.toggle('light',p==='/dashboard'||p.indexOf('/dashboard/')===0)})()`,
+          }}
+        />
+        <SiteShell categories={navCategories()}>{children}</SiteShell>
+      </body>
     </html>
   );
 }

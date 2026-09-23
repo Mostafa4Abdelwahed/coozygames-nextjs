@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { MdAdminPanelSettings } from 'react-icons/md'
@@ -24,9 +24,8 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.classList.add('light')
-    document.documentElement.classList.remove('dark')
     return () => document.documentElement.classList.remove('light')
   }, [])
 
