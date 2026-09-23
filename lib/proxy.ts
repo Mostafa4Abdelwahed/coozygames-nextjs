@@ -8,7 +8,8 @@ declare global {
       createFrame: (el: HTMLIFrameElement) => SjFrame
     }
     scramjetReady: Promise<void>
-    registerSW: () => Promise<void>
+    registerSW: (wispUrl?: string) => Promise<void>
+    __WISP_URL__?: string
   }
 }
 
@@ -42,7 +43,7 @@ export function ensureProxy(): Promise<void> {
         // eslint-disable-next-line no-await-in-loop
         await loadScript(src)
       }
-      await window.registerSW()
+      await window.registerSW(process.env.NEXT_PUBLIC_WISP_URL)
       // Wait until the worker is actually active; otherwise the game frame
       // navigates before interception starts and Next answers 404.
       await navigator.serviceWorker.ready

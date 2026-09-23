@@ -1,0 +1,22 @@
+node_modules
+**/node_modules
+.next
+image-cache
+.git
+.gitignore
+docs
+.agents
+.kilo
+.env
+.env.*
+*.log
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# Regenerated during build by scripts/build-proxy-assets.mjs
+public/scram
+public/epoxy
+public/baremux
+public/sw.js
+public/scramjet-init.js
+public/register-sw.js

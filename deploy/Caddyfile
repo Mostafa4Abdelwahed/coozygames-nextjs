@@ -1,0 +1,14 @@
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Wisp WebSocket endpoint on the same origin (no extra port / TLS cert).
+	# Caddy upgrades WebSocket connections automatically.
+	handle /wisp/* {
+		reverse_proxy wisp:8081
+	}
+
+	# Everything else -> Next.js.
+	handle {
+		reverse_proxy app:3000
+	}
+}
