@@ -21,8 +21,8 @@ export function SiteShell({ children, categories }: { children: ReactNode; categ
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
-  // /play is a dedicated full-screen route: no header, sidebar or overlays.
-  if (pathname?.startsWith('/play')) {
+  // /play and /dashboard are dedicated full-screen routes: no header, sidebar or overlays.
+  if (pathname?.startsWith('/play') || pathname?.startsWith('/dashboard')) {
     return <>{children}</>
   }
 

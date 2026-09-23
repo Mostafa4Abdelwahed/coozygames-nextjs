@@ -22,8 +22,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Logged-in users with missing profile data must complete it first
-  if (getProfileGaps(session.user).length > 0) {
+  // Logged-in users with missing profile data must complete it first,
+  // except on /dashboard where the layout enforces admin access.
+  const isDashboard = pathname === '/dashboard' || pathname.startsWith('/dashboard/')
+  if (!isDashboard && getProfileGaps(session.user).length > 0) {
     return NextResponse.redirect(new URL('/complete/', request.url))
   }
 

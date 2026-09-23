@@ -1,5 +1,5 @@
 import { betterAuth } from 'better-auth'
-import { phoneNumber } from 'better-auth/plugins'
+import { admin, phoneNumber } from 'better-auth/plugins'
 import { pool } from './db'
 
 const hasGoogleOAuth = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
@@ -46,6 +46,12 @@ export const auth = betterAuth({
         // Dev mock: log OTP instead of sending SMS (plug a real SMS provider here)
         console.log(`[auth] mock SMS to ${phoneNumber}: code ${code}`)
       },
+    }),
+    admin({
+      defaultRole: 'user',
+      adminRoles: ['admin'],
+      // Optional bootstrap: seed the first admins from env (comma-separated user ids).
+      adminUserIds: (process.env.ADMIN_USER_IDS ?? '').split(',').map((id) => id.trim()).filter(Boolean),
     }),
   ],
 })

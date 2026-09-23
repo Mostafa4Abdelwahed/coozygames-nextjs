@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { MdLogout } from 'react-icons/md'
+import { MdAdminPanelSettings, MdLogout } from 'react-icons/md'
 import { authClient, useSession } from '@/lib/auth-client'
 
 /**
@@ -35,8 +35,20 @@ export function AuthArea() {
     )
   }
 
+  const role = (session.user as { role?: string | null }).role
+
   return (
     <>
+      {role === 'admin' && (
+        <Link
+          href="/dashboard/"
+          aria-label="لوحة التحكم"
+          title="لوحة التحكم"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-mist-90 transition hover:text-brand-60 sm:h-10 sm:w-10"
+        >
+          <MdAdminPanelSettings size={20} />
+        </Link>
+      )}
       <Link
         href="/profile/"
         aria-label="حسابي"

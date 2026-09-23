@@ -11,18 +11,21 @@
 
 **الهدف:** دخول آمن للداشبورد + عرض بيانات للقراءة.
 
+> **الحالة (2026-09-23):** Phase 1 منفّذ و`npm run migrate` مطبّق على قاعدة البيانات،
+> مع بقاء خطوة bootstrap أول أدمن للمستخدم.
+
 ### المهام
-- [ ] **Migrations:** إنشاء `db/migrations/0001_admin_plugin.sql` + `scripts/migrate.mjs`
+- [x] **Migrations:** إنشاء `db/migrations/0001_admin_plugin.sql` + `scripts/migrate.mjs`
       + إضافة `"migrate"` في `package.json`.
-- [ ] تفعيل `admin` plugin في `lib/auth.ts` و`adminClient()` في `lib/auth-client.ts`.
+- [x] تفعيل `admin` plugin في `lib/auth.ts` و`adminClient()` في `lib/auth-client.ts`.
 - [ ] تعيين أول أدمن (`ADMIN_USER_IDS` أو SQL seed) والتأكد من ظهور `role` في الجلسة.
-- [ ] `app/dashboard/layout.tsx` (فحص أدمن) + `components/dashboard/shell.tsx`.
-- [ ] تعديل `components/site-shell.tsx` لتجاهل `/dashboard`.
-- [ ] تعديل `proxy.ts` لاستثناء `/dashboard` من تحويل البروفايل.
-- [ ] `lib/dashboard/queries.ts` (عدّادات + قوائم مستخدمين/ألعاب).
-- [ ] صفحات: `/dashboard` (عدّادات)، `/dashboard/users` (قراءة/بحث/ترقيم)،
+- [x] `app/dashboard/layout.tsx` (فحص أدمن) + `components/dashboard/shell.tsx`.
+- [x] تعديل `components/site-shell.tsx` لتجاهل `/dashboard`.
+- [x] تعديل `proxy.ts` لاستثناء `/dashboard` من تحويل البروفايل.
+- [x] `lib/dashboard/queries.ts` (عدّادات + قوائم مستخدمين/ألعاب).
+- [x] صفحات: `/dashboard` (عدّادات)، `/dashboard/users` (قراءة/بحث/ترقيم)،
       `/dashboard/games` (قراءة/بحث).
-- [ ] إضافة رابط "لوحة التحكم" في `components/auth-area.tsx` للأدمن فقط.
+- [x] إضافة رابط "لوحة التحكم" في `components/auth-area.tsx` للأدمن فقط.
 
 ### معايير القبول
 - مستخدم عادي يفتح `/dashboard` → يُحوَّل للرئيسية؛ زائر → `/login`.
