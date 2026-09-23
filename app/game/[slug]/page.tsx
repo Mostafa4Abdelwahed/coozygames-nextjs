@@ -6,7 +6,7 @@ import { allGameSlugs, getGameBySlug, getGamesByCategory } from '@/lib/games'
 import { categoryLabelAr } from '@/lib/category-meta'
 import { HEADER_THUMB_WIDTH, thumbUrl } from '@/lib/image'
 import { GameCard } from '@/components/game-card'
-import { GamePlayer } from '@/components/game-player'
+import { GamePoster } from '@/components/game-poster'
 
 // Prerender every game page: no per-request data is needed, so these are
 // static HTML (CDN-cacheable, cheap prefetch). Unknown slugs still 404 on demand.
@@ -79,7 +79,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         </div>
       </div>
 
-      <GamePlayer title={game.title} thumb={game.thumb} playUrl={game.playUrl} />
+      <GamePoster slug={game.slug} title={game.title} thumb={game.thumb} />
 
       {related.length > 0 && (
         <section>

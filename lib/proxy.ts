@@ -55,8 +55,7 @@ export function ensureProxy(): Promise<void> {
   return proxyLoadPromise
 }
 
-export function openGameFrame(iframe: HTMLIFrameElement, url: string): SjFrame {
-  const frame = window.scramjet.createFrame(iframe)
-  frame.go(url)
-  return frame
+/** Creates the Scramjet frame bound to an iframe (call once per iframe). */
+export function createGameFrame(iframe: HTMLIFrameElement): SjFrame {
+  return window.scramjet.createFrame(iframe)
 }

@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import type { ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { MdMenu, MdSearch } from 'react-icons/md'
 import type { NavCategory } from '@/lib/category-meta'
 import { AuthArea } from './auth-area'
@@ -16,8 +17,14 @@ const SearchOverlay = dynamic(
 )
 
 export function SiteShell({ children, categories }: { children: ReactNode; categories: NavCategory[] }) {
+  const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+
+  // /play is a dedicated full-screen route: no header, sidebar or overlays.
+  if (pathname?.startsWith('/play')) {
+    return <>{children}</>
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col items-stretch bg-night-100">
