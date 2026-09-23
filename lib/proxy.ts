@@ -4,8 +4,6 @@ export interface SjFrame {
 
 declare global {
   interface Window {
-    /** Injected by /api/wisp-config from the WISP_URL env var. */
-    __WISP_URL__?: string
     scramjet: {
       createFrame: (el: HTMLIFrameElement) => SjFrame
     }
@@ -16,14 +14,7 @@ declare global {
 
 // Lazy, ordered loading of the proxy runtime. Scripts load only when a game
 // is actually opened so they never block initial render. Idempotent.
-// `/api/wisp-config` must load first so register-sw.js can read __WISP_URL__.
-const PROXY_SCRIPTS = [
-  '/api/wisp-config',
-  '/scram/scramjet.all.js',
-  '/scramjet-init.js',
-  '/baremux/index.js',
-  '/register-sw.js',
-]
+const PROXY_SCRIPTS = ['/scram/scramjet.all.js', '/scramjet-init.js', '/baremux/index.js', '/register-sw.js']
 
 let proxyLoadPromise: Promise<void> | null = null
 
