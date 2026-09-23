@@ -4,6 +4,7 @@ import { MdVideogameAsset } from 'react-icons/md'
 import { categoryStyle } from '@/lib/category-meta'
 import { getCategory } from '@/lib/categories'
 import { getGamesByCategory } from '@/lib/games'
+import { applyOverrides, getPublicOverrides } from '@/lib/dashboard/overrides'
 import { GameCard } from '@/components/game-card'
 import { Pager, PAGE_SIZE } from '@/components/pager'
 
@@ -25,7 +26,8 @@ export default async function CategoryPage({
   const category = getCategory(slug)
   if (!category) notFound()
 
-  const games = getGamesByCategory(category.slug)
+  const overrides = await getPublicOverrides()
+  const games = applyOverrides(getGamesByCategory(category.slug), overrides)
   const totalPages = Math.max(1, Math.ceil(games.length / PAGE_SIZE))
   const page = Math.min(Math.max(1, parseInt(pageParam ?? '1', 10) || 1), totalPages)
   const visible = games.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)

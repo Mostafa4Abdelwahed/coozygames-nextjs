@@ -34,12 +34,23 @@ function hasRendered(iframe: HTMLIFrameElement | null): boolean {
  * Keeps the loading overlay up until the game document renders, not merely
  * until navigation starts.
  */
-export function GameStage({ title, playUrl, backHref }: { title: string; playUrl?: string; backHref: string }) {
+export function GameStage({
+  title,
+  slug,
+  playUrl,
+  backHref,
+}: {
+  title: string
+  slug: string
+  playUrl?: string
+  backHref: string
+}) {
   const [status, setStatus] = useState<Status>('loading')
   const [attempt, setAttempt] = useState(0)
   const boxRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const frameRef = useRef<SjFrame | null>(null)
+  const trackedRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -54,6 +65,15 @@ export function GameStage({ title, playUrl, backHref }: { title: string; playUrl
       try {
         await ensureProxy()
         if (cancelled || !iframeRef.current) return
+        if (!trackedRef.current) {
+          trackedRef.current = true
+          fetch('/api/track/play', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug }),
+            keepalive: true,
+          }).catch(() => null)
+        }
         if (!frameRef.current) frameRef.current = createGameFrame(iframeRef.current)
         frameRef.current.go(playUrl)
 
@@ -80,7 +100,7 @@ export function GameStage({ title, playUrl, backHref }: { title: string; playUrl
       cancelled = true
       if (poll) clearInterval(poll)
     }
-  }, [playUrl, attempt])
+  }, [playUrl, slug, attempt])
 
   function goFullscreen() {
     const el = boxRef.current

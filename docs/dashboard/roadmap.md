@@ -39,15 +39,21 @@
 
 **الهدف:** تعديل حقيقي من الداشبورد + إحصائيات حقيقية.
 
+> **الحالة (2026-09-23):** Phase 2 منفّذة ومطهبّقة (migrations 0002–0004 على DB)
+> + build وlint ناجحان.
+
 ### المهام
-- [ ] migrations: `0002_game_overrides.sql`, `0003_play_events.sql`, `0004_audit_log.sql`.
-- [ ] `lib/dashboard/overrides.ts` + دمجها في الصفحات العامة
+- [x] migrations: `0002_game_overrides.sql`, `0003_play_events.sql`, `0004_audit_log.sql`.
+- [x] `lib/dashboard/overrides.ts` (cached بـ `unstable_cache` + دمج عبر
+      `applyOverrides`/`applyGameOverride`) في الصفحات العامة
       (`app/page.tsx`, `app/games/page.tsx`, `app/game-category/[slug]/page.tsx`, `app/game/[slug]/page.tsx`).
-- [ ] Server Actions لإدارة الـ overrides + `revalidatePath` بعد كل تعديل.
-- [ ] `/api/track/play` + ربطه في `components/game-stage.tsx`.
-- [ ] إجراءات المستخدمين عبر `authClient.admin.*` (دور/حظر/جلسات) + `audit_log`.
-- [ ] `/dashboard/analytics` (أشهر الألعاب/التصنيفات، DAU، توزيع زمني).
-- [ ] إظهار عدد اللعب الحقيقي على الكروت (cached aggregate).
+- [x] Server Actions لإدارة الـ overrides (`upsertGameOverride` / `clearGameOverride`)
+      + `audit_log` + `revalidateTag('overrides')` + `revalidatePath`.
+- [x] `/api/track/play` (rate-limit بالـ IP) + ربطه في `components/game-stage.tsx`.
+- [x] إجراءات المستخدمين عبر `auth.api.*` (دور/حظر/فك حظر/إنهاء جلسات) + `audit_log`.
+- [x] `/dashboard/analytics` (أشهر الألعاب/التصنيفات، DAU، توزيع زمني).
+- [x] عدد اللعب الحقيقي على كروت الداشبورد (cached aggregate بـ tag `plays`).
+      النطاق العام يحتفظ بأرقام "الشعبية" الوهمية عمدًا (رقم تسويقي) — قابل للتغيير.
 
 ### معايير القبول
 - تعديل override يظهر على الصفحات العامة خلال ثوانٍ (بعد revalidation) بدون rebuild كامل.

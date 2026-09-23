@@ -1,4 +1,4 @@
-import { MdGroup, MdSchedule, MdVideogameAsset, MdCategory } from 'react-icons/md'
+import { MdGroup, MdSchedule, MdVideogameAsset, MdCategory, MdPlayArrow } from 'react-icons/md'
 import { getDashboardCounts } from '@/lib/dashboard/queries'
 
 const CARD_STYLE = 'flex flex-col gap-1 rounded-2xl bg-night-80 p-4 sm:p-5'
@@ -9,6 +9,8 @@ export default async function DashboardOverviewPage() {
   const cards = [
     { label: 'المستخدمون', value: counts.users.toLocaleString('en-US'), icon: MdGroup },
     { label: 'الجلسات النشطة', value: counts.activeSessions.toLocaleString('en-US'), icon: MdSchedule },
+    { label: 'لعب آخر 24 ساعة', value: counts.plays24h.toLocaleString('en-US'), icon: MdPlayArrow },
+    { label: 'إجمالي اللعب', value: counts.playsTotal.toLocaleString('en-US'), icon: MdPlayArrow },
     { label: 'الألعاب', value: counts.games.toLocaleString('en-US'), icon: MdVideogameAsset },
     { label: 'التصنيفات', value: counts.categories.toLocaleString('en-US'), icon: MdCategory },
   ]
@@ -20,7 +22,7 @@ export default async function DashboardOverviewPage() {
         <p className="mt-1 text-sm font-semibold text-mist-50">أرقام سريعة عن الموقع</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         {cards.map(({ label, value, icon: Icon }) => (
           <div key={label} className={CARD_STYLE}>
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-night-60 text-brand-60">

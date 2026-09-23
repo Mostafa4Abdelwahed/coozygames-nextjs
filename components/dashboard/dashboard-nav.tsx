@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { MdDashboard, MdPeople, MdVideogameAsset, MdHome } from 'react-icons/md'
+import { MdDashboard, MdPeople, MdVideogameAsset, MdHome, MdBarChart } from 'react-icons/md'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'نظرة عامة', icon: MdDashboard, exact: true },
   { href: '/dashboard/users', label: 'المستخدمون', icon: MdPeople },
   { href: '/dashboard/games', label: 'الألعاب', icon: MdVideogameAsset },
+  { href: '/dashboard/analytics', label: 'التحليلات', icon: MdBarChart },
 ]
 
 export function DashboardNav() {

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ALL_GAMES, NEW_ALL, TRENDING_ALL } from '@/lib/games'
+import { applyOverrides, getPublicOverrides } from '@/lib/dashboard/overrides'
 import { GameCard } from '@/components/game-card'
 import { Pager, PAGE_SIZE } from '@/components/pager'
 
@@ -28,7 +29,11 @@ export default async function GamesPage({
   const { sort, page: pageParam } = await searchParams
   const activeSort: SortKey = isSortKey(sort) ? sort : 'hot'
 
-  const games = activeSort === 'new' ? NEW_ALL : activeSort === 'updated' ? ALL_GAMES : TRENDING_ALL
+  const overrides = await getPublicOverrides()
+  const games = applyOverrides(
+    activeSort === 'new' ? NEW_ALL : activeSort === 'updated' ? ALL_GAMES : TRENDING_ALL,
+    overrides,
+  )
   const activeLabel = SORTS.find((s) => s.key === activeSort)?.label ?? ''
 
   const totalPages = Math.max(1, Math.ceil(games.length / PAGE_SIZE))

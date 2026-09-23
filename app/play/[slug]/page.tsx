@@ -14,5 +14,5 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
   const game = getGameBySlug(slug)
   if (!game) notFound()
 
-  return <GameStage title={game.title} playUrl={game.playUrl} backHref={`/game/${game.slug}/`} />
+  return <GameStage title={game.title} slug={game.slug} playUrl={game.playUrl} backHref={`/game/${game.slug}/`} />
 }

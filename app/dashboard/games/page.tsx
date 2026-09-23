@@ -1,7 +1,9 @@
-import { MdSearch, MdVideogameAsset } from 'react-icons/md'
+import { MdSearch, MdVideogameAsset, MdVisibility, MdStar, MdEditNote } from 'react-icons/md'
 import Image from 'next/image'
 import { Pager } from '@/components/pager'
-import { listGames, type GamesFilters } from '@/lib/dashboard/queries'
+import { listGames, getPlayCounts, type GamesFilters } from '@/lib/dashboard/queries'
+import { getOverrides, type GameOverride } from '@/lib/dashboard/overrides'
+import { GameOverrideForm } from '@/components/dashboard/game-override-form'
 import { CATEGORIES } from '@/lib/categories'
 import { thumbUrl } from '@/lib/image'
 
@@ -10,18 +12,54 @@ const INPUT_STYLE =
 const SELECT_STYLE =
   'h-10 rounded-xl border border-night-60 bg-night-80 px-2 text-sm font-semibold text-mist-50 outline-none transition focus:border-brand-60'
 
-type SearchParams = { q?: string; category?: string; page?: string }
+const STATUS_OPTIONS = [
+  { value: '', label: 'كل الألعاب' },
+  { value: 'hidden', label: 'مخفية' },
+  { value: 'featured', label: 'مميّزة' },
+  { value: 'modified', label: 'معدّلة' },
+] as const
+
+type SearchParams = { q?: string; category?: string; status?: string; page?: string }
 
 function parseFilters(sp: SearchParams): GamesFilters {
   const category = CATEGORIES.some((c) => c.slug === sp.category) ? (sp.category ?? '') : ''
-  return { q: sp.q ?? '', category }
+  const statuses = STATUS_OPTIONS.map((o) => o.value)
+  const status = (statuses as string[]).includes(sp.status ?? '') ? (sp.status as GamesFilters['status']) : ''
+  return { q: sp.q ?? '', category, status }
 }
 
 function pagerParams(filters: GamesFilters): Record<string, string> {
   const params: Record<string, string> = {}
   if (filters.q) params.q = filters.q
   if (filters.category) params.category = filters.category
+  if (filters.status) params.status = filters.status
   return params
+}
+
+function OverrideBadges({ override }: { override?: GameOverride }) {
+  if (!override) return null
+  return (
+    <div className="flex flex-wrap gap-1">
+      {override.hidden && (
+        <span className="flex items-center gap-0.5 rounded-full bg-red-500/20 px-2 py-0.5 text-[11px] font-extrabold text-red-400">
+          <MdVisibility size={11} />
+          مخفية
+        </span>
+      )}
+      {override.featured && (
+        <span className="flex items-center gap-0.5 rounded-full bg-amber-500/20 px-2 py-0.5 text-[11px] font-extrabold text-amber-400">
+          <MdStar size={11} />
+          مميّزة
+        </span>
+      )}
+      {(override.titleAr || override.thumb) && (
+        <span className="flex items-center gap-0.5 rounded-full bg-brand-100/20 px-2 py-0.5 text-[11px] font-extrabold text-brand-60">
+          <MdEditNote size={11} />
+          معدّلة
+        </span>
+      )}
+    </div>
+  )
 }
 
 export default async function DashboardGamesPage({
@@ -32,7 +70,9 @@ export default async function DashboardGamesPage({
   const sp = await searchParams
   const filters = parseFilters(sp)
   const page = parseInt(sp.page ?? '1', 10) || 1
-  const data = listGames(filters, page)
+  const overrides = await getOverrides()
+  const playCounts = await getPlayCounts()
+  const data = listGames(filters, page, overrides)
 
   return (
     <div className="flex flex-col gap-5">
@@ -61,16 +101,18 @@ export default async function DashboardGamesPage({
             className={`${INPUT_STYLE} w-full ps-10`}
           />
         </div>
-        <select
-          name="category"
-          defaultValue={filters.category}
-          aria-label="التصنيف"
-          className={SELECT_STYLE}
-        >
+        <select name="category" defaultValue={filters.category} aria-label="التصنيف" className={SELECT_STYLE}>
           <option value="">كل التصنيفات</option>
           {CATEGORIES.map((cat) => (
             <option key={cat.slug} value={cat.slug}>
               {cat.labelAr}
+            </option>
+          ))}
+        </select>
+        <select name="status" defaultValue={filters.status} aria-label="الحالة" className={SELECT_STYLE}>
+          {STATUS_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
             </option>
           ))}
         </select>
@@ -82,39 +124,54 @@ export default async function DashboardGamesPage({
         </button>
       </form>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {data.rows.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center gap-2 py-16 text-center">
-            <MdVideogameAsset size={40} className="text-mist-50" />
-            <p className="font-bold text-white">لا توجد ألعاب مطابقة</p>
-          </div>
-        ) : (
-          data.rows.map((game) => (
-            <div
-              key={game.slug}
-              className="flex flex-col gap-2 rounded-2xl border border-night-60 bg-night-80 p-2.5"
-            >
-              <Image
-                src={thumbUrl(game.thumb, 300) ?? ''}
-                alt={game.title}
-                width={300}
-                height={169}
-                sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 49vw"
-                className="aspect-video w-full rounded-xl object-cover"
-              />
-              <div className="px-1 pb-1">
-                <div className="truncate text-sm font-extrabold text-white" title={game.title}>
-                  {game.title}
+      {data.rows.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 py-16 text-center">
+          <MdVideogameAsset size={40} className="text-mist-50" />
+          <p className="font-bold text-white">لا توجد ألعاب مطابقة</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {data.rows.map((game) => {
+            const override = overrides[game.slug]
+            return (
+              <div
+                key={game.slug}
+                className="flex flex-col gap-2 rounded-2xl border border-night-60 bg-night-80 p-2.5"
+              >
+                <div className="flex gap-3">
+                  <Image
+                    src={thumbUrl(game.thumb, 300) ?? ''}
+                    alt={game.title}
+                    width={300}
+                    height={169}
+                    sizes="(min-width: 1280px) 22vw, (min-width: 640px) 45vw, 100vw"
+                    className="h-24 w-36 shrink-0 rounded-xl object-cover"
+                  />
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <div className="truncate text-sm font-extrabold text-white" title={game.title}>
+                      {game.title}
+                    </div>
+                    <div className="text-xs font-bold text-mist-50">
+                      {game.category} • {playCounts[game.slug]?.toLocaleString('en-US') ?? 0} لعب
+                    </div>
+                    <OverrideBadges override={override} />
+                  </div>
                 </div>
-                <div className="mt-0.5 flex items-center justify-between text-xs font-bold text-mist-50">
-                  <span>{game.category}</span>
-                  <span>{game.plays}</span>
-                </div>
+                <GameOverrideForm
+                  slug={game.slug}
+                  initial={{
+                    hidden: override?.hidden ?? false,
+                    featured: override?.featured ?? false,
+                    sortWeight: override?.sortWeight ?? 0,
+                    titleAr: override?.titleAr ?? null,
+                    thumb: override?.thumb ?? null,
+                  }}
+                />
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       <Pager
         page={data.page}

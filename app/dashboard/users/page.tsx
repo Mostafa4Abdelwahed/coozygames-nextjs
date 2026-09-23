@@ -1,6 +1,9 @@
+import { headers } from 'next/headers'
 import { MdSearch, MdPersonAddAlt } from 'react-icons/md'
 import { Pager } from '@/components/pager'
 import { listUsers, type UserFilters } from '@/lib/dashboard/queries'
+import { auth } from '@/lib/auth'
+import { UserManager } from '@/components/dashboard/user-manager'
 
 const ROLE_LABELS: Record<string, string> = { admin: 'أدمن', user: 'مستخدم' }
 
@@ -38,6 +41,8 @@ export default async function DashboardUsersPage({
   const filters = parseFilters(sp)
   const page = parseInt(sp.page ?? '1', 10) || 1
   const data = await listUsers(filters, page)
+  const session = await auth.api.getSession({ headers: await headers() })
+  const currentUserId = session?.user.id ?? ''
 
   return (
     <div className="flex flex-col gap-5">
@@ -93,12 +98,13 @@ export default async function DashboardUsersPage({
               <th className="px-4 py-3 text-start">الدور</th>
               <th className="px-4 py-3 text-start">الحالة</th>
               <th className="px-4 py-3 text-start">تاريخ التسجيل</th>
+              <th className="px-4 py-3 text-start">إدارة</th>
             </tr>
           </thead>
           <tbody>
             {data.rows.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-mist-50">
+                <td colSpan={6} className="px-4 py-10 text-center text-mist-50">
                   <MdPersonAddAlt size={28} className="mx-auto mb-2" />
                   لا يوجد مستخدمون مطابقون
                 </td>
@@ -136,6 +142,14 @@ export default async function DashboardUsersPage({
                     )}
                   </td>
                   <td className="px-4 py-3 text-mist-50">{formatDate(user.createdAt)}</td>
+                  <td className="px-4 py-3">
+                    <UserManager
+                      userId={user.id}
+                      role={user.role}
+                      banned={user.banned}
+                      isSelf={user.id === currentUserId}
+                    />
+                  </td>
                 </tr>
               ))
             )}
