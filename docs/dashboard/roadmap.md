@@ -67,18 +67,25 @@
 
 **الهدف:** مراقبة وصيانة + تنظيف تقني.
 
+> **الحالة (2026-09-23):** Phase 3 الأساسية منفّذة (health + ops + purge) — build وlint ناجحان.
+> الملاحظات الاختيارية (أدناه) غير منفّذة عمدًا.
+
 ### المهام
-- [ ] إضافة `/health` HTTP في `proxy-server/server.mjs` + `WISP_HEALTH_URL`.
-- [ ] `/dashboard/ops`: كاش الصور (عدد/حجم/أكبر ملفات) + تنظيف آمن + حالة Wisp.
-- [ ] `POST /api/admin/ops/purge-cache` مع تأكيد و`audit_log`.
+- [x] إضافة `/health` HTTP في `proxy-server/server.mjs` (يعيد `{ ok, service, uptime }`)
+      + متغيّر `WISP_HEALTH_URL` (افتراضي `http://wisp:8081/health` في Docker؛
+      `http://localhost:8081/health` في `.env` المحلي).
+- [x] `/dashboard/ops`: كاش الصور (عدد/حجم/أكبر ملفات) + حالة Wisp + عدّادات DB + `OpsPurger`.
+- [x] `POST /api/admin/ops/purge-cache` مع تأكيد (`confirm: true`) و`audit_log` وrate-limit.
+      **قرار أمان:** التنظيف يحذف **الـ variants فقط** (نسخ مشتقّة تُعاد إنشاؤها عند الطلب)
+      الأقدم من ساعة واحدة — الأصلية لا تُحذف إطلاقًا، وهذا يمنع كسر صور قيد الكتابة.
 - [ ] (اختياري) تجميع مسبق `play_daily_stats` لتسريع التحليلات.
 - [ ] (اختياري) تحسين `proxy.ts` (cookie-cache session) لتقليل DB roundtrip — مرجع:
       `docs/performance/nextjs-performance-audit.md` (P1-2).
 - [ ] (اختياري) نقل الكتالوج بالكامل إلى Postgres (CRUD كامل) — قرار كبير منفصل.
 
 ### معايير القبول
-- صفحة ops تعرض أرقام صحيحة، والتنظيف آمن ولا يكسر صورًا مستخدمة.
-- حالة Wisp تظهر صح (متصل/غير متصل).
+- [x] صفحة ops تعرض أرقام صحيحة، والتنظيف آمن ولا يكسر صورًا مستخدمة.
+- [x] حالة Wisp تظهر صح (متصل/غير متصل).
 
 ---
 

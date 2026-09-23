@@ -16,6 +16,18 @@ server.on("upgrade", (req, socket, head) => {
   }
 });
 
+// Health endpoint (HTTP) so ops tooling can probe the container without a WS handshake.
+server.on("request", (req, res) => {
+  const url = new URL(req.url, `http://${req.headers.host || host}`);
+  if (req.method === "GET" && url.pathname === "/health") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ ok: true, service: "wisp", uptime: Math.round(process.uptime()) }));
+    return;
+  }
+  res.writeHead(404, { "Content-Type": "text/plain" });
+  res.end("Not Found");
+});
+
 server.listen(port, host, () => {
   console.log(`Wisp server listening on ws://${host}:${port}/wisp/`);
 });
