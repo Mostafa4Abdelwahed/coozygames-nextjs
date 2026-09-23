@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-const ROLE_LABELS: Record<string, string> = { admin: 'Ø£Ø¯Ù…Ù†', user: 'Ù…Ø³ØªØ®Ø¯Ù…' }
+const ROLE_LABELS: Record<string, string> = { admin: 'أدمن', user: 'مستخدم' }
 
 type SearchParams = { q?: string; role?: string; banned?: string; page?: string }
 
@@ -53,36 +53,36 @@ export default async function DashboardUsersPage({
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙˆÙ†</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">المستخدمون</h1>
           <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-            {data.total.toLocaleString('en-US')} Ù…Ø³ØªØ®Ø¯Ù…
+            {data.total.toLocaleString('en-US')} مستخدم
             {(filters.q || filters.role || filters.banned !== 'all') && (
-              <Badge variant="secondary">Ù…ÙÙ„ØªØ±</Badge>
+              <Badge variant="secondary">مفلتر</Badge>
             )}
           </p>
         </div>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <FilterSearch q={filters.q} placeholder="Ø¨Ø­Ø« Ø¨Ø§Ù„Ø§Ø³Ù… Ø£Ùˆ Ø§Ù„Ø¥ÙŠÙ…ÙŠÙ„ Ø£Ùˆ Ø§Ù„Ù‡Ø§ØªÙ" />
+        <FilterSearch q={filters.q} placeholder="بحث بالاسم أو الإيميل أو الهاتف" />
         <FilterSelect
           param="role"
           value={filters.role}
-          placeholder="ÙƒÙ„ Ø§Ù„Ø£Ø¯ÙˆØ§Ø±"
-          ariaLabel="Ø§Ù„Ø¯ÙˆØ±"
+          placeholder="كل الأدوار"
+          ariaLabel="الدور"
           options={[
-            { value: 'admin', label: 'Ø£Ø¯Ù…Ù†' },
-            { value: 'user', label: 'Ù…Ø³ØªØ®Ø¯Ù…' },
+            { value: 'admin', label: 'أدمن' },
+            { value: 'user', label: 'مستخدم' },
           ]}
         />
         <FilterSelect
           param="banned"
           value={filters.banned}
-          placeholder="ÙƒÙ„ Ø§Ù„Ø­Ø§Ù„Ø§Øª"
-          ariaLabel="Ø§Ù„Ø­Ø§Ù„Ø©"
+          placeholder="كل الحالات"
+          ariaLabel="الحالة"
           options={[
-            { value: 'banned', label: 'Ù…Ø­Ø¸ÙˆØ±' },
-            { value: 'active', label: 'Ù†Ø´Ø·' },
+            { value: 'banned', label: 'محظور' },
+            { value: 'active', label: 'نشط' },
           ]}
         />
       </div>
@@ -91,12 +91,12 @@ export default async function DashboardUsersPage({
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…</TableHead>
-              <TableHead>Ø§Ù„Ù‡Ø§ØªÙ</TableHead>
-              <TableHead>Ø§Ù„Ø¯ÙˆØ±</TableHead>
-              <TableHead>Ø§Ù„Ø­Ø§Ù„Ø©</TableHead>
-              <TableHead>ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ³Ø¬ÙŠÙ„</TableHead>
-              <TableHead>Ø¥Ø¯Ø§Ø±Ø©</TableHead>
+              <TableHead>المستخدم</TableHead>
+              <TableHead>الهاتف</TableHead>
+              <TableHead>الدور</TableHead>
+              <TableHead>الحالة</TableHead>
+              <TableHead>تاريخ التسجيل</TableHead>
+              <TableHead>إدارة</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -104,7 +104,7 @@ export default async function DashboardUsersPage({
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
                   <UserPlus className="mx-auto mb-2 size-7" />
-                  Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù…Ø³ØªØ®Ø¯Ù…ÙˆÙ† Ù…Ø·Ø§Ø¨Ù‚ÙˆÙ†
+                  لا يوجد مستخدمون مطابقون
                 </TableCell>
               </TableRow>
             ) : (
@@ -112,14 +112,14 @@ export default async function DashboardUsersPage({
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="font-medium text-foreground">
-                      {user.name || <span className="text-muted-foreground">â€”</span>}
+                      {user.name || <span className="text-muted-foreground">—</span>}
                     </div>
                     <div className="text-xs text-muted-foreground" dir="ltr">
                       {user.email}
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground" dir="ltr">
-                    {user.phoneNumber ?? <Badge variant="outline">â€”</Badge>}
+                    {user.phoneNumber ?? <Badge variant="outline">—</Badge>}
                   </TableCell>
                   <TableCell>
                     <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
@@ -128,10 +128,10 @@ export default async function DashboardUsersPage({
                   </TableCell>
                   <TableCell>
                     {user.banned ? (
-                      <Badge variant="destructive">Ù…Ø­Ø¸ÙˆØ±</Badge>
+                      <Badge variant="destructive">محظور</Badge>
                     ) : (
                       <Badge variant="secondary" className="border-emerald-500/50 bg-emerald-500/10 text-emerald-600">
-                        Ù†Ø´Ø·
+                        نشط
                       </Badge>
                     )}
                   </TableCell>

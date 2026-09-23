@@ -25,18 +25,18 @@ export default async function OpsPage() {
   const [cache, db, wisp] = await Promise.all([getImageCacheStats(), getDbStats(), checkWispHealth()])
 
   const cacheCards = [
-    { label: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ù„ÙØ§Øª', value: cache.files.toLocaleString('en-US'), icon: HardDrive },
-    { label: 'Ø§Ù„Ø­Ø¬Ù… Ø§Ù„ÙƒÙ„ÙŠ', value: cache.sizePretty, icon: FileArchive },
-    { label: 'Ù…Ù„ÙØ§Øª Ø£ØµÙ„ÙŠØ©', value: cache.originals.toLocaleString('en-US'), icon: ImageIcon },
-    { label: 'Ù†Ø³Ø® Ù…Ø­ÙˆÙ‘Ù„Ø©', value: cache.variants.toLocaleString('en-US'), icon: FileImage },
-    { label: 'Ø£ÙƒØ¨Ø± Ù…Ù† 1MB', value: cache.largeFiles.toLocaleString('en-US'), icon: Layers },
+    { label: 'إجمالي الملفات', value: cache.files.toLocaleString('en-US'), icon: HardDrive },
+    { label: 'الحجم الكلي', value: cache.sizePretty, icon: FileArchive },
+    { label: 'ملفات أصلية', value: cache.originals.toLocaleString('en-US'), icon: ImageIcon },
+    { label: 'نسخ محوّلة', value: cache.variants.toLocaleString('en-US'), icon: FileImage },
+    { label: 'أكبر من 1MB', value: cache.largeFiles.toLocaleString('en-US'), icon: Layers },
   ]
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Ù…Ø±Ø§Ù‚Ø¨Ø© Ø§Ù„ØªØ´ØºÙŠÙ„</h1>
-        <p className="text-sm font-medium text-muted-foreground">Ø­Ø§Ù„Ø© Ø§Ù„Ù†Ø¸Ø§Ù… ÙˆØ§Ù„ÙƒØ§Ø´ ÙˆÙ‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">مراقبة التشغيل</h1>
+        <p className="text-sm font-medium text-muted-foreground">حالة النظام والكاش وقاعدة البيانات</p>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -46,7 +46,7 @@ export default async function OpsPage() {
               <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <Server className="size-4" />
               </span>
-              Ø³ÙŠØ±ÙØ± Wisp (Ø§Ù„Ø¨Ø±ÙˆÙØ§ÙŠÙ„)
+              سيرفر Wisp (البروفايل)
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
@@ -61,14 +61,14 @@ export default async function OpsPage() {
             )}
             <div className="grid gap-0.5">
               <span className={`text-lg font-semibold ${wisp.ok ? 'text-emerald-600' : 'text-destructive'}`}>
-                {wisp.ok ? 'Ù…ØªØµÙ„' : 'ØºÙŠØ± Ù…ØªØµÙ„'}
+                {wisp.ok ? 'متصل' : 'غير متصل'}
               </span>
               <span className="text-xs font-medium text-muted-foreground" dir="ltr">
                 {process.env.WISP_HEALTH_URL || 'http://wisp:8081/health'}
               </span>
               <span className="text-xs font-medium text-muted-foreground">
                 {wisp.detail ?? ''}
-                {wisp.ok ? ` â€” ${wisp.ms}ms` : ''}
+                {wisp.ok ? ` — ${wisp.ms}ms` : ''}
               </span>
             </div>
           </CardContent>
@@ -98,7 +98,7 @@ export default async function OpsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FolderOpen className="size-4 text-primary" />
-              Ø£ÙƒØ¨Ø± Ù…Ù„ÙØ§Øª Ø§Ù„ÙƒØ§Ø´
+              أكبر ملفات الكاش
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
@@ -121,15 +121,15 @@ export default async function OpsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Database className="size-4 text-primary" />
-            Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª
+            قاعدة البيانات
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             {[
-              { label: 'Ø£Ø­Ø¯Ø§Ø« Ø§Ù„Ù„Ø¹Ø¨', value: db.playEvents.toLocaleString('en-US') },
-              { label: 'Ø³Ø¬Ù„ Ø§Ù„ØªØ¯Ù‚ÙŠÙ‚', value: db.auditLogs.toLocaleString('en-US') },
-              { label: 'ØªØ¬Ø§ÙˆØ²Ø§Øª Ø§Ù„ÙƒØªØ§Ù„ÙˆØ¬', value: db.overrides.toLocaleString('en-US') },
+              { label: 'أحداث اللعب', value: db.playEvents.toLocaleString('en-US') },
+              { label: 'سجل التدقيق', value: db.auditLogs.toLocaleString('en-US') },
+              { label: 'تجاوزات الكتالوج', value: db.overrides.toLocaleString('en-US') },
             ].map(({ label, value }) => (
               <div key={label} className="rounded-lg bg-muted/50 p-3">
                 <div className="text-lg font-semibold text-foreground">{value}</div>
@@ -141,8 +141,8 @@ export default async function OpsPage() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>Ø§Ù„Ø¬Ø¯ÙˆÙ„</TableHead>
-                <TableHead className="text-end">Ø§Ù„Ø­Ø¬Ù…</TableHead>
+                <TableHead>الجدول</TableHead>
+                <TableHead className="text-end">الحجم</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

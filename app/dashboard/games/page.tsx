@@ -11,10 +11,10 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'ÙƒÙ„ Ø§Ù„Ø£Ù„Ø¹Ø§Ø¨' },
-  { value: 'hidden', label: 'Ù…Ø®ÙÙŠØ©' },
-  { value: 'featured', label: 'Ù…Ù…ÙŠÙ‘Ø²Ø©' },
-  { value: 'modified', label: 'Ù…Ø¹Ø¯Ù‘Ù„Ø©' },
+  { value: '', label: 'كل الألعاب' },
+  { value: 'hidden', label: 'مخفية' },
+  { value: 'featured', label: 'مميّزة' },
+  { value: 'modified', label: 'معدّلة' },
 ] as const
 
 type SearchParams = { q?: string; category?: string; status?: string; page?: string }
@@ -40,17 +40,17 @@ function OverrideBadges({ override }: { override?: GameOverride }) {
     <div className="flex flex-wrap gap-1">
       {override.hidden && (
         <Badge variant="destructive" className="gap-1">
-          <EyeOff className="size-3" /> Ù…Ø®ÙÙŠØ©
+          <EyeOff className="size-3" /> مخفية
         </Badge>
       )}
       {override.featured && (
         <Badge variant="secondary" className="gap-1 border-amber-500/50 bg-amber-500/10 text-amber-600">
-          <Star className="size-3" /> Ù…Ù…ÙŠÙ‘Ø²Ø©
+          <Star className="size-3" /> مميّزة
         </Badge>
       )}
       {(override.titleAr || override.thumb) && (
         <Badge variant="secondary" className="gap-1 border-primary/40 bg-primary/10 text-primary">
-          <PenLine className="size-3" /> Ù…Ø¹Ø¯Ù‘Ù„Ø©
+          <PenLine className="size-3" /> معدّلة
         </Badge>
       )}
     </div>
@@ -72,27 +72,27 @@ export default async function DashboardGamesPage({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Ø§Ù„Ø£Ù„Ø¹Ø§Ø¨</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">الألعاب</h1>
         <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-          {data.total.toLocaleString('en-US')} Ù„Ø¹Ø¨Ø©
-          {filters.status !== '' && <Badge variant="secondary">Ù…ÙÙ„ØªØ±</Badge>}
+          {data.total.toLocaleString('en-US')} لعبة
+          {filters.status !== '' && <Badge variant="secondary">مفلتر</Badge>}
         </p>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <FilterSearch q={filters.q} placeholder="Ø¨Ø­Ø« Ø¨Ø§Ù„Ø§Ø³Ù…" />
+        <FilterSearch q={filters.q} placeholder="بحث بالاسم" />
         <FilterSelect
           param="category"
           value={CATEGORIES.some((c) => c.slug === filters.category) ? filters.category : ''}
-          placeholder="ÙƒÙ„ Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª"
-          ariaLabel="Ø§Ù„ØªØµÙ†ÙŠÙ"
+          placeholder="كل التصنيفات"
+          ariaLabel="التصنيف"
           options={CATEGORIES.map((cat) => ({ value: cat.slug, label: cat.labelAr }))}
         />
         <FilterSelect
           param="status"
           value={filters.status}
-          placeholder="ÙƒÙ„ Ø§Ù„Ø£Ù„Ø¹Ø§Ø¨"
-          ariaLabel="Ø§Ù„Ø­Ø§Ù„Ø©"
+          placeholder="كل الألعاب"
+          ariaLabel="الحالة"
           options={STATUS_OPTIONS.filter((o) => o.value !== '').map((o) => ({
             value: o.value,
             label: o.label,
@@ -104,7 +104,7 @@ export default async function DashboardGamesPage({
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-16 text-center">
             <Gamepad2 className="size-9 text-muted-foreground" />
-            <p className="font-medium text-foreground">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ù„Ø¹Ø§Ø¨ Ù…Ø·Ø§Ø¨Ù‚Ø©</p>
+            <p className="font-medium text-foreground">لا توجد ألعاب مطابقة</p>
           </CardContent>
         </Card>
       ) : (
@@ -128,7 +128,7 @@ export default async function DashboardGamesPage({
                         {game.title}
                       </div>
                       <div className="text-xs font-medium text-muted-foreground">
-                        {game.category} â€¢ {playCounts[game.slug]?.toLocaleString('en-US') ?? 0} Ù„Ø¹Ø¨
+                        {game.category} • {playCounts[game.slug]?.toLocaleString('en-US') ?? 0} لعب
                       </div>
                       <OverrideBadges override={override} />
                     </div>
