@@ -1,24 +1,20 @@
-import { Search, Gamepad2, EyeOff, Star, PenLine } from 'lucide-react'
+﻿import { Gamepad2, EyeOff, Star, PenLine } from 'lucide-react'
 import Image from 'next/image'
 import { Pager } from '@/components/pager'
 import { listGames, getPlayCounts, type GamesFilters } from '@/lib/dashboard/queries'
 import { getOverrides, type GameOverride } from '@/lib/dashboard/overrides'
 import { GameOverrideForm } from '@/components/dashboard/game-override-form'
+import { FilterSelect, FilterSearch } from '@/components/dashboard/filter-select'
 import { CATEGORIES } from '@/lib/categories'
 import { thumbUrl } from '@/lib/image'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 
-const FILTER_SELECT_STYLE =
-  'h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm whitespace-nowrap outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50'
-
 const STATUS_OPTIONS = [
-  { value: '', label: 'كل الألعاب' },
-  { value: 'hidden', label: 'مخفية' },
-  { value: 'featured', label: 'مميّزة' },
-  { value: 'modified', label: 'معدّلة' },
+  { value: '', label: 'ÙƒÙ„ Ø§Ù„Ø£Ù„Ø¹Ø§Ø¨' },
+  { value: 'hidden', label: 'Ù…Ø®ÙÙŠØ©' },
+  { value: 'featured', label: 'Ù…Ù…ÙŠÙ‘Ø²Ø©' },
+  { value: 'modified', label: 'Ù…Ø¹Ø¯Ù‘Ù„Ø©' },
 ] as const
 
 type SearchParams = { q?: string; category?: string; status?: string; page?: string }
@@ -44,17 +40,17 @@ function OverrideBadges({ override }: { override?: GameOverride }) {
     <div className="flex flex-wrap gap-1">
       {override.hidden && (
         <Badge variant="destructive" className="gap-1">
-          <EyeOff className="size-3" /> مخفية
+          <EyeOff className="size-3" /> Ù…Ø®ÙÙŠØ©
         </Badge>
       )}
       {override.featured && (
-        <Badge variant="secondary" className="gap-1 border-amber-500/50 bg-amber-500/10 text-amber-400">
-          <Star className="size-3" /> مميّزة
+        <Badge variant="secondary" className="gap-1 border-amber-500/50 bg-amber-500/10 text-amber-600">
+          <Star className="size-3" /> Ù…Ù…ÙŠÙ‘Ø²Ø©
         </Badge>
       )}
       {(override.titleAr || override.thumb) && (
         <Badge variant="secondary" className="gap-1 border-primary/40 bg-primary/10 text-primary">
-          <PenLine className="size-3" /> معدّلة
+          <PenLine className="size-3" /> Ù…Ø¹Ø¯Ù‘Ù„Ø©
         </Badge>
       )}
     </div>
@@ -76,53 +72,39 @@ export default async function DashboardGamesPage({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">الألعاب</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Ø§Ù„Ø£Ù„Ø¹Ø§Ø¨</h1>
         <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-          {data.total.toLocaleString('en-US')} لعبة
-          {filters.status !== '' && <Badge variant="secondary">مفلتر</Badge>}
+          {data.total.toLocaleString('en-US')} Ù„Ø¹Ø¨Ø©
+          {filters.status !== '' && <Badge variant="secondary">Ù…ÙÙ„ØªØ±</Badge>}
         </p>
       </div>
 
-      <form
-        action="/dashboard/games/"
-        method="get"
-        className="flex flex-col gap-2 sm:flex-row sm:flex-wrap"
-      >
-        <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            name="q"
-            defaultValue={filters.q}
-            placeholder="بحث بالاسم"
-            className="h-9 ps-9"
-          />
-        </div>
-        <select name="category" defaultValue={filters.category} aria-label="التصنيف" className={FILTER_SELECT_STYLE}>
-          <option value="">كل التصنيفات</option>
-          {CATEGORIES.map((cat) => (
-            <option key={cat.slug} value={cat.slug}>
-              {cat.labelAr}
-            </option>
-          ))}
-        </select>
-        <select name="status" defaultValue={filters.status} aria-label="الحالة" className={FILTER_SELECT_STYLE}>
-          {STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <Button type="submit" className="h-9">
-          عرض
-        </Button>
-      </form>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <FilterSearch q={filters.q} placeholder="Ø¨Ø­Ø« Ø¨Ø§Ù„Ø§Ø³Ù…" />
+        <FilterSelect
+          param="category"
+          value={CATEGORIES.some((c) => c.slug === filters.category) ? filters.category : ''}
+          placeholder="ÙƒÙ„ Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª"
+          ariaLabel="Ø§Ù„ØªØµÙ†ÙŠÙ"
+          options={CATEGORIES.map((cat) => ({ value: cat.slug, label: cat.labelAr }))}
+        />
+        <FilterSelect
+          param="status"
+          value={filters.status}
+          placeholder="ÙƒÙ„ Ø§Ù„Ø£Ù„Ø¹Ø§Ø¨"
+          ariaLabel="Ø§Ù„Ø­Ø§Ù„Ø©"
+          options={STATUS_OPTIONS.filter((o) => o.value !== '').map((o) => ({
+            value: o.value,
+            label: o.label,
+          }))}
+        />
+      </div>
 
       {data.rows.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-16 text-center">
             <Gamepad2 className="size-9 text-muted-foreground" />
-            <p className="font-medium text-foreground">لا توجد ألعاب مطابقة</p>
+            <p className="font-medium text-foreground">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ù„Ø¹Ø§Ø¨ Ù…Ø·Ø§Ø¨Ù‚Ø©</p>
           </CardContent>
         </Card>
       ) : (
@@ -146,7 +128,7 @@ export default async function DashboardGamesPage({
                         {game.title}
                       </div>
                       <div className="text-xs font-medium text-muted-foreground">
-                        {game.category} • {playCounts[game.slug]?.toLocaleString('en-US') ?? 0} لعب
+                        {game.category} â€¢ {playCounts[game.slug]?.toLocaleString('en-US') ?? 0} Ù„Ø¹Ø¨
                       </div>
                       <OverrideBadges override={override} />
                     </div>

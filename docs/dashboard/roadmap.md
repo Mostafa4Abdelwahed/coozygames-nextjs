@@ -92,23 +92,31 @@
 ## الواجهة (shadcn/ui)
 
 > **الحالة (2026-09-23):** لوحة `/dashboard` أُعيدت كتابتها على
-> [shadcn/ui](https://ui.shadcn.com) (v4، مبني على Base UI) بالتنسيق الداكن للعلامة.
-> التفعيل في `/dashboard` فقط من الناحية العملية؛ رموز CSS الموجودة في
-> `app/globals.css` عامة لكن قيمها مأخوذة من لوحة `brand/night` الحالية.
+> [shadcn/ui](https://ui.shadcn.com) (v4، مبني على Base UI) بتصميم sidebarlayout
+> فاتح (Light) — والمظهر الداكن للواجهة العامة يبقى كما هو.
 
 - [x] `shadcn@latest init` + مكوّنات: button, card, table, input, select, badge,
       dialog, alert, alert-dialog, separator, label, checkbox, avatar,
       dropdown-menu, skeleton.
 - [x] `components.json` (style `base-nova`, alias `@/components/ui`), `lib/utils.ts`
       (`cn`), ربط `tw-animate-css` و`shadcn/tailwind.css` في `globals.css`.
-- [x] `shell.tsx` (عميل) + قائمة تنقّل بأيقونات lucide + قائمة مستخدم
-      (DropdownMenu) مع خروج `signOut`.
-- [x] صفحات: العدّادات، المستخدمون (Table)، الألعاب (بطاقات + نموذج override في
-      Dialog)، التحليلات (Cards)، التشغيل (Cards + Table) — كلها مؤكّدة،
-      build (1502 صفحة) وlint ناجحان.
+- [x] هيكل shadcn sidebar: شريط جانبي ثابت على اليمين (RTL) مع مجموعات تنقّل،
+      رأس علوي ثابت، وقائمة مستخدم (Avatar + DropdownMenu) مع `signOut`؛ وعلى
+      الموبايل قائمة منزلقة (drawer) بطبقة تعتيم.
+- [x] **الوضع الفاتح للوحة فقط:** `shell` يضيف class `light` على `<html>` فعندما
+      تكون داخل `/dashboard` تنطبق رموز فاتحة (card أبيض، border رمادي فاتح…) بينما
+      تنتهي بمجرد الخروج — لأن الـ portals (مينوهات/حوارات) تُرسم في `<body>`
+      فكان لا بد من تحويل الـ class على مستوى `<html>`.
+- [x] الفلاتر (المستخدمون/الألعاب) استُبدلت selects الأصلية بمكوّن shadcn `Select`
+      + بحث Client يحافظ على بقية المعاملات (لم تعد GET form).
+- [x] صفحة الإعداد: العدّادات، المستخدمون (Table)، الألعاب (بطاقات + نموذج override
+      في Dialog)، التحليلات (Cards)، التشغيل (Cards + Table) — build (1502 صفحة)
+      وlint ناجحان.
 - ملاحظات قاعدة Base UI: `Checkbox` ليس `<input>` أصليًا → رُبط بحقل `hidden`
       لكي تُرسل قيمه إلى Server Action؛ نموذج الـ override يدير نجاحه ذاتيًا
       (`setState` في الـ handler) بدل `useActionState` لتجنّب auto-close.
+- ملاحظة خط: أزال init خط Geist (المعرّف `--font-sans`) وأعدت توجيه `--font-sans`
+      إلى Cairo حتى لا يتغيّر خط الواجهة.
 
 ---
 
