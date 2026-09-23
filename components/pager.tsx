@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { MdChevronLeft, MdChevronRight } from 'react-icons/md'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export const PAGE_SIZE = 40
 
@@ -16,6 +16,9 @@ function pageNumbers(page: number, total: number): (number | '…')[] {
   }
   return out
 }
+
+const btn =
+  'inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-sm font-medium transition-colors'
 
 export function Pager({
   page,
@@ -38,24 +41,25 @@ export function Pager({
     return `${basePath}${s ? `?${s}` : ''}`
   }
 
-  const btn =
-    'flex h-10 min-w-10 items-center justify-center rounded-xl px-3 text-sm font-extrabold transition'
-
   return (
-    <nav aria-label="التنقل بين الصفحات" className="flex items-center justify-center gap-2">
+    <nav aria-label="التنقل بين الصفحات" className="flex flex-wrap items-center justify-center gap-1.5">
       {page > 1 ? (
-        <Link href={href(page - 1)} aria-label="الصفحة السابقة" className={`${btn} bg-night-80 text-white hover:bg-night-60`}>
-          <MdChevronRight size={20} />
+        <Link
+          href={href(page - 1)}
+          aria-label="الصفحة السابقة"
+          className={`${btn} bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground`}
+        >
+          <ChevronRight className="size-4" />
         </Link>
       ) : (
-        <span aria-hidden="true" className={`${btn} bg-night-80 text-mist-30 opacity-40`}>
-          <MdChevronRight size={20} />
+        <span aria-hidden="true" className={`${btn} pointer-events-none text-muted-foreground opacity-40`}>
+          <ChevronRight className="size-4" />
         </span>
       )}
 
       {pageNumbers(page, totalPages).map((n, i) =>
         n === '…' ? (
-          <span key={`gap-${i}`} aria-hidden="true" className="px-1 font-bold text-mist-50">
+          <span key={`gap-${i}`} aria-hidden="true" className="px-1 text-sm font-medium text-muted-foreground">
             …
           </span>
         ) : (
@@ -64,7 +68,11 @@ export function Pager({
             href={href(n)}
             aria-label={`صفحة ${n}`}
             aria-current={n === page ? 'page' : undefined}
-            className={`${btn} ${n === page ? 'bg-brand-100 text-white' : 'bg-night-80 text-mist-50 hover:text-white'}`}
+            className={`${btn} ${
+              n === page
+                ? 'bg-primary font-semibold text-primary-foreground'
+                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+            }`}
           >
             {n}
           </Link>
@@ -72,12 +80,16 @@ export function Pager({
       )}
 
       {page < totalPages ? (
-        <Link href={href(page + 1)} aria-label="الصفحة التالية" className={`${btn} bg-night-80 text-white hover:bg-night-60`}>
-          <MdChevronLeft size={20} />
+        <Link
+          href={href(page + 1)}
+          aria-label="الصفحة التالية"
+          className={`${btn} bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground`}
+        >
+          <ChevronLeft className="size-4" />
         </Link>
       ) : (
-        <span aria-hidden="true" className={`${btn} bg-night-80 text-mist-30 opacity-40`}>
-          <MdChevronLeft size={20} />
+        <span aria-hidden="true" className={`${btn} pointer-events-none text-muted-foreground opacity-40`}>
+          <ChevronLeft className="size-4" />
         </span>
       )}
     </nav>
