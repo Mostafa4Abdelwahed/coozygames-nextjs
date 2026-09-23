@@ -10,8 +10,32 @@ const stockSW = "/sw.js";
 const swAllowedHostnames = ["localhost", "127.0.0.1"];
 
 /**
+ * Resolves the Wisp endpoint:
+ *   1. WISP_URL from the server env (injected by /api/wisp-config at runtime)
+ *   2. fallback: <current host>:8081/wisp/ (local development)
+ */
+function resolveWispUrl() {
+  const configured =
+    typeof window !== "undefined" && typeof window.__WISP_URL__ === "string"
+      ? window.__WISP_URL__.trim()
+      : "";
+
+  if (configured) {
+    return configured.endsWith("/") ? configured : configured + "/";
+  }
+
+  const WISP_PORT = 8081;
+  return (
+    (location.protocol === "https:" ? "wss" : "ws") +
+    "://" +
+    (location.hostname || "localhost") +
+    (WISP_PORT ? ":" + WISP_PORT : "") +
+    "/wisp/"
+  );
+}
+
+/**
  * Global util: registers the proxy service worker + Epoxy/Wisp transport.
- * The Wisp server runs as a separate process (see proxy-server/).
  */
 async function registerSW() {
   if (!navigator.serviceWorker) {
@@ -26,13 +50,7 @@ async function registerSW() {
   const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
 
   // Register the EpoxyClient transport to be used for network requests
-  const WISP_PORT = 8081;
-  let wispUrl =
-    (location.protocol === "https:" ? "wss" : "ws") +
-    "://" +
-    (location.hostname || "localhost") +
-    (WISP_PORT ? ":" + WISP_PORT : "") +
-    "/wisp/";
+  const wispUrl = resolveWispUrl();
   await connection.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
   await navigator.serviceWorker.register(stockSW);
 }
