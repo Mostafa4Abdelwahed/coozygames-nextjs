@@ -9,7 +9,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select'
 
 const RESET_VALUE = 'all'
@@ -41,17 +40,20 @@ export function FilterSelect({
     router.push(`${pathname}?${sp.toString()}`, { scroll: false })
   }
 
-  const selected = value || undefined
+  const isClear = value === RESET_VALUE || value === ''
+  const label = options.find((o) => o.value === value)?.label ?? placeholder
 
   return (
-    <Select value={selected} onValueChange={(next) => update(next ?? '')}>
-      <SelectTrigger className="h-9" aria-label={ariaLabel}>
-        <SelectValue placeholder={placeholder} />
+    <Select value={isClear ? RESET_VALUE : value} onValueChange={(next) => update(next ?? '')}>
+      <SelectTrigger className="h-9 gap-1.5" aria-label={ariaLabel}>
+        <span className="truncate text-sm">{label}</span>
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={RESET_VALUE}>{placeholder}</SelectItem>
+        <SelectItem value={RESET_VALUE} label={placeholder}>
+          {placeholder}
+        </SelectItem>
         {options.map((o) => (
-          <SelectItem key={o.value} value={o.value}>
+          <SelectItem key={o.value} value={o.value} label={o.label}>
             {o.label}
           </SelectItem>
         ))}
