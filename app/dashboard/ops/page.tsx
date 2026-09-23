@@ -14,6 +14,7 @@ import {
   checkWispHealth,
   getDbStats,
   getImageCacheStats,
+  getWispHealthUrl,
   IMAGE_CACHE_DIR,
 } from '@/lib/dashboard/ops'
 import { OpsPurger } from '@/components/dashboard/ops-purger'
@@ -22,7 +23,12 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export default async function OpsPage() {
-  const [cache, db, wisp] = await Promise.all([getImageCacheStats(), getDbStats(), checkWispHealth()])
+  const [cache, db, wisp, wispUrl] = await Promise.all([
+    getImageCacheStats(),
+    getDbStats(),
+    checkWispHealth(),
+    getWispHealthUrl(),
+  ])
 
   const cacheCards = [
     { label: 'إجمالي الملفات', value: cache.files.toLocaleString('en-US'), icon: HardDrive },
@@ -64,7 +70,7 @@ export default async function OpsPage() {
                 {wisp.ok ? 'متصل' : 'غير متصل'}
               </span>
               <span className="text-xs font-medium text-muted-foreground" dir="ltr">
-                {process.env.WISP_HEALTH_URL || 'http://wisp:8081/health'}
+                {wispUrl}
               </span>
               <span className="text-xs font-medium text-muted-foreground">
                 {wisp.detail ?? ''}

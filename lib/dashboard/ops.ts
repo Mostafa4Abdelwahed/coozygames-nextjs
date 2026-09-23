@@ -1,6 +1,7 @@
 import { join, relative as relativePath } from 'node:path'
 import { readdir, stat, unlink } from 'node:fs/promises'
 import { pool } from '@/lib/db'
+import { getSetting } from '@/lib/dashboard/settings'
 import { formatBytes } from '@/lib/dashboard/bytes'
 
 /**
@@ -109,14 +110,19 @@ export async function purgeImageCache(minAgeMs = 60 * 60 * 1000): Promise<PurgeR
 
 export type WispState = { ok: boolean; ms: number; detail?: string }
 
-export const WISP_HEALTH_URL = process.env.WISP_HEALTH_URL || 'http://wisp:8081/health'
+export const WISP_HEALTH_DEFAULT = 'http://wisp:8081/health'
+
+export async function getWispHealthUrl(): Promise<string> {
+  return (await getSetting('WISP_HEALTH_URL')) || WISP_HEALTH_DEFAULT
+}
 
 export async function checkWispHealth(timeoutMs = 2500): Promise<WispState> {
+  const url = await getWispHealthUrl()
   const start = Date.now()
   try {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)
-    const res = await fetch(WISP_HEALTH_URL, { signal: controller.signal, cache: 'no-store' })
+    const res = await fetch(url, { signal: controller.signal, cache: 'no-store' })
     clearTimeout(timer)
     const body = (await res.json().catch(() => null)) as { ok?: boolean } | null
     const ok = res.ok && body?.ok !== false
