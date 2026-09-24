@@ -7,6 +7,7 @@ import { FcGoogle } from 'react-icons/fc'
 import { MdVisibility, MdVisibilityOff } from 'react-icons/md'
 import { authClient } from '@/lib/auth-client'
 import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from '@/lib/phone'
+import { safePath } from '@/lib/navigation'
 
 function toServerMessage(message: string): string {
   if (message.includes('Invalid phone number or password')) return 'رقم الهاتف أو كلمة المرور غير صحيحة'
@@ -15,8 +16,9 @@ function toServerMessage(message: string): string {
   return 'حدث خطأ، حاول مرة أخرى'
 }
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string }) {
   const router = useRouter()
+  const nextPath = safePath(next, '/')
   const [region, setRegion] = useState('EG')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
@@ -60,7 +62,7 @@ export function LoginForm() {
       setServerError(toServerMessage(error.message ?? ''))
       return
     }
-    router.push('/')
+    router.push(nextPath)
     router.refresh()
   }
 
@@ -68,7 +70,7 @@ export function LoginForm() {
     setServerError('')
     const { error } = await authClient.signIn.social({
       provider: 'google',
-      callbackURL: '/',
+      callbackURL: nextPath,
     })
     if (error) setServerError(toServerMessage(error.message ?? ''))
   }
@@ -202,7 +204,10 @@ export function LoginForm() {
 
       <p className="text-center text-sm font-semibold text-mist-50">
         جديد هنا؟{' '}
-        <Link href="/register/" className="font-bold text-brand-60 transition hover:text-white">
+        <Link
+          href={`/register/?next=${encodeURIComponent(nextPath)}`}
+          className="font-bold text-brand-60 transition hover:text-white"
+        >
           إنشاء حساب
         </Link>
       </p>

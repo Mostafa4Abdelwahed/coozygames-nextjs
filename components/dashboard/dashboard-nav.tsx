@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Gamepad2, BarChart3, Wrench, Settings, CreditCard, type LucideIcon } from 'lucide-react'
+import { LayoutDashboard, Users, Gamepad2, BarChart3, Wrench, Settings, CreditCard, Link2, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 
@@ -22,6 +22,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/dashboard/users', label: 'المستخدمون', icon: Users },
       { href: '/dashboard/billing', label: 'الفواتير', icon: CreditCard },
+      { href: '/dashboard/access-links', label: 'روابط الوصول', icon: Link2 },
       { href: '/dashboard/games', label: 'الألعاب', icon: Gamepad2 },
       { href: '/dashboard/ops', label: 'التشغيل', icon: Wrench },
       { href: '/dashboard/settings', label: 'الإعدادات', icon: Settings },

@@ -4,19 +4,21 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { MdChevronLeft, MdHome } from 'react-icons/md'
 import { auth } from '@/lib/auth'
+import { safePath } from '@/lib/navigation'
 import { RegisterForm } from '@/components/register-form'
 
 export const metadata: Metadata = {
   title: 'إنشاء حساب | Coozy Games',
 }
 
-export default async function RegisterPage() {
+export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
+  const next = await searchParams.then((sp) => safePath(sp.next, '/profile/'))
 
   if (session) {
-    redirect('/profile/')
+    redirect(next)
   }
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6 p-3 sm:gap-8 sm:p-5">
@@ -32,7 +34,7 @@ export default async function RegisterPage() {
       <div className="rounded-2xl border border-night-60 bg-night-80 p-5 sm:p-8">
         <h1 className="text-xl font-extrabold text-white sm:text-2xl">إنشاء حساب</h1>
         <p className="mt-1 mb-6 text-sm font-semibold text-mist-50">انضم إلينا واحفظ تقدمك في الألعاب.</p>
-        <RegisterForm />
+        <RegisterForm next={next} />
       </div>
     </div>
   )

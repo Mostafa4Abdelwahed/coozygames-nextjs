@@ -7,6 +7,7 @@ import { FcGoogle } from 'react-icons/fc'
 import { MdVisibility, MdVisibilityOff } from 'react-icons/md'
 import { authClient } from '@/lib/auth-client'
 import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from '@/lib/phone'
+import { safePath } from '@/lib/navigation'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
@@ -16,8 +17,9 @@ function toServerMessage(message: string): string {
   return 'حدث خطأ، حاول مرة أخرى'
 }
 
-export function RegisterForm() {
+export function RegisterForm({ next }: { next?: string }) {
   const router = useRouter()
+  const nextPath = safePath(next, '/profile/')
   const [name, setName] = useState('')
   const [region, setRegion] = useState('EG')
   const [phone, setPhone] = useState('')
@@ -96,7 +98,7 @@ export function RegisterForm() {
       }
       return
     }
-    router.push('/')
+    router.push(nextPath)
     router.refresh()
   }
 
@@ -104,7 +106,7 @@ export function RegisterForm() {
     setServerError('')
     const { error } = await authClient.signIn.social({
       provider: 'google',
-      callbackURL: '/',
+      callbackURL: nextPath,
     })
     if (error) setServerError(toServerMessage(error.message ?? ''))
   }
@@ -291,7 +293,10 @@ export function RegisterForm() {
 
       <p className="text-center text-sm font-semibold text-mist-50">
         لديك حساب بالفعل؟{' '}
-        <Link href="/login/" className="font-bold text-brand-60 transition hover:text-white">
+        <Link
+          href={`/login/?next=${encodeURIComponent(nextPath)}`}
+          className="font-bold text-brand-60 transition hover:text-white"
+        >
           تسجيل الدخول
         </Link>
       </p>

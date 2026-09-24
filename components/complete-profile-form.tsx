@@ -9,9 +9,10 @@ import type { ProfileGap } from '@/lib/profile'
 type Props = {
   missing: ProfileGap[]
   currentName: string
+  redirectTo?: string
 }
 
-export function CompleteProfileForm({ missing, currentName }: Props) {
+export function CompleteProfileForm({ missing, currentName, redirectTo = '/profile/' }: Props) {
   const router = useRouter()
   const [name, setName] = useState(currentName)
   const [region, setRegion] = useState('EG')
@@ -71,7 +72,7 @@ export function CompleteProfileForm({ missing, currentName }: Props) {
       }
     }
 
-    router.push('/profile/')
+    router.push(redirectTo)
     router.refresh()
   }
 
