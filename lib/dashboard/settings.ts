@@ -21,6 +21,7 @@ export const KNOWN_SETTINGS: { key: string; label: string; isSecret: boolean }[]
   { key: 'WISP_HEALTH_URL', label: 'رابط فحص صحة Wisp', isSecret: false },
   { key: 'NEXT_PUBLIC_WISP_URL', label: 'رابط Wisp العام', isSecret: false },
   { key: 'ADMIN_USER_IDS', label: 'معرّفات الأدمنز المبدئية', isSecret: false },
+  { key: 'PREMIUM_MONTHLY_PRICE', label: 'سعر الاشتراك الشهري', isSecret: false },
   { key: 'GOOGLE_CLIENT_ID', label: 'Google Client ID', isSecret: false },
   { key: 'GOOGLE_CLIENT_SECRET', label: 'Google Client Secret', isSecret: true },
   { key: 'DATABASE_URL', label: 'اتصال قاعدة البيانات', isSecret: true },

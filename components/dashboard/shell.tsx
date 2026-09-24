@@ -4,14 +4,14 @@ import { useLayoutEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { MdAdminPanelSettings } from 'react-icons/md'
-import { Home, LogOut, Menu, X } from 'lucide-react'
+import { Home, LogOut, Menu, User, X } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -160,20 +160,35 @@ function UserMenu({ user, onSignOut }: { user: ShellUser; onSignOut: () => void 
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel className="flex flex-col gap-0.5">
-          <span className="font-bold text-foreground">{user.name ?? 'أدمن'}</span>
-          <span className="text-xs font-medium">{user.role === 'admin' ? 'أدمن' : user.role}</span>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/" />}>
-          <Home />
-          العودة للموقع
-        </DropdownMenuItem>
-        <DropdownMenuItem variant="destructive" onClick={() => void onSignOut()}>
-          <LogOut />
-          تسجيل الخروج
-        </DropdownMenuItem>
+      <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuGroup>
+          <div className="flex items-center gap-3 rounded-md px-2.5 py-2">
+            <Avatar className="size-10 shrink-0">
+              <AvatarFallback className="bg-primary/15 font-bold text-primary">
+                {(user.name ?? '؟').charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-foreground">{user.name ?? 'أدمن'}</p>
+              <p className="truncate text-xs font-medium text-muted-foreground">
+                {user.role === 'admin' ? 'أدمن' : user.role}
+              </p>
+            </div>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem render={<Link href="/profile/" />} className="gap-2 py-1.5">
+            <User />
+            حسابي
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/" />} className="gap-2 py-1.5">
+            <Home />
+            العودة للموقع
+          </DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" onClick={() => void onSignOut()} className="gap-2 py-1.5">
+            <LogOut />
+            تسجيل الخروج
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

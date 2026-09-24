@@ -244,7 +244,7 @@ async function loadAnalytics(): Promise<AnalyticsData> {
   )
 
   const dau = await pool.query<{ day: string; users: number; plays: number }>(
-    `SELECT date_trunc('day', created_at)::date AS day,
+    `SELECT to_char(date_trunc('day', created_at), 'YYYY-MM-DD') AS day,
             count(DISTINCT user_id)::int AS users,
             count(*)::int AS plays
      FROM play_events

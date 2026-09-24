@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { MdAdminPanelSettings, MdLogout } from 'react-icons/md'
+import { MdAdminPanelSettings, MdLogout, MdWorkspacePremium } from 'react-icons/md'
 import { authClient, useSession } from '@/lib/auth-client'
 
 /**
@@ -49,6 +49,14 @@ export function AuthArea() {
           <MdAdminPanelSettings size={20} />
         </Link>
       )}
+      <Link
+        href="/premium/"
+        aria-label="الاشتراك المميز"
+        title="الاشتراك المميز"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-orange-300 transition hover:text-orange-200 sm:h-10 sm:w-10"
+      >
+        <MdWorkspacePremium size={20} />
+      </Link>
       <Link
         href="/profile/"
         aria-label="حسابي"

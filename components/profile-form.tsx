@@ -30,8 +30,6 @@ export function ProfileForm({ initialName }: { initialName: string }) {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-4">
-      <h2 className="text-lg font-extrabold text-white">تعديل البيانات</h2>
-
       <div>
         <label htmlFor="profile-name" className="mb-1.5 block text-sm font-bold text-white">
           الاسم
