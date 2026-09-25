@@ -10,6 +10,7 @@ import { MdMenu, MdSearch } from 'react-icons/md'
 import type { NavCategory } from '@/lib/category-meta'
 import { AuthArea } from './auth-area'
 import { SidebarNav, SidebarNavStatic } from './sidebar-nav'
+import { InstallPrompt } from './install-prompt'
 
 const SearchOverlay = dynamic(
   () => import('@/components/search-overlay').then((m) => m.SearchOverlay),
@@ -109,6 +110,8 @@ export function SiteShell({ children, categories }: { children: ReactNode; categ
       </main>
 
       {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} />}
+
+      <InstallPrompt />
     </div>
   )
 }

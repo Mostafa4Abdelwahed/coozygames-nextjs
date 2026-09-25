@@ -8,6 +8,7 @@
     "start": "next start",
     "wisp": "cd proxy-server && npm start",
     "migrate": "node scripts/migrate.mjs",
+    "icons": "node scripts/build-pwa-icons.mjs",
     "lint": "eslint"
   },
   "dependencies": {

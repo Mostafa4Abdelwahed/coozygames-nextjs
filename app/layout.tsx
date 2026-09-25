@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
 import { SiteShell } from "@/components/site-shell";
 import { navCategories } from "@/lib/categories";
@@ -13,6 +13,27 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: "Coozy Games",
   description: "Coozy Games - العب أحلى الألعاب",
+  appleWebApp: {
+    capable: true,
+    title: "كوزي جيم",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    // Stop iOS turning game titles/URLs into tappable blue app chrome.
+    telephone: false,
+    date: false,
+    address: false,
+    email: false,
+  },
+};
+
+// The dashboard renders a light theme (see the inline script below), so the
+// browser chrome is told to stay dark there too rather than flashing white.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0c0d14",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
