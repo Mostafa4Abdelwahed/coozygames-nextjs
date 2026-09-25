@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { MdCloudUpload, MdImage, MdWorkspacePremium } from 'react-icons/md'
-import { submitPayment, type PaymentActionState } from '@/app/premium/actions'
+import { submitPayment, type PaymentActionState } from '@/lib/actions/premium'
 import type { PaymentMethod } from '@/lib/billing'
 
 const MAX_BYTES = 5 * 1024 * 1024

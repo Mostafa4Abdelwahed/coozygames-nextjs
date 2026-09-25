@@ -3,7 +3,7 @@
 import { useActionState } from 'react'
 import Link from 'next/link'
 import { MdCalendarMonth, MdLink, MdWorkspacePremium } from 'react-icons/md'
-import { redeemLink, type RedeemLinkState } from '@/app/complete/actions'
+import { redeemLink, type RedeemLinkState } from '@/lib/actions/complete'
 import { formatDateAr } from '@/lib/money'
 
 const initState: RedeemLinkState = { done: false }

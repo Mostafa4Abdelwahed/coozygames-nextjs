@@ -1,23 +1,28 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { MdCategory, MdChevronLeft, MdHome, MdPlayArrow, MdStar, MdVideogameAsset } from 'react-icons/md'
+import { MdCategory, MdChevronLeft, MdChevronRight, MdHome, MdPlayArrow, MdStar, MdVideogameAsset } from 'react-icons/md'
 import { allGameSlugs, getGameBySlug, getGamesByCategory } from '@/lib/games'
 import { applyGameOverride, applyOverrides, getPublicOverrides } from '@/lib/dashboard/overrides'
 import { categoryLabelAr } from '@/lib/category-meta'
 import { HEADER_THUMB_WIDTH, thumbUrl } from '@/lib/image'
 import { GameCard } from '@/components/game-card'
 import { GamePoster } from '@/components/game-poster'
-
-// Prerender every game page: no per-request data is needed, so these are
-// static HTML (CDN-cacheable, cheap prefetch). Unknown slugs still 404 on demand.
-export function generateStaticParams() {
-  return allGameSlugs().map((slug) => ({ slug }))
-}
 import Image from 'next/image'
+import { getTranslations } from 'next-intl/server'
+import { routing } from '@/i18n/routing'
+import { hasLocale } from 'next-intl'
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params
+// Prerender every game page for each locale
+export function generateStaticParams() {
+  return routing.locales.flatMap((locale) =>
+    allGameSlugs().map((slug) => ({ locale, slug }))
+  )
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
   const game = getGameBySlug(slug)
   if (!game) return { title: 'Coozy Games' }
   const overrides = await getPublicOverrides()
@@ -25,8 +30,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: `${merged.title} | Coozy Games` }
 }
 
-export default async function GamePage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+export default async function GamePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale, slug } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+
+  const t = await getTranslations({ locale, namespace: "Game" })
+  const common = await getTranslations({ locale, namespace: "Common" })
   const game = getGameBySlug(slug)
   if (!game) notFound()
 
@@ -38,18 +47,21 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
     overrides,
   ).slice(0, 12)
 
+  const dir = locale === "ar" ? "rtl" : "ltr"
+  const Chevron = dir === "rtl" ? MdChevronLeft : MdChevronRight
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-3 sm:gap-8 sm:p-5">
-      <nav aria-label="مسار التنقل" className="flex items-center gap-1 text-sm font-semibold text-mist-50">
+      <nav aria-label={t("breadcrumb")} className="flex items-center gap-1 text-sm font-semibold text-mist-50">
         <Link href="/" className="flex items-center gap-1 transition hover:text-white">
           <MdHome size={16} />
-          الرئيسية
+          {common("home")}
         </Link>
-        <MdChevronLeft size={16} />
+        <Chevron size={16} />
         <Link href={`/game-category/${catSlug}/`} className="transition hover:text-white">
           {categoryLabelAr(catSlug, game.category)}
         </Link>
-        <MdChevronLeft size={16} />
+        <Chevron size={16} />
         <span className="truncate text-white">{merged.title}</span>
       </nav>
 
@@ -76,7 +88,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
             </span>
             <span className="flex items-center gap-1">
               <MdPlayArrow size={15} />
-              {game.plays} لعب
+              {game.plays} {common("plays")}
             </span>
             <span className="flex items-center gap-1">
               <MdStar size={15} className="text-amber-400" />
@@ -92,7 +104,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         <section>
           <div className="mb-3 flex items-center gap-2">
             <MdVideogameAsset size={22} className="text-brand-60" />
-            <h2 className="text-lg font-extrabold text-white sm:text-xl">ألعاب مشابهة</h2>
+            <h2 className="text-lg font-extrabold text-white sm:text-xl">{t("similarGames")}</h2>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
             {related.map((g) => (

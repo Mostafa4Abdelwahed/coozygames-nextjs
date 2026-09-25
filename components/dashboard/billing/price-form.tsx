@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { Tag } from 'lucide-react'
-import { saveMonthlyPrice, type BillingActionState } from '@/app/dashboard/billing/actions'
+import { saveMonthlyPrice, type BillingActionState } from '@/lib/actions/dashboard-billing'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

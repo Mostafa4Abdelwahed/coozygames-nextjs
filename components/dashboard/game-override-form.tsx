@@ -6,7 +6,7 @@ import {
   clearGameOverride,
   upsertGameOverride,
   type OverrideState,
-} from '@/app/dashboard/games/actions'
+} from '@/lib/actions/dashboard-games'
 import type { GameOverride } from '@/lib/dashboard/overrides'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

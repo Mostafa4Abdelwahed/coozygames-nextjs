@@ -9,7 +9,7 @@ import {
   togglePaymentMethod,
   updatePaymentMethod,
   type BillingActionState,
-} from '@/app/dashboard/billing/actions'
+} from '@/lib/actions/dashboard-billing'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

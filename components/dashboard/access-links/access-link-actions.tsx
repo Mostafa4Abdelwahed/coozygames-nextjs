@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { Copy, Trash2 } from 'lucide-react'
-import { deleteLink, type AccessLinksActionState } from '@/app/dashboard/access-links/actions'
+import { deleteLink, type AccessLinksActionState } from '@/lib/actions/dashboard-access-links'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,

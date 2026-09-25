@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { Copy, Link2, Plus } from 'lucide-react'
-import { createLink, type AccessLinksActionState } from '@/app/dashboard/access-links/actions'
+import { createLink, type AccessLinksActionState } from '@/lib/actions/dashboard-access-links'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

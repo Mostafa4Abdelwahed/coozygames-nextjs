@@ -9,7 +9,7 @@ import {
   setUserRole,
   unbanUser,
   type UserActionState,
-} from '@/app/dashboard/users/actions'
+} from '@/lib/actions/dashboard-users'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

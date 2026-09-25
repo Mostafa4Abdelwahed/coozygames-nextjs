@@ -16,7 +16,7 @@ import {
   deleteSetting,
   saveSetting,
   type SettingActionState,
-} from '@/app/dashboard/settings/actions'
+} from '@/lib/actions/dashboard-settings'
 import type { SettingView } from '@/lib/dashboard/settings'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

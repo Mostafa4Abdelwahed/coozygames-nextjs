@@ -1,37 +1,47 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
-import { getProfileGaps } from '@/lib/profile'
+import createMiddleware from "next-intl/middleware";
+import { NextResponse, type NextRequest } from "next/server";
+import { headers } from "next/headers";
+import { routing } from "@/i18n/routing";
+import { auth } from "@/lib/auth";
+import { getProfileGaps } from "@/lib/profile";
 
-const OPEN_PATHS = ['/login', '/register', '/complete']
+const intlMiddleware = createMiddleware(routing);
+
+const OPEN_PATHS = ["/login", "/register", "/complete"];
+const LOCALE_RE = /^\/(ar|en)(?=\/|$)/;
+
+function stripLocale(pathname: string): string {
+  return pathname.replace(LOCALE_RE, "") || "/";
+}
 
 export async function proxy(request: NextRequest) {
-  const pathname = request.nextUrl.pathname
+  const intlResponse = intlMiddleware(request);
 
-  if (OPEN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
-    return NextResponse.next()
+  const path = stripLocale(request.nextUrl.pathname);
+
+  if (OPEN_PATHS.some((p) => path === p || path.startsWith(`${p}/`))) {
+    return intlResponse;
   }
 
   const session = await auth.api.getSession({
     headers: await headers(),
-  })
+  });
 
-  // Anonymous visitors can browse public pages freely
   if (!session) {
-    return NextResponse.next()
+    return intlResponse;
   }
 
-  // Logged-in users with missing profile data must complete it first,
-  // except on /dashboard where the layout enforces admin access.
-  const isDashboard = pathname === '/dashboard' || pathname.startsWith('/dashboard/')
+  const isDashboard = path === "/dashboard" || path.startsWith("/dashboard/");
   if (!isDashboard && getProfileGaps(session.user).length > 0) {
-    return NextResponse.redirect(new URL('/complete/', request.url))
+    const locale = request.nextUrl.pathname.match(LOCALE_RE)?.[1] ?? routing.defaultLocale;
+    return NextResponse.redirect(new URL(`/${locale}/complete/`, request.url));
   }
 
-  return NextResponse.next()
+  return intlResponse;
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-}
+  matcher: [
+    "/((?!api|_next/static|_next/image|image|_vercel|.*\\..*).*)",
+  ],
+};
