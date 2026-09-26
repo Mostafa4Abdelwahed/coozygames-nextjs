@@ -5,6 +5,8 @@ import { getGameBySlug } from '@/lib/games'
 
 // In-memory rate limit (per process): N plays per IP per window. The event is
 // fire-and-forget so over-limit requests are silently dropped.
+// NOTE: This is per-process only. In multi-instance deployments (Vercel, K8s),
+// rate limits are not shared across instances. For production, use Redis/Upstash.
 const RATE_WINDOW_MS = 5 * 60_000
 const RATE_LIMIT = 30
 const hits = new Map<string, number[]>()

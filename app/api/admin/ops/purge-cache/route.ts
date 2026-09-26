@@ -5,6 +5,8 @@ import { purgeImageCache, IMAGE_CACHE_DIR } from '@/lib/dashboard/ops'
 import { logAudit } from '@/lib/dashboard/audit'
 
 // In-memory rate limit (per process): a purge is a rare, expensive op.
+// NOTE: This is per-process only. In multi-instance deployments (Vercel, K8s),
+// rate limits are not shared across instances. For production, use Redis/Upstash.
 const WINDOW_MS = 60_000
 const MAX_PER_WINDOW = 10
 const hits = new Map<string, number[]>()

@@ -51,7 +51,12 @@ export const auth = betterAuth({
   plugins: [
     phoneNumber({
       sendOTP: ({ phoneNumber, code }) => {
-        // Dev mock: log OTP instead of sending SMS (plug a real SMS provider here)
+        // Dev mock: log OTP instead of sending SMS.
+        // In production, set SMS_PROVIDER env var and implement real provider (Twilio, Vonage, etc.).
+        // This mock is only safe for single-instance dev environments.
+        if (process.env.NODE_ENV === 'production' && !process.env.SMS_PROVIDER) {
+          console.warn('[auth] SMS_PROVIDER not set in production — OTP will not be delivered')
+        }
         console.log(`[auth] mock SMS to ${phoneNumber}: code ${code}`)
       },
     }),
