@@ -2,7 +2,6 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import sharp from "sharp";
 import { pool } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import {
@@ -58,24 +57,16 @@ export async function submitPayment(
     return { done: true, error: "fileTypeInvalid" };
   }
 
-  let image: Buffer;
-  try {
-    const resized = sharp(Buffer.from(await file.arrayBuffer()), { failOn: "error" })
-      .rotate()
-      .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 80, mozjpeg: true });
-    image = await resized.toBuffer();
-  } catch {
-    return { done: true, error: "fileNotImage" };
-  }
+  const image = Buffer.from(await file.arrayBuffer());
+  const imageType = file.type.trim() || "application/octet-stream";
 
   const amount = await getMonthlyPrice();
 
   await pool.query(
     `INSERT INTO payments
        (user_id, method_id, amount, currency, provider_transaction_id, sender_name, recipient_note, receipt_image, receipt_image_type)
-     VALUES ($1, $2, $3, 'EGP', $4, $5, $6, $7, 'image/jpeg')`,
-    [session.user.id, method.id, amount, txId, sender, note, image],
+     VALUES ($1, $2, $3, 'EGP', $4, $5, $6, $7, $8)`,
+    [session.user.id, method.id, amount, txId, sender, note, image, imageType],
   );
 
   revalidatePath("/premium", "page");

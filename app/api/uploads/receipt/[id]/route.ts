@@ -33,6 +33,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   return new NextResponse(new Uint8Array(row.receipt_image), {
     headers: {
       'Content-Type': row.receipt_image_type,
+      'Content-Disposition': 'inline',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'; sandbox",
       'Cache-Control': 'private, max-age=3600',
       'Content-Length': String(row.receipt_image.length),
     },

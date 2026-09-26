@@ -6,6 +6,12 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['react-icons'],
+    // Receipt uploads go through a Server Action; the default 1 MB body cap
+    // silently rejects most phone photos before validation runs. Keep this a
+    // little above MAX_RECEIPT_BYTES (5 MB) for multipart overhead.
+    serverActions: {
+      bodySizeLimit: '6mb',
+    },
   },
   images: {
     localPatterns: [{ pathname: '/image/**' }, { pathname: '/icons/**' }, { pathname: '/flags/**' }],
