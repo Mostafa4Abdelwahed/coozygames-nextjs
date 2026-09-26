@@ -6,13 +6,14 @@ import { FcGoogle } from "react-icons/fc";
 import { MdVisibility, MdVisibilityOff } from "react-icons/md";
 import { authClient } from "@/lib/auth-client";
 import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from "@/lib/phone";
+import { useTranslations } from "next-intl";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-function toServerMessage(message: string): string {
+function toServerMessage(message: string, t: ReturnType<typeof useTranslations>): string {
   if (message.includes("already exists") || message.includes("already registered"))
-    return "هذا الحساب مسجل بالفعل، سجل الدخول";
-  return "حدث خطأ، حاول مرة أخرى";
+    return t("accountExists");
+  return t("serverError");
 }
 
 export function RegisterForm({ next }: { next?: string }) {
@@ -34,6 +35,7 @@ export function RegisterForm({ next }: { next?: string }) {
   }>({});
   const [serverError, setServerError] = useState("");
   const [pending, setPending] = useState(false);
+  const t = useTranslations("Auth");
 
   const inputClass =
     "h-12 w-full rounded-xl border border-transparent bg-night-40 px-4 text-start text-base font-bold text-white outline-none placeholder:text-mist-50 focus:border-brand-100";
@@ -47,19 +49,19 @@ export function RegisterForm({ next }: { next?: string }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const nextErrors: typeof errors = {};
-    if (name.trim().length < 2) nextErrors.name = "الاسم يجب أن يكون حرفين على الأقل";
+    if (name.trim().length < 2) nextErrors.name = t("nameMinLength");
     const phoneError = validatePhoneNumber(phone, region);
     if (phoneError) nextErrors.phone = phoneError;
-    if (!EMAIL_RE.test(email.trim())) nextErrors.email = "البريد الإلكتروني غير صحيح";
-    if (password.length < 8) nextErrors.password = "كلمة المرور يجب أن تكون 8 أحرف على الأقل";
-    if (!terms) nextErrors.terms = "يجب الموافقة على الشروط والأحكام";
+    if (!EMAIL_RE.test(email.trim())) nextErrors.email = t("emailInvalid");
+    if (password.length < 8) nextErrors.password = t("passwordMinLength");
+    if (!terms) nextErrors.terms = t("termsRequired");
     setErrors(nextErrors);
     setServerError("");
     if (Object.keys(nextErrors).length > 0) return;
 
     const normalizedPhone = normalizePhoneNumber(phone, region);
     if (!normalizedPhone) {
-      setErrors({ phone: "رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة" });
+      setErrors({ phone: t("phoneInvalid") });
       setPending(false);
       return;
     }
@@ -72,8 +74,8 @@ export function RegisterForm({ next }: { next?: string }) {
       );
       const check = (await checkRes.json()) as { emailTaken: boolean; phoneTaken: boolean };
       const taken: typeof errors = {};
-      if (check.emailTaken) taken.email = "هذا البريد مسجل بالفعل، سجل الدخول";
-      if (check.phoneTaken) taken.phone = "هذا الرقم مسجل بالفعل، سجل الدخول";
+      if (check.emailTaken) taken.email = t("emailExists");
+      if (check.phoneTaken) taken.phone = t("phoneExists");
       if (Object.keys(taken).length > 0) {
         setErrors(taken);
         setPending(false);
@@ -93,12 +95,12 @@ export function RegisterForm({ next }: { next?: string }) {
     if (error) {
       const message = error.message ?? "";
       if (message.toLowerCase().includes("phone")) {
-        setErrors({ phone: "هذا الرقم مسجل بالفعل، سجل الدخول" });
+        setErrors({ phone: t("phoneExists") });
       } else if (message.toLowerCase().includes("email")) {
-        setErrors({ email: "هذا البريد مسجل بالفعل، سجل الدخول" });
+        setErrors({ email: t("emailExists") });
       } else {
         // Pre-check passed but creation failed: almost certainly a duplicate race
-        setServerError("قد يكون هذا الحساب مسجلًا بالفعل، سجل الدخول");
+        setServerError(t("accountExists"));
       }
       return;
     }
@@ -112,7 +114,7 @@ export function RegisterForm({ next }: { next?: string }) {
       provider: "google",
       callbackURL: nextPath,
     });
-    if (error) setServerError(toServerMessage(error.message ?? ""));
+    if (error) setServerError(toServerMessage(error.message ?? "", t));
   }
 
   function fieldError(message?: string, id?: string) {
@@ -132,18 +134,18 @@ export function RegisterForm({ next }: { next?: string }) {
         className="flex h-12 items-center justify-center gap-2 rounded-xl bg-night-60 text-sm font-extrabold text-white transition hover:bg-night-40"
       >
         <FcGoogle size={20} />
-        المتابعة عبر Google
+        {t("continueWithGoogle")}
       </button>
 
       <div className="flex items-center gap-3 text-xs font-bold text-mist-50">
         <span className="h-px flex-1 bg-night-60" />
-        أو
+        {t("or")}
         <span className="h-px flex-1 bg-night-60" />
       </div>
 
       <div>
         <label htmlFor="register-name" className="mb-1.5 block text-sm font-bold text-white">
-          الاسم
+          {t("name")}
         </label>
         <input
           id="register-name"
@@ -155,7 +157,7 @@ export function RegisterForm({ next }: { next?: string }) {
             setName(e.target.value);
             clearError("name");
           }}
-          placeholder="مثال: أحمد محمد"
+          placeholder={t("namePlaceholder")}
           aria-invalid={!!errors.name}
           aria-describedby={errors.name ? "register-name-error" : undefined}
           className={`${inputClass} ${errors.name ? errorInput : ""}`}
@@ -165,7 +167,7 @@ export function RegisterForm({ next }: { next?: string }) {
 
       <div>
         <label htmlFor="register-phone" className="mb-1.5 block text-sm font-bold text-white">
-          رقم الهاتف
+          {t("phone")}
         </label>
         <div className="flex gap-2" dir="ltr">
           <select
@@ -174,7 +176,7 @@ export function RegisterForm({ next }: { next?: string }) {
               setRegion(e.target.value);
               clearError("phone");
             }}
-            aria-label="كود الدولة"
+            aria-label="Country Code"
             className="h-12 w-28 shrink-0 rounded-xl border border-transparent bg-night-40 px-2 text-left text-sm font-bold text-white outline-none focus:border-brand-100"
           >
             {COUNTRY_CODES.map((c) => (
@@ -211,7 +213,7 @@ export function RegisterForm({ next }: { next?: string }) {
 
       <div>
         <label htmlFor="register-email" className="mb-1.5 block text-sm font-bold text-white">
-          البريد الإلكتروني
+          {t("email")}
         </label>
         <input
           id="register-email"
@@ -235,7 +237,7 @@ export function RegisterForm({ next }: { next?: string }) {
 
       <div>
         <label htmlFor="register-password" className="mb-1.5 block text-sm font-bold text-white">
-          كلمة المرور
+          {t("password")}
         </label>
         <div className="relative">
           <input
@@ -248,7 +250,7 @@ export function RegisterForm({ next }: { next?: string }) {
               setPassword(e.target.value);
               clearError("password");
             }}
-            placeholder="8 أحرف على الأقل"
+            placeholder={t("passwordPlaceholder")}
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? "register-password-error" : undefined}
             className={`${inputClass} pe-12 ${errors.password ? errorInput : ""}`}
@@ -256,7 +258,7 @@ export function RegisterForm({ next }: { next?: string }) {
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+            aria-label={showPassword ? t("hidePassword") : t("showPassword")}
             className="absolute inset-e-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-mist-50 transition hover:text-white"
           >
             {showPassword ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
@@ -276,7 +278,7 @@ export function RegisterForm({ next }: { next?: string }) {
             }}
             className="h-4 w-4 accent-brand-100"
           />
-          أوافق على الشروط والأحكام
+          {t("termsAgree")}
         </label>
         {fieldError(errors.terms, "register-terms-error")}
       </div>
@@ -292,13 +294,13 @@ export function RegisterForm({ next }: { next?: string }) {
         disabled={pending}
         className="flex h-12 items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70 disabled:opacity-60"
       >
-        {pending ? "جارٍ إنشاء الحساب..." : "إنشاء حساب"}
+        {pending ? t("creatingAccount") : t("registerSubmit")}
       </button>
 
       <p className="text-center text-sm font-semibold text-mist-50">
-        لديك حساب بالفعل؟{" "}
+        {t("hasAccount")}{" "}
         <Link href={`/login/?next=${encodeURIComponent(nextPath)}`} className="font-bold text-brand-60 transition hover:text-white">
-          تسجيل الدخول
+          {t("loginLink")}
         </Link>
       </p>
     </form>

@@ -1,17 +1,19 @@
-'use client'
+"use client";
 
-import { useActionState } from 'react'
-import Link from 'next/link'
-import { MdCalendarMonth, MdLink, MdWorkspacePremium } from 'react-icons/md'
-import { redeemLink, type RedeemLinkState } from '@/lib/actions/complete'
-import { formatDateAr } from '@/lib/money'
+import { useActionState } from "react";
+import Link from "next/link";
+import { MdCalendarMonth, MdLink, MdWorkspacePremium } from "react-icons/md";
+import { redeemLink, type RedeemLinkState } from "@/lib/actions/complete";
+import { formatDateAr } from "@/lib/money";
+import { useTranslations } from "next-intl";
 
-const initState: RedeemLinkState = { done: false }
+const initState: RedeemLinkState = { done: false };
 
 export function ActivateLinkCard({ token, subscriptionDays }: { token: string; subscriptionDays: number }) {
-  const [state, formAction, pending] = useActionState(redeemLink, initState)
+  const t = useTranslations("Premium");
+  const [state, formAction, pending] = useActionState(redeemLink, initState);
 
-  const success = state.done && !state.error && state.expiresAt
+  const success = state.done && !state.error && state.expiresAt;
 
   return (
     <div className="rounded-2xl border border-night-60 bg-night-80 p-5 sm:p-8">
@@ -20,17 +22,17 @@ export function ActivateLinkCard({ token, subscriptionDays }: { token: string; s
           <span className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
             <MdWorkspacePremium size={32} />
           </span>
-          <h2 className="text-2xl font-extrabold text-white sm:text-3xl">اشتراكك مُفعّل!</h2>
-          <p className="text-sm font-semibold text-mist-50">تم منحك {subscriptionDays} يوم لعب بدون حدود.</p>
+          <h2 className="text-2xl font-extrabold text-white sm:text-3xl">{t("subscriptionActivated")}</h2>
+          <p className="text-sm font-semibold text-mist-50">{t("grantedDays", { days: subscriptionDays })}</p>
           <p className="flex items-center gap-1.5 text-sm font-bold text-emerald-400">
             <MdCalendarMonth size={18} />
-            اشتراكك النشط ينتهي في {formatDateAr(state.expiresAt)}
+            {t("activeUntil", { date: formatDateAr(state.expiresAt) })}
           </p>
           <Link
             href="/games/"
             className="mt-1 flex h-12 w-full items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70 sm:w-64"
           >
-            ابدأ اللعب الآن
+            {t("startPlayingNow")}
           </Link>
         </div>
       ) : (
@@ -40,8 +42,8 @@ export function ActivateLinkCard({ token, subscriptionDays }: { token: string; s
               <MdWorkspacePremium size={24} />
             </span>
             <div>
-              <h1 className="text-xl font-extrabold text-white sm:text-2xl">رابط اشتراك مميز</h1>
-              <p className="mt-0.5 text-sm font-semibold text-mist-50">ليك {subscriptionDays} يوم لعب بدون حدود</p>
+              <h1 className="text-xl font-extrabold text-white sm:text-2xl">{t("premiumLink")}</h1>
+              <p className="mt-0.5 text-sm font-semibold text-mist-50">{t("youHaveDays", { days: subscriptionDays })}</p>
             </div>
           </div>
 
@@ -49,16 +51,16 @@ export function ActivateLinkCard({ token, subscriptionDays }: { token: string; s
             <div className="rounded-xl border border-night-60 bg-night-40 px-4 py-3">
               <span className="flex items-center gap-1.5 text-xs font-bold text-mist-50">
                 <MdLink size={14} />
-                المدة
+                {t("duration")}
               </span>
-              <span className="mt-1 block text-lg font-extrabold text-white">{subscriptionDays} يوم</span>
+              <span className="mt-1 block text-lg font-extrabold text-white">{subscriptionDays} {t("days")}</span>
             </div>
             <div className="rounded-xl border border-night-60 bg-night-40 px-4 py-3">
               <span className="flex items-center gap-1.5 text-xs font-bold text-mist-50">
                 <MdWorkspacePremium size={14} />
-                الاستخدام
+                {t("usage")}
               </span>
-              <span className="mt-1 block text-lg font-extrabold text-white">مرة واحدة فقط</span>
+              <span className="mt-1 block text-lg font-extrabold text-white">{t("oneTimeOnly")}</span>
             </div>
           </div>
 
@@ -67,7 +69,7 @@ export function ActivateLinkCard({ token, subscriptionDays }: { token: string; s
               role="alert"
               className="rounded-xl bg-red-500/15 px-4 py-2.5 text-center text-sm font-bold text-red-400"
             >
-              {state.error}
+              {t(state.error)}
             </p>
           )}
 
@@ -78,11 +80,11 @@ export function ActivateLinkCard({ token, subscriptionDays }: { token: string; s
               disabled={pending}
               className="flex h-12 w-full items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70 disabled:opacity-60"
             >
-              {pending ? 'جارٍ التفعيل...' : 'تفعيل الاشتراك'}
+              {pending ? t("activating") : t("activateSubscription")}
             </button>
           </form>
         </>
       )}
     </div>
-  )
+  );
 }

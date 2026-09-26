@@ -1,11 +1,12 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { MdCloudUpload, MdImage, MdWorkspacePremium } from 'react-icons/md'
-import { submitPayment, type PaymentActionState } from '@/lib/actions/premium'
-import type { PaymentMethod } from '@/lib/billing'
+import { useState, useTransition } from "react";
+import { MdCloudUpload, MdImage, MdWorkspacePremium } from "react-icons/md";
+import { submitPayment, type PaymentActionState } from "@/lib/actions/premium";
+import type { PaymentMethod } from "@/lib/billing";
+import { useTranslations } from "next-intl";
 
-const MAX_BYTES = 5 * 1024 * 1024
+const MAX_BYTES = 5 * 1024 * 1024;
 
 export function PremiumPanel({
   priceLabel,
@@ -13,74 +14,75 @@ export function PremiumPanel({
   hasActive,
   hasPending,
 }: {
-  price: number
-  priceLabel: string
-  methods: PaymentMethod[]
-  hasActive: boolean
-  hasPending: boolean
+  price: number;
+  priceLabel: string;
+  methods: PaymentMethod[];
+  hasActive: boolean;
+  hasPending: boolean;
 }) {
-  const [methodId, setMethodId] = useState(methods[0]?.id ?? '')
-  const [txId, setTxId] = useState('')
-  const [sender, setSender] = useState('')
-  const [note, setNote] = useState('')
-  const [preview, setPreview] = useState<string | null>(null)
-  const [error, setError] = useState('')
-  const [result, setResult] = useState<PaymentActionState | null>(null)
-  const [pending, startTransition] = useTransition()
+  const t = useTranslations("Premium");
+  const [methodId, setMethodId] = useState(methods[0]?.id ?? "");
+  const [txId, setTxId] = useState("");
+  const [sender, setSender] = useState("");
+  const [note, setNote] = useState("");
+  const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<PaymentActionState | null>(null);
+  const [pending, startTransition] = useTransition();
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (!file) {
-      setPreview(null)
-      return
+      setPreview(null);
+      return;
     }
     if (file.size > MAX_BYTES) {
-      setError('حجم الصورة أكبر من 5 م.ب')
-      setPreview(null)
-      return
+      setError(t("fileTooLarge"));
+      setPreview(null);
+      return;
     }
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('صيغة غير مدعومة — استخدم JPG أو PNG أو WebP')
-      setPreview(null)
-      return
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError(t("fileTypeInvalid"));
+      setPreview(null);
+      return;
     }
-    setError('')
-    setPreview(URL.createObjectURL(file))
+    setError("");
+    setPreview(URL.createObjectURL(file));
   }
 
   function handleSubmit(next: FormData) {
-    setResult(null)
-    setError('')
+    setResult(null);
+    setError("");
     startTransition(async () => {
-      const state = await submitPayment({ done: false }, next)
-      if (state.error) setError(state.error)
+      const state = await submitPayment({ done: false }, next);
+      if (state.error) setError(t(state.error));
       else {
-        setResult({ done: true })
-        setTxId('')
-        setSender('')
-        setNote('')
-        setPreview(null)
+        setResult({ done: true });
+        setTxId("");
+        setSender("");
+        setNote("");
+        setPreview(null);
       }
-    })
+    });
   }
 
   return (
     <form action={handleSubmit} noValidate className="flex flex-col gap-4">
       {methods.length === 0 ? (
         <div className="rounded-2xl border border-night-60 bg-night-80 p-5 text-center text-sm font-bold text-mist-50">
-          لا توجد طرق دفع مفعلة حاليًا — عد لاحقًا.
+          {t("noPaymentMethods")}
         </div>
       ) : (
         <>
           <fieldset className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <legend className="mb-2 text-sm font-extrabold text-white">1. اختر طريقة الدفع</legend>
+            <legend className="mb-2 text-sm font-extrabold text-white">{t("selectPaymentMethod")}</legend>
             {methods.map((m) => (
               <label
                 key={m.id}
                 className={`flex cursor-pointer flex-col gap-0.5 rounded-2xl border p-4 transition-colors ${
                   methodId === m.id
-                    ? 'border-brand-100 bg-brand-100/10'
-                    : 'border-night-60 bg-night-80 hover:border-mist-50'
+                    ? "border-brand-100 bg-brand-100/10"
+                    : "border-night-60 bg-night-80 hover:border-mist-50"
                 }`}
               >
                 <input
@@ -97,7 +99,7 @@ export function PremiumPanel({
                     {m.details}
                   </span>
                 ) : (
-                  <span className="text-xs font-semibold text-mist-50">حُددت من لوحة التحكم</span>
+                  <span className="text-xs font-semibold text-mist-50">{t("paymentMethodSet")}</span>
                 )}
               </label>
             ))}
@@ -106,7 +108,7 @@ export function PremiumPanel({
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div>
               <label htmlFor="tx-id" className="mb-1.5 block text-sm font-bold text-white">
-                رقم العملية <span className="text-brand-60">*</span>
+                {t("txIdLabel")} <span className="text-brand-60">*</span>
               </label>
               <input
                 id="tx-id"
@@ -114,13 +116,13 @@ export function PremiumPanel({
                 type="text"
                 value={txId}
                 onChange={(e) => setTxId(e.target.value)}
-                placeholder="مثال: 0112xxxxxxxxx"
+                placeholder={t("txIdRequired")}
                 className="h-12 w-full rounded-xl border border-transparent bg-night-40 px-4 text-start text-base font-bold text-white outline-none placeholder:text-mist-50 focus:border-brand-100"
               />
             </div>
             <div>
               <label htmlFor="tx-sender" className="mb-1.5 block text-sm font-bold text-white">
-                اسم المُرسِل <span className="text-brand-60">*</span>
+                {t("senderLabel")} <span className="text-brand-60">*</span>
               </label>
               <input
                 id="tx-sender"
@@ -128,7 +130,7 @@ export function PremiumPanel({
                 type="text"
                 value={sender}
                 onChange={(e) => setSender(e.target.value)}
-                placeholder="الاسم الظاهر على التحويل"
+                placeholder={t("senderPlaceholder")}
                 className="h-12 w-full rounded-xl border border-transparent bg-night-40 px-4 text-start text-base font-bold text-white outline-none placeholder:text-mist-50 focus:border-brand-100"
               />
             </div>
@@ -136,7 +138,7 @@ export function PremiumPanel({
 
           <div>
             <label htmlFor="tx-note" className="mb-1.5 block text-sm font-bold text-white">
-              ملاحظة <span className="text-xs font-semibold text-mist-50">(اختياري)</span>
+              {t("noteLabel")}
             </label>
             <textarea
               id="tx-note"
@@ -151,7 +153,7 @@ export function PremiumPanel({
 
           <div>
             <span className="mb-1.5 block text-sm font-bold text-white">
-              صورة الإيصال <span className="text-brand-60">*</span>
+              {t("receiptLabel")} <span className="text-brand-60">*</span>
             </span>
             <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-mist-50 bg-night-40 px-4 py-8 text-center transition-colors hover:border-brand-100">
               <input
@@ -164,13 +166,13 @@ export function PremiumPanel({
               {preview ? (
                 <>
                   <MdImage size={28} className="text-brand-60" />
-                  <span className="text-sm font-extrabold text-white">الإيصال جاهز للرفع</span>
+                  <span className="text-sm font-extrabold text-white">{t("receiptReady")}</span>
                 </>
               ) : (
                 <>
                   <MdCloudUpload size={28} className="text-mist-50" />
-                  <span className="text-sm font-extrabold text-white">اضغط لرفع صورة الإيصال</span>
-                  <span className="text-xs font-semibold text-mist-50">JPG / PNG / WebP — بحد أقصى 5 م.ب</span>
+                  <span className="text-sm font-extrabold text-white">{t("clickToUpload")}</span>
+                  <span className="text-xs font-semibold text-mist-50">{t("receiptMaxSize")}</span>
                 </>
               )}
             </label>
@@ -186,7 +188,7 @@ export function PremiumPanel({
 
       {result?.done ? (
         <p role="status" className="rounded-xl bg-emerald-500/15 px-4 py-2.5 text-center text-sm font-bold text-emerald-400">
-          تم إرسال الدفعة — سيؤكدها الأدمن خلال فترة قصيرة.
+          {t("paymentSent")}
         </p>
       ) : (
         <button
@@ -196,14 +198,14 @@ export function PremiumPanel({
         >
           <MdWorkspacePremium size={20} />
           {pending
-            ? 'جارٍ الإرسال...'
+            ? t("sending")
             : hasActive
-              ? 'أنت مشترك — تجديد بعد الانتهاء'
+              ? t("subscribed")
               : hasPending
-                ? 'لديك دفعة قيد المراجعة'
-                : `اشترك الآن بـ ${priceLabel}`}
+                ? t("hasPending")
+                : t("subscribeAtPrice", { priceLabel })}
         </button>
       )}
     </form>
-  )
+  );
 }

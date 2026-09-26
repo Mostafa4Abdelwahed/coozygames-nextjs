@@ -5,6 +5,7 @@ import { useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth-client";
 import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from "@/lib/phone";
 import type { ProfileGap } from "@/lib/profile";
+import { useTranslations } from "next-intl";
 
 type Props = {
   missing: ProfileGap[];
@@ -20,6 +21,7 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = "/profi
   const [phoneError, setPhoneError] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const t = useTranslations("Auth");
 
   const needsName = missing.includes("name");
   const needsPhone = missing.includes("phoneNumber");
@@ -33,14 +35,14 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = "/profi
 
     if (needsName) {
       if (name.trim().length < 2) {
-        setError("الاسم يجب أن يكون حرفين على الأقل");
+        setError(t("nameMinLength"));
         return;
       }
       setPending(true);
       const { error } = await authClient.updateUser({ name: name.trim() });
       if (error) {
         setPending(false);
-        setError("حدث خطأ أثناء حفظ الاسم");
+        setError(t("serverError"));
         return;
       }
     }
@@ -56,7 +58,7 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = "/profi
       const normalized = normalizePhoneNumber(phone, region);
       if (!normalized) {
         setPending(false);
-        setPhoneError("رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة");
+        setPhoneError(t("phoneInvalid"));
         return;
       }
       const res = await fetch("/api/profile/phone", {
@@ -67,7 +69,7 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = "/profi
       setPending(false);
       if (!res.ok) {
         const data = (await res.json().catch(() => null)) as { message?: string } | null;
-        setError(data?.message ?? "حدث خطأ أثناء حفظ رقم الهاتف");
+        setError(data?.message ?? t("serverError"));
         return;
       }
     }
@@ -81,7 +83,7 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = "/profi
       {needsName && (
         <div>
           <label htmlFor="complete-name" className="mb-1.5 block text-sm font-bold text-white">
-            الاسم
+            {t("name")}
           </label>
           <input
             id="complete-name"
@@ -93,7 +95,7 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = "/profi
               setName(e.target.value);
               setError("");
             }}
-            placeholder="مثال: أحمد محمد"
+            placeholder={t("namePlaceholder")}
             className={inputClass}
           />
         </div>
@@ -102,13 +104,13 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = "/profi
       {needsPhone && (
         <div>
           <label htmlFor="complete-phone" className="mb-1.5 block text-sm font-bold text-white">
-            رقم الهاتف
+            {t("phone")}
           </label>
           <div className="flex gap-2" dir="ltr">
             <select
               value={region}
               onChange={(e) => setRegion(e.target.value)}
-              aria-label="كود الدولة"
+              aria-label="Country Code"
               className="h-12 w-28 shrink-0 rounded-xl border border-transparent bg-night-40 px-2 text-left text-sm font-bold text-white outline-none focus:border-brand-100"
             >
               {COUNTRY_CODES.map((c) => (
@@ -160,7 +162,7 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = "/profi
         disabled={pending}
         className="flex h-12 items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70 disabled:opacity-60"
       >
-        {pending ? "جارٍ الحفظ..." : "حفظ البيانات"}
+        {pending ? t("saving") : t("saveData")}
       </button>
     </form>
   );

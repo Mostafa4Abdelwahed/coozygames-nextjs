@@ -11,6 +11,7 @@ import type { NavCategory } from "@/lib/category-meta";
 import { AuthArea } from "./auth-area";
 import { SidebarNav, SidebarNavStatic } from "./sidebar-nav";
 import { InstallPrompt } from "./install-prompt";
+import { LocaleSwitcher } from "./locale-switcher";
 
 const SearchOverlay = dynamic(
   () => import("@/components/search-overlay").then((m) => m.SearchOverlay),
@@ -82,6 +83,7 @@ export function SiteShell({
           >
             <MdSearch size={22} />
           </button>
+          <LocaleSwitcher />
           <AuthArea />
         </div>
       </div>

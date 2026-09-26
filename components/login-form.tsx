@@ -6,12 +6,13 @@ import { FcGoogle } from "react-icons/fc";
 import { MdVisibility, MdVisibilityOff } from "react-icons/md";
 import { authClient } from "@/lib/auth-client";
 import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from "@/lib/phone";
+import { useTranslations } from "next-intl";
 
-function toServerMessage(message: string): string {
-  if (message.includes("Invalid phone number or password")) return "رقم الهاتف أو كلمة المرور غير صحيحة";
-  if (message.includes("not found") || message.includes("User not found")) return "لا يوجد حساب بهذا الرقم";
-  if (message.includes("not verified")) return "رقم الهاتف غير مؤكد";
-  return "حدث خطأ، حاول مرة أخرى";
+function toServerMessage(message: string, t: ReturnType<typeof useTranslations>): string {
+  if (message.includes("Invalid phone number or password")) return t("phoneOrPasswordInvalid");
+  if (message.includes("not found") || message.includes("User not found")) return t("userNotFound");
+  if (message.includes("not verified")) return t("phoneNotVerified");
+  return t("serverError");
 }
 
 export function LoginForm({ next }: { next?: string }) {
@@ -26,6 +27,8 @@ export function LoginForm({ next }: { next?: string }) {
   const [passwordError, setPasswordError] = useState("");
   const [serverError, setServerError] = useState("");
   const [pending, setPending] = useState(false);
+  const t = useTranslations("Auth");
+  const tCommon = useTranslations("Common");
 
   function validatePhone(value: string): string {
     return validatePhoneNumber(value, region);
@@ -37,7 +40,7 @@ export function LoginForm({ next }: { next?: string }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const phoneErr = validatePhone(phone);
-    const passErr = password ? "" : "كلمة المرور مطلوبة";
+    const passErr = password ? "" : t("passwordRequired");
     setPhoneError(phoneErr);
     setPasswordError(passErr);
     setServerError("");
@@ -47,7 +50,7 @@ export function LoginForm({ next }: { next?: string }) {
     const normalized = normalizePhoneNumber(phone, region);
     if (!normalized) {
       setPending(false);
-      setPhoneError("رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة");
+      setPhoneError(t("phoneInvalid"));
       return;
     }
     const { error } = await authClient.signIn.phoneNumber({
@@ -57,7 +60,7 @@ export function LoginForm({ next }: { next?: string }) {
     });
     setPending(false);
     if (error) {
-      setServerError(toServerMessage(error.message ?? ""));
+      setServerError(toServerMessage(error.message ?? "", t));
       return;
     }
     router.push(nextPath);
@@ -70,7 +73,7 @@ export function LoginForm({ next }: { next?: string }) {
       provider: "google",
       callbackURL: nextPath,
     });
-    if (error) setServerError(toServerMessage(error.message ?? ""));
+    if (error) setServerError(toServerMessage(error.message ?? "", t));
   }
 
   return (
@@ -81,18 +84,18 @@ export function LoginForm({ next }: { next?: string }) {
         className="flex h-12 items-center justify-center gap-2 rounded-xl bg-night-60 text-sm font-extrabold text-white transition hover:bg-night-40"
       >
         <FcGoogle size={20} />
-        المتابعة عبر Google
+        {t("continueWithGoogle")}
       </button>
 
       <div className="flex items-center gap-3 text-xs font-bold text-mist-50">
         <span className="h-px flex-1 bg-night-60" />
-        أو
+        {t("or")}
         <span className="h-px flex-1 bg-night-60" />
       </div>
 
       <div>
         <label htmlFor="login-phone" className="mb-1.5 block text-sm font-bold text-white">
-          رقم الهاتف
+          {t("phone")}
         </label>
         <div className="flex gap-2" dir="ltr">
           <select
@@ -102,7 +105,7 @@ export function LoginForm({ next }: { next?: string }) {
               setPhoneError("");
               setServerError("");
             }}
-            aria-label="كود الدولة"
+            aria-label="Country Code"
             className="h-12 w-28 shrink-0 rounded-xl border border-transparent bg-night-40 px-2 text-left text-sm font-bold text-white outline-none focus:border-brand-100"
           >
             {COUNTRY_CODES.map((c) => (
@@ -141,7 +144,7 @@ export function LoginForm({ next }: { next?: string }) {
 
       <div>
         <label htmlFor="login-password" className="mb-1.5 block text-sm font-bold text-white">
-          كلمة المرور
+          {t("password")}
         </label>
         <div className="relative">
           <input
@@ -163,7 +166,7 @@ export function LoginForm({ next }: { next?: string }) {
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+            aria-label={showPassword ? t("hidePassword") : t("showPassword")}
             className="absolute inset-e-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-mist-50 transition hover:text-white"
           >
             {showPassword ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
@@ -183,7 +186,7 @@ export function LoginForm({ next }: { next?: string }) {
           onChange={(e) => setRemember(e.target.checked)}
           className="h-4 w-4 accent-brand-100"
         />
-        ابقَ مسجل الدخول
+        {t("rememberMe")}
       </label>
 
       {serverError && (
@@ -197,13 +200,13 @@ export function LoginForm({ next }: { next?: string }) {
         disabled={pending}
         className="flex h-12 items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70 disabled:opacity-60"
       >
-        {pending ? "جارٍ تسجيل الدخول..." : "تسجيل الدخول"}
+        {pending ? t("signingIn") : t("loginSubmit")}
       </button>
 
       <p className="text-center text-sm font-semibold text-mist-50">
-        جديد هنا؟{" "}
+        {t("noAccount")}{" "}
         <Link href={`/register/?next=${encodeURIComponent(nextPath)}`} className="font-bold text-brand-60 transition hover:text-white">
-          إنشاء حساب
+          {t("registerLink")}
         </Link>
       </p>
     </form>

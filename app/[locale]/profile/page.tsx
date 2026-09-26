@@ -18,12 +18,26 @@ import { ProfileForm } from '@/components/profile-form'
 import { PremiumStatusCard } from '@/components/premium-status-card'
 import { PremiumHistory } from '@/components/premium-history'
 import { AccountSection } from '@/components/account-section'
+import { getTranslations } from 'next-intl/server'
+import { hasLocale } from 'next-intl'
+import { notFound } from 'next/navigation'
+import { routing } from '@/i18n/routing'
 
-export const metadata: Metadata = {
-  title: 'حسابي | Coozy Games',
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  const t = await getTranslations({ locale, namespace: 'Metadata' })
+  return { title: t('profileTitle') }
 }
 
-export default async function ProfilePage() {
+export default async function ProfilePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  const t = await getTranslations({ locale, namespace: 'Auth' })
+  const tCommon = await getTranslations({ locale, namespace: 'Common' })
+  const tAccount = await getTranslations({ locale, namespace: 'Account' })
+  const tPremium = await getTranslations({ locale, namespace: 'Premium' })
+
   const session = await auth.api.getSession({
     headers: await headers(),
   })
@@ -42,13 +56,13 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-3 sm:gap-8 sm:p-5">
-      <nav aria-label="مسار التنقل" className="flex items-center gap-1 text-sm font-semibold text-mist-50">
+      <nav aria-label={tCommon('breadcrumb')} className="flex items-center gap-1 text-sm font-semibold text-mist-50">
         <Link href="/" className="flex items-center gap-1 transition hover:text-white">
           <MdHome size={16} />
-          الرئيسية
+          {tCommon('home')}
         </Link>
         <MdChevronLeft size={16} />
-        <span className="text-white">حسابي</span>
+        <span className="text-white">{tAccount('myAccount')}</span>
       </nav>
 
       <header className="overflow-hidden rounded-2xl border border-night-60 bg-night-80">
@@ -73,12 +87,12 @@ export default async function ProfilePage() {
           )}
           <span className="flex items-center gap-1.5 text-sm font-semibold text-mist-50">
             <MdCalendarMonth className="size-4 shrink-0 text-brand-60" />
-            عضو منذ {new Date(user.createdAt).getFullYear()}
+            {tAccount('memberSince', { year: new Date(user.createdAt).getFullYear() })}
           </span>
         </div>
       </header>
 
-      <AccountSection icon={<MdAccountCircle className="size-5" />} title="البيانات الشخصية">
+      <AccountSection icon={<MdAccountCircle className="size-5" />} title={tAccount('personalData')}>
         <div className="rounded-2xl border border-night-60 bg-night-80 p-5 sm:p-6">
           <ProfileForm initialName={user.name ?? ''} />
         </div>
@@ -86,20 +100,20 @@ export default async function ProfilePage() {
 
       <AccountSection
         icon={<MdWorkspacePremium className="size-5" />}
-        title="الاشتراك المميز"
+        title={tAccount('premium')}
         action={
           <Link
             href="/premium/"
             className="flex h-10 items-center justify-center rounded-[30px] bg-brand-100 px-5 text-sm font-extrabold text-white transition hover:bg-brand-80 active:opacity-70"
           >
-            {subState.active ? 'إدارة الاشتراك' : 'الاشتراك الآن'}
+            {subState.active ? tPremium('manageSubscription') : tPremium('subscribeNow')}
           </Link>
         }
       >
         <PremiumStatusCard state={subState} price={price} />
       </AccountSection>
 
-      <PremiumHistory userId={user.id} title="الفواتير" />
+      <PremiumHistory userId={user.id} title={tPremium('subscriptionHistory')} locale={locale} />
     </div>
   )
 }

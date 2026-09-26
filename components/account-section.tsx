@@ -1,4 +1,7 @@
-import type { ReactNode } from 'react'
+"use client";
+
+import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
 export function AccountSection({
   icon,
@@ -6,11 +9,12 @@ export function AccountSection({
   action,
   children,
 }: {
-  icon: ReactNode
-  title: string
-  action?: ReactNode
-  children: ReactNode
+  icon: ReactNode;
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
 }) {
+  const t = useTranslations("Common");
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -24,5 +28,5 @@ export function AccountSection({
       </div>
       {children}
     </section>
-  )
+  );
 }

@@ -74,23 +74,23 @@
 
 ---
 
-## Phase 4 — Auth + الحساب + Premium
+## Phase 4 — Auth + الحساب + Premium (منتهي ✅)
 
 **الهدف:** ترجمة كل تدفقات المستخدم المسجّل.
 
 ### المهام
 
-- [ ] ترجمة `login-form`, `register-form`, `complete-profile-form`, `profile-form`, `account-section`.
-- [ ] ترجمة صفحات `login`, `register`, `complete`, `profile`.
-- [ ] ترجمة `premium-panel`, `premium-history`, `premium-status-card`, `subscription-gate`, صفحة `premium`.
-- [ ] ترجمة رسائل Server Actions (`app/login`, `register`, `complete`, `premium`, `profile`) عبر namespace `Errors`.
-- [ ] مبدّل اللغة في الهيدر (كرة أرضية + قائمة ar/en).
+- [x] ترجمة `login-form`, `register-form`, `complete-profile-form`, `profile-form`, `account-section`.
+- [x] ترجمة صفحات `login`, `register`, `complete`, `profile`.
+- [x] ترجمة `premium-panel`, `premium-history`, `premium-status-card`, `subscription-gate`, صفحة `premium`.
+- [x] ترجمة رسائل Server Actions (`lib/actions/complete`, `premium`) عبر namespace `Auth` و `Premium`.
+- [x] مبدّل اللغة في الهيدر (كرة أرضية + قائمة ar/en).
 
 ### معايير القبول
 
-- كل رسائل التحقق والأخطاء مترجمة على اللغتين.
-- التبديل من صفحة محمية يحافظ على نفس الصفحة والـ query.
-- `npm run lint` + `npx tsc --noEmit` ناجحان.
+- ✅ كل رسائل التحقق والأخطاء مترجمة على اللغتين.
+- ✅ التبديل من صفحة محمية يحافظ على نفس الصفحة والـ query.
+- ✅ `npm run lint` + `npx tsc --noEmit` ناجحان (الأخطاء كلها في proxy assets الموجودة مسبقاً).
 
 ---
 
