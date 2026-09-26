@@ -9,6 +9,7 @@ import { routing } from "@/i18n/routing";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -84,19 +85,21 @@ export function LocaleSwitcher() {
         }
       />
       <DropdownMenuContent align="end" className="min-w-[160px]">
-        <DropdownMenuLabel>{t("language")}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {routing.locales.map((nextLocale) => (
-          <DropdownMenuItem
-            key={nextLocale}
-            onClick={() => switchLocale(nextLocale)}
-            className="gap-3 py-2.5"
-          >
-            <FlagIcon locale={nextLocale} />
-            <span className="font-medium">{LOCALE_LABELS[nextLocale]}</span>
-            {nextLocale === locale && <Check size={16} className="ms-auto text-primary" />}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>{t("language")}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {routing.locales.map((nextLocale) => (
+            <DropdownMenuItem
+              key={nextLocale}
+              onClick={() => switchLocale(nextLocale)}
+              className="gap-3 py-2.5"
+            >
+              <FlagIcon locale={nextLocale} />
+              <span className="font-medium">{LOCALE_LABELS[nextLocale]}</span>
+              {nextLocale === locale && <Check size={16} className="ms-auto text-primary" />}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
