@@ -646,7 +646,19 @@
       "invalidDays": "Subscription days must be an integer from 1 to 36500",
       "invalidValidity": "Link validity must be 0 (never expires) or an integer from 1 to 36500 days",
       "tokenRequired": "Link is not specified",
-      "tokenNotFound": "Link not found or already used"
+      "tokenNotFound": "Link not found or already used",
+      "partnerTitle": "Partner API",
+      "partnerSubtitle": "Give these values to a reseller so their system can generate one-time access links. Each generated link takes a new customer through sign-up and activates their subscription when it is opened. The label acts as a unique key: calling again with the same label returns the original link instead of creating a new one, so a repeated click is safe. Use a distinct label (e.g. the order number) for every new link.",
+      "partnerEndpoint": "Endpoint",
+      "partnerMethod": "Method",
+      "partnerHeader": "Header",
+      "partnerBody": "Body",
+      "partnerBodyValue": "label (optional note), valid_days (link expiry, default 7, 0 = never), duration_days (subscription days, default = plan period)",
+      "partnerKeyLabel": "Key",
+      "partnerKeyGenerated": "generated {date}",
+      "partnerCopyKey": "Copy",
+      "partnerCopyCurl": "Copy",
+      "partnerExample": "Example request"
     },
     "settings": {
       "title": "Settings",

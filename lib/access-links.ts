@@ -9,6 +9,7 @@ export type AccessLink = {
   id: string
   token: string
   note: string
+  label: string | null
   subscriptionDays: number
   expiresAt: Date | null
   createdAt: Date
@@ -30,6 +31,7 @@ type AccessLinkRow = {
   id: string
   token: string
   note: string
+  label: string | null
   subscription_days: number
   expires_at: Date | null
   created_at: Date
@@ -42,7 +44,7 @@ type AccessLinkRow = {
 }
 
 const LINK_COLUMNS = `
-  l.id, l.token, l.note, l.subscription_days, l.expires_at, l.created_at,
+  l.id, l.token, l.note, l.label, l.subscription_days, l.expires_at, l.created_at,
   l.used_by, l.used_at,
   c.name AS created_name,
   u.name AS used_name, u.email AS used_email,
@@ -57,6 +59,7 @@ function mapLinkRow(row: AccessLinkRow): AccessLink {
     id: row.id,
     token: row.token,
     note: row.note,
+    label: row.label,
     subscriptionDays: row.subscription_days,
     expiresAt: row.expires_at,
     createdAt: row.created_at,
@@ -88,6 +91,50 @@ export async function createAccessLink(input: {
              $5)`,
     [input.token, input.note, input.subscriptionDays, input.validityDays, input.createdBy],
   )
+}
+
+/** Look up a link by its partner/order label. Returns null when unknown. */
+export async function findAccessLinkByLabel(label: string): Promise<AccessLink | null> {
+  const { rows } = await pool.query<AccessLinkRow>(
+    `SELECT ${LINK_COLUMNS}
+     FROM access_links l
+     LEFT JOIN "user" u ON u.id = l.used_by
+     LEFT JOIN "user" c ON c.id = l.created_by
+     WHERE l.label = $1`,
+    [label],
+  )
+  return rows[0] ? mapLinkRow(rows[0]) : null
+}
+
+/**
+ * Create a partner (reseller) link. When `label` is given it acts as an
+ * idempotency key: repeating the call returns the original link instead of
+ * minting a new one. Partner links have no dashboard author (created_by NULL).
+ */
+export async function createPartnerAccessLink(input: {
+  label: string | null
+  subscriptionDays: number
+  validityDays: number
+}): Promise<{ link: AccessLink; created: boolean }> {
+  const token = generateAccessToken()
+  const inserted = await pool.query<{ token: string }>(
+    `INSERT INTO access_links (token, note, label, subscription_days, expires_at)
+     VALUES ($1, $2, $3, $4,
+             CASE WHEN $5 > 0 THEN now() + $5 * interval '1 day' ELSE NULL END)
+     ON CONFLICT (label) WHERE label IS NOT NULL DO NOTHING
+     RETURNING token`,
+    [token, input.label ?? '', input.label, input.subscriptionDays, input.validityDays],
+  )
+
+  if (inserted.rowCount === 0) {
+    const existing = input.label ? await findAccessLinkByLabel(input.label) : null
+    if (!existing) throw new Error('partner link conflict without a stored label')
+    return { link: existing, created: false }
+  }
+
+  const link = await resolveAccessLink(token)
+  if (!link) throw new Error('partner link vanished after insert')
+  return { link, created: true }
 }
 
 /** Resolve a raw token. Returns null when it does not exist. */

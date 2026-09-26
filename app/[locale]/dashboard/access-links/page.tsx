@@ -1,12 +1,15 @@
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import { CheckCircle2, Link2, TimerOff } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Pager } from '@/components/pager'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { accessLinkStats, listAccessLinks, type AccessLinkStatus } from '@/lib/access-links'
+import { getOrCreatePartnerKey } from '@/lib/partner-api'
 import { AccessLinkForm } from '@/components/dashboard/access-links/access-link-form'
 import { AccessLinkActions } from '@/components/dashboard/access-links/access-link-actions'
+import { PartnerApiDialog } from '@/components/dashboard/access-links/partner-api-dialog'
 import { getTranslations } from 'next-intl/server'
 import { hasLocale } from 'next-intl'
 import { routing } from '@/i18n/routing'
@@ -35,7 +38,16 @@ export default async function AccessLinksPage({
   const sp = await searchParams
   const page = parseInt(sp.page ?? '1', 10) || 1
 
-  const [stats, list] = await Promise.all([accessLinkStats(), listAccessLinks(page)])
+  const [stats, list, partnerKeyInfo, requestHeaders] = await Promise.all([
+    accessLinkStats(),
+    listAccessLinks(page),
+    getOrCreatePartnerKey(),
+    headers(),
+  ])
+
+  const host = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host')
+  const proto = requestHeaders.get('x-forwarded-proto') ?? 'https'
+  const endpoint = `${host ? `${proto}://${host}` : ''}/api/partner/access-link`
 
   const cards = [
     { labelKey: 'active', value: stats.active.toLocaleString('en-US'), icon: Link2 },
@@ -159,6 +171,14 @@ export default async function AccessLinksPage({
           <Pager page={page} totalPages={list.pages} basePath="/dashboard/access-links/" />
         </CardContent>
       </Card>
+
+      <div className="flex justify-end">
+        <PartnerApiDialog
+          endpoint={endpoint}
+          partnerKey={partnerKeyInfo.key}
+          generatedAt={partnerKeyInfo.generatedAt ? partnerKeyInfo.generatedAt.toISOString() : null}
+        />
+      </div>
     </div>
   )
 }
