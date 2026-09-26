@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
-import { MdArrowForward, MdFullscreen, MdRefresh } from 'react-icons/md'
-import { createGameFrame, ensureProxy, type SjFrame } from '@/lib/proxy'
+import { useEffect, useRef, useState } from "react";
+import { Link } from "@/i18n/navigation";
+import { MdArrowForward, MdFullscreen, MdRefresh } from "react-icons/md";
+import { createGameFrame, ensureProxy, type SjFrame } from "@/lib/proxy";
 
-type Status = 'loading' | 'ready' | 'error'
+type Status = "loading" | "ready" | "error";
 
 /** Give up waiting for the game to render after this long and offer a retry. */
-const MAX_WAIT_MS = 60_000
-const POLL_MS = 400
+const MAX_WAIT_MS = 60_000;
+const POLL_MS = 400;
 
 /**
  * True once the proxied document has actually rendered something.
@@ -18,14 +18,14 @@ const POLL_MS = 400
  */
 function hasRendered(iframe: HTMLIFrameElement | null): boolean {
   try {
-    const doc = iframe?.contentDocument
-    if (!doc) return false
-    const canvas = doc.querySelector('canvas') as HTMLCanvasElement | null
-    if (canvas && canvas.width > 0) return true
-    const text = (doc.body?.innerText || '').trim()
-    return text.length > 20
+    const doc = iframe?.contentDocument;
+    if (!doc) return false;
+    const canvas = doc.querySelector("canvas") as HTMLCanvasElement | null;
+    if (canvas && canvas.width > 0) return true;
+    const text = (doc.body?.innerText || "").trim();
+    return text.length > 20;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -40,75 +40,75 @@ export function GameStage({
   playUrl,
   backHref,
 }: {
-  title: string
-  slug: string
-  playUrl?: string
-  backHref: string
+  title: string;
+  slug: string;
+  playUrl?: string;
+  backHref: string;
 }) {
-  const [status, setStatus] = useState<Status>('loading')
-  const [attempt, setAttempt] = useState(0)
-  const boxRef = useRef<HTMLDivElement>(null)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-  const frameRef = useRef<SjFrame | null>(null)
-  const trackedRef = useRef(false)
+  const [status, setStatus] = useState<Status>("loading");
+  const [attempt, setAttempt] = useState(0);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const frameRef = useRef<SjFrame | null>(null);
+  const trackedRef = useRef(false);
 
   useEffect(() => {
-    let cancelled = false
-    let poll: ReturnType<typeof setInterval> | undefined
+    let cancelled = false;
+    let poll: ReturnType<typeof setInterval> | undefined;
 
     async function run() {
       if (!playUrl) {
-        setStatus('error')
-        return
+        setStatus("error");
+        return;
       }
-      setStatus('loading')
+      setStatus("loading");
       try {
-        await ensureProxy()
-        if (cancelled || !iframeRef.current) return
+        await ensureProxy();
+        if (cancelled || !iframeRef.current) return;
         if (!trackedRef.current) {
-          trackedRef.current = true
-          fetch('/api/track/play', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          trackedRef.current = true;
+          fetch("/api/track/play", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ slug }),
             keepalive: true,
-          }).catch(() => null)
+          }).catch(() => null);
         }
-        if (!frameRef.current) frameRef.current = createGameFrame(iframeRef.current)
-        frameRef.current.go(playUrl)
+        if (!frameRef.current) frameRef.current = createGameFrame(iframeRef.current);
+        frameRef.current.go(playUrl);
 
-        const startedAt = Date.now()
+        const startedAt = Date.now();
         poll = setInterval(() => {
-          if (cancelled) return
+          if (cancelled) return;
           if (hasRendered(iframeRef.current)) {
-            if (poll) clearInterval(poll)
-            setStatus('ready')
-            return
+            if (poll) clearInterval(poll);
+            setStatus("ready");
+            return;
           }
           if (Date.now() - startedAt > MAX_WAIT_MS) {
-            if (poll) clearInterval(poll)
-            setStatus('error')
+            if (poll) clearInterval(poll);
+            setStatus("error");
           }
-        }, POLL_MS)
+        }, POLL_MS);
       } catch {
-        if (!cancelled) setStatus('error')
+        if (!cancelled) setStatus("error");
       }
     }
 
-    run()
+    run();
     return () => {
-      cancelled = true
-      if (poll) clearInterval(poll)
-    }
-  }, [playUrl, slug, attempt])
+      cancelled = true;
+      if (poll) clearInterval(poll);
+    };
+  }, [playUrl, slug, attempt]);
 
   function goFullscreen() {
-    const el = boxRef.current
-    if (!el) return
+    const el = boxRef.current;
+    if (!el) return;
     if (document.fullscreenElement) {
-      void document.exitFullscreen()
+      void document.exitFullscreen();
     } else {
-      void el.requestFullscreen().catch(() => null)
+      void el.requestFullscreen().catch(() => null);
     }
   }
 
@@ -142,14 +142,14 @@ export function GameStage({
           className="absolute inset-0 h-full w-full border-0"
         />
 
-        {status === 'loading' && (
+        {status === "loading" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black">
             <span className="h-10 w-10 animate-spin rounded-full border-2 border-night-60 border-t-brand-100" />
             <p className="text-sm font-bold text-mist-50">جارٍ تحميل اللعبة...</p>
           </div>
         )}
 
-        {status === 'error' && (
+        {status === "error" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/90 p-6 text-center">
             <MdRefresh size={36} className="text-mist-50" />
             <p className="font-bold text-white">تعذر تشغيل اللعبة</p>
@@ -167,5 +167,5 @@ export function GameStage({
         )}
       </div>
     </div>
-  )
+  );
 }

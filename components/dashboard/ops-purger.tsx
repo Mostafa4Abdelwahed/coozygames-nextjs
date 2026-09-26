@@ -1,11 +1,11 @@
-﻿'use client'
+﻿"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Trash2, TriangleAlert, CircleCheck, CircleX } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState } from "react";
+import { useRouter } from "@/i18n/navigation";
+import { Trash2, TriangleAlert, CircleCheck, CircleX } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,48 +16,48 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { formatBytes } from '@/lib/dashboard/bytes'
+} from "@/components/ui/alert-dialog";
+import { formatBytes } from "@/lib/dashboard/bytes";
 
 type Result = {
-  done: boolean
-  error?: string
-  deleted?: number
-  freedBytes?: number
-  errors?: string[]
-}
+  done: boolean;
+  error?: string;
+  deleted?: number;
+  freedBytes?: number;
+  errors?: string[];
+};
 
 export function OpsPurger() {
-  const router = useRouter()
-  const [running, setRunning] = useState(false)
-  const [result, setResult] = useState<Result>({ done: false })
+  const router = useRouter();
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState<Result>({ done: false });
 
   async function run() {
-    if (running) return
-    setRunning(true)
-    setResult({ done: false })
+    if (running) return;
+    setRunning(true);
+    setResult({ done: false });
     try {
-      const res = await fetch('/api/admin/ops/purge-cache', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
+      const res = await fetch("/api/admin/ops/purge-cache", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({ confirm: true }),
-      })
-      const data = (await res.json().catch(() => null)) as Partial<Result> | null
+      });
+      const data = (await res.json().catch(() => null)) as Partial<Result> | null;
       if (!res.ok) {
-        setResult({ done: true, error: data?.error ?? 'فشل التنظيف' })
+        setResult({ done: true, error: data?.error ?? "فشل التنظيف" });
       } else {
         setResult({
           done: true,
           deleted: data?.deleted ?? 0,
           freedBytes: data?.freedBytes ?? 0,
           errors: data?.errors,
-        })
-        router.refresh()
+        });
+        router.refresh();
       }
     } catch {
-      setResult({ done: true, error: 'تعذر الاتصال بالخادم' })
+      setResult({ done: true, error: "تعذر الاتصال بالخادم" });
     }
-    setRunning(false)
+    setRunning(false);
   }
 
   return (
@@ -88,11 +88,9 @@ export function OpsPurger() {
               <CircleCheck className="size-4 text-emerald-600" />
               <AlertTitle className="text-emerald-600">تم</AlertTitle>
               <AlertDescription>
-                حُذف {result.deleted?.toLocaleString('en-US') ?? 0} ملف
-                {result.deleted ? ` (${formatBytes(result.freedBytes ?? 0)})` : ''}
-                {result.errors && result.errors.length > 0
-                  ? ` — فشل ${result.errors.length}`
-                  : ''}
+                حُذف {result.deleted?.toLocaleString("en-US") ?? 0} ملف
+                {result.deleted ? ` (${formatBytes(result.freedBytes ?? 0)})` : ""}
+                {result.errors && result.errors.length > 0 ? ` — فشل ${result.errors.length}` : ""}
               </AlertDescription>
             </Alert>
           ))}
@@ -112,18 +110,14 @@ export function OpsPurger() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>إلغاء</AlertDialogCancel>
-              <AlertDialogAction
-                className="gap-2"
-                disabled={running}
-                onClick={() => void run()}
-              >
+              <AlertDialogAction className="gap-2" disabled={running} onClick={() => void run()}>
                 <Trash2 className="size-4" />
-                {running ? 'جارٍ التنظيف...' : 'تنظيف'}
+                {running ? "جارٍ التنظيف..." : "تنظيف"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </CardContent>
     </Card>
-  )
+  );
 }

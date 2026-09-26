@@ -1,9 +1,8 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { MdAdminPanelSettings, MdLogout, MdWorkspacePremium } from 'react-icons/md'
-import { authClient, useSession } from '@/lib/auth-client'
+import { Link, useRouter } from "@/i18n/navigation";
+import { MdAdminPanelSettings, MdLogout, MdWorkspacePremium } from "react-icons/md";
+import { authClient, useSession } from "@/lib/auth-client";
 
 /**
  * Isolated session island for the header.
@@ -11,17 +10,17 @@ import { authClient, useSession } from '@/lib/auth-client'
  * does not re-render the shell and the 75-item sidebar.
  */
 export function AuthArea() {
-  const router = useRouter()
-  const { data: session, isPending } = useSession()
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
 
   async function handleLogout() {
-    await authClient.signOut()
-    router.push('/')
-    router.refresh()
+    await authClient.signOut();
+    router.push("/");
+    router.refresh();
   }
 
   if (isPending) {
-    return <span aria-hidden="true" className="h-9 w-24 animate-pulse rounded-[30px] bg-night-60 sm:h-10" />
+    return <span aria-hidden="true" className="h-9 w-24 animate-pulse rounded-[30px] bg-night-60 sm:h-10" />;
   }
 
   if (!session) {
@@ -32,14 +31,14 @@ export function AuthArea() {
       >
         <span>تسجيل الدخول</span>
       </Link>
-    )
+    );
   }
 
-  const role = (session.user as { role?: string | null }).role
+  const role = (session.user as { role?: string | null }).role;
 
   return (
     <>
-      {role === 'admin' && (
+      {role === "admin" && (
         <Link
           href="/dashboard/"
           aria-label="لوحة التحكم"
@@ -62,7 +61,7 @@ export function AuthArea() {
         aria-label="حسابي"
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#6842ff,#22d3ee)] text-sm font-extrabold text-white sm:h-10 sm:w-10"
       >
-        {(session.user.name ?? '؟').charAt(0)}
+        {(session.user.name ?? "؟").charAt(0)}
       </Link>
       <button
         type="button"
@@ -73,5 +72,5 @@ export function AuthArea() {
         <MdLogout size={20} />
       </button>
     </>
-  )
+  );
 }

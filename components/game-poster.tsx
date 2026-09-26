@@ -1,13 +1,13 @@
-import Link from 'next/link'
-import { MdPlayArrow } from 'react-icons/md'
-import { POSTER_THUMB_WIDTH, thumbUrl } from '@/lib/image'
+import Link from "next/link";
+import { MdPlayArrow } from "react-icons/md";
+import { POSTER_THUMB_WIDTH, thumbUrl } from "@/lib/image";
 
 /**
  * Game detail poster: clicking it navigates to the dedicated full-page player
  * at /play/[slug]. No proxy code is loaded here.
  */
 export function GamePoster({ slug, title, thumb }: { slug: string; title: string; thumb?: string }) {
-  const poster = thumbUrl(thumb, POSTER_THUMB_WIDTH)
+  const poster = thumbUrl(thumb, POSTER_THUMB_WIDTH);
 
   return (
     <Link
@@ -35,5 +35,5 @@ export function GamePoster({ slug, title, thumb }: { slug: string; title: string
         <span className="text-lg font-extrabold text-white">العب الآن</span>
       </span>
     </Link>
-  )
+  );
 }

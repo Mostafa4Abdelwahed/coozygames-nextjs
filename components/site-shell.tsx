@@ -1,36 +1,47 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Suspense } from 'react'
-import type { ReactNode } from 'react'
-import dynamic from 'next/dynamic'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { MdMenu, MdSearch } from 'react-icons/md'
-import type { NavCategory } from '@/lib/category-meta'
-import { AuthArea } from './auth-area'
-import { SidebarNav, SidebarNavStatic } from './sidebar-nav'
-import { InstallPrompt } from './install-prompt'
+import { useState } from "react";
+import { Suspense } from "react";
+import type { ReactNode } from "react";
+import dynamic from "next/dynamic";
+import { Link, usePathname } from "@/i18n/navigation";
+import { MdMenu, MdSearch } from "react-icons/md";
+import type { NavCategory } from "@/lib/category-meta";
+import { AuthArea } from "./auth-area";
+import { SidebarNav, SidebarNavStatic } from "./sidebar-nav";
+import { InstallPrompt } from "./install-prompt";
 
 const SearchOverlay = dynamic(
-  () => import('@/components/search-overlay').then((m) => m.SearchOverlay),
+  () => import("@/components/search-overlay").then((m) => m.SearchOverlay),
   { ssr: false },
-)
+);
 
-export function SiteShell({ children, categories }: { children: ReactNode; categories: NavCategory[] }) {
-  const pathname = usePathname()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(false)
+export function SiteShell({
+  children,
+  categories,
+}: { children: ReactNode; categories: NavCategory[] }) {
+  const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   // /play and /dashboard are dedicated full-screen routes: no header, sidebar or overlays.
-  if (pathname?.startsWith('/play') || pathname?.startsWith('/dashboard')) {
-    return <>{children}</>
+  // pathname includes locale prefix (e.g., /ar/play, /en/dashboard)
+  if (
+    pathname?.startsWith("/ar/play") ||
+    pathname?.startsWith("/en/play") ||
+    pathname?.startsWith("/ar/dashboard") ||
+    pathname?.startsWith("/en/dashboard")
+  ) {
+    return <>{children}</>;
   }
 
   return (
     <div className="relative flex min-h-screen flex-col items-stretch bg-night-100">
       {/* Header */}
-      <div id="czyHeader" className="fixed inset-x-0 top-0 z-12 flex h-header-mobile flex-row items-center justify-between bg-night-80 shadow-[0_3px_3px_-2px_rgba(0,0,0,0.2),0_3px_4px_0_rgba(0,0,0,0.14),0_1px_8px_0_rgba(0,0,0,0.12)] sm:h-header min-[1910px]:border-b-0 min-[1910px]:shadow-none">
+      <div
+        id="czyHeader"
+        className="fixed inset-x-0 top-0 z-12 flex h-header-mobile flex-row items-center justify-between bg-night-80 shadow-[0_3px_3px_-2px_rgba(0,0,0,0.2),0_3px_4px_0_rgba(0,0,0,0.14),0_1px_8px_0_rgba(0,0,0,0.12)] sm:h-header min-[1910px]:border-b-0 min-[1910px]:shadow-none"
+      >
         <div className="flex min-w-0 flex-row items-center ps-2 sm:ps-2">
           <button
             type="button"
@@ -43,7 +54,9 @@ export function SiteShell({ children, categories }: { children: ReactNode; categ
             <MdMenu size={22} />
           </button>
           <Link href="/" rel="home" className="min-w-0">
-            <span className="block h-9 content-center truncate bg-[linear-gradient(90deg,#c4b5fd,#22d3ee)] bg-clip-text text-lg font-extrabold text-transparent sm:text-xl">كوزي جيم</span>
+            <span className="block h-9 content-center truncate bg-[linear-gradient(90deg,#c4b5fd,#22d3ee)] bg-clip-text text-lg font-extrabold text-transparent sm:text-xl">
+              كوزي جيم
+            </span>
           </Link>
         </div>
 
@@ -84,15 +97,15 @@ export function SiteShell({ children, categories }: { children: ReactNode; categ
         id="mainNav"
         aria-label="التنقل بين الألعاب"
         className={`group fixed top-header-mobile inset-s-0 z-30 h-[calc(100dvh-56px)] w-sidebar border-e border-night-60 bg-night-100 transition-[width] duration-200 ease-in-out sm:top-header sm:z-5 sm:h-[calc(100vh-60px)] min-[1910px]:w-sidebar ${
-          sidebarOpen ? 'sm:w-sidebar' : 'sm:w-sidebar-collapsed'
+          sidebarOpen ? "sm:w-sidebar" : "sm:w-sidebar-collapsed"
         } ${
-          sidebarOpen ? 'max-sm:translate-x-0' : 'max-sm:-translate-x-full max-sm:rtl:translate-x-full'
+          sidebarOpen ? "max-sm:translate-x-0" : "max-sm:-translate-x-full max-sm:rtl:translate-x-full"
         } sm:hover:w-sidebar`}
       >
         <div
           id="sidebarContainer"
           onClick={() => {
-            if (window.matchMedia('(max-width: 639.98px)').matches) setSidebarOpen(false)
+            if (window.matchMedia("(max-width: 639.98px)").matches) setSidebarOpen(false);
           }}
           className="flex h-full w-full flex-col overflow-x-hidden overflow-y-auto pt-4 pb-7.5 no-scrollbar"
         >
@@ -104,7 +117,9 @@ export function SiteShell({ children, categories }: { children: ReactNode; categ
 
       <main
         id="layoutMain"
-        className={`pt-header-mobile ps-0 sm:pt-header min-[1910px]:ps-sidebar ${sidebarOpen ? 'sm:ps-sidebar' : 'sm:ps-sidebar-collapsed'}`}
+        className={`pt-header-mobile ps-0 sm:pt-header min-[1910px]:ps-sidebar ${
+          sidebarOpen ? "sm:ps-sidebar" : "sm:ps-sidebar-collapsed"
+        }`}
       >
         {children}
       </main>
@@ -113,5 +128,5 @@ export function SiteShell({ children, categories }: { children: ReactNode; categ
 
       <InstallPrompt />
     </div>
-  )
+  );
 }

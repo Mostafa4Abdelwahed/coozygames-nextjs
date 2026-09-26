@@ -1,6 +1,6 @@
-import Link from 'next/link'
-import { MdArrowForward, MdLockOutline } from 'react-icons/md'
-import { formatMoney } from '@/lib/money'
+import Link from "next/link";
+import { MdArrowForward, MdLockOutline } from "react-icons/md";
+import { formatMoney } from "@/lib/money";
 
 /** Full-screen "subscription required" gate replacing GameStage for non-premium users. */
 export function SubscriptionGate({
@@ -9,10 +9,10 @@ export function SubscriptionGate({
   price,
   backHref,
 }: {
-  title: string
-  signedIn: boolean
-  price: number
-  backHref: string
+  title: string;
+  signedIn: boolean;
+  price: number;
+  backHref: string;
 }) {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-night-100">
@@ -35,7 +35,7 @@ export function SubscriptionGate({
           <h2 className="text-2xl font-extrabold text-white">الاشتراك مطلوب لتشغيل الألعاب</h2>
           <p className="mt-2 text-sm font-semibold text-mist-50">
             تصفّح الألعاب والتصنيفات متاح مجانًا للجميع — لكن تشغيل أي لعبة يتطلب اشتراكًا مميزًا
-            شهريًا بـ <span className="font-extrabold text-brand-60">{formatMoney(price, 'EGP')}</span>.
+            شهريًا بـ <span className="font-extrabold text-brand-60">{formatMoney(price, "EGP")}</span>.
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3">
@@ -65,5 +65,5 @@ export function SubscriptionGate({
         </div>
       </div>
     </div>
-  )
+  );
 }

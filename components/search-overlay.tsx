@@ -1,81 +1,79 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { MdChevronLeft, MdClose, MdSearch, MdTrendingUp } from 'react-icons/md'
-import { categoryLabelAr, categoryStyle } from '@/lib/category-meta'
-import { MINI_THUMB_WIDTH, thumbUrl } from '@/lib/image'
-import Image from 'next/image'
+import { useEffect, useState } from "react";
+import { Link } from "@/i18n/navigation";
+import { MdChevronLeft, MdClose, MdSearch, MdTrendingUp } from "react-icons/md";
+import { categoryLabelAr, categoryStyle } from "@/lib/category-meta";
+import { MINI_THUMB_WIDTH, thumbUrl } from "@/lib/image";
+import Image from "next/image";
 
-const POPULAR_SEARCHES = ['Race', 'Puzzle', 'Football', 'Chess', 'Action']
+const POPULAR_SEARCHES = ["Race", "Puzzle", "Football", "Chess", "Action"];
 
-const DEBOUNCE_MS = 300
+const DEBOUNCE_MS = 300;
 
 type SearchResult = {
-  slug: string
-  title: string
-  categorySlug: string
-  categoryLabel: string
-  plays: string
-  rating: number
-  thumb?: string
-}
+  slug: string;
+  title: string;
+  categorySlug: string;
+  categoryLabel: string;
+  plays: string;
+  rating: number;
+  thumb?: string;
+};
 
 export function SearchOverlay({ onClose }: { onClose: () => void }) {
-  const [query, setQuery] = useState('')
-  const [debouncedQuery, setDebouncedQuery] = useState('')
-  // Results carry the query they were fetched for, so a stale response never
-  // renders under a newer query (and no separate loading flag is needed).
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [resolved, setResolved] = useState<{ query: string; results: SearchResult[] }>({
-    query: '',
+    query: "",
     results: [],
-  })
+  });
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(query.trim()), DEBOUNCE_MS)
-    return () => clearTimeout(t)
-  }, [query])
+    const t = setTimeout(() => setDebouncedQuery(query.trim()), DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [query]);
 
   useEffect(() => {
-    const controller = new AbortController()
-    const q = debouncedQuery
+    const controller = new AbortController();
+    const q = debouncedQuery;
 
     async function run() {
       if (!q) {
-        setResolved({ query: '', results: [] })
-        return
+        setResolved({ query: "", results: [] });
+        return;
       }
-      let results: SearchResult[] = []
+      let results: SearchResult[] = [];
       try {
-        const res = await fetch(`/api/games/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+        const res = await fetch(`/api/games/search?q=${encodeURIComponent(q)}`, { signal: controller.signal });
         if (res.ok) {
-          const data: { results?: SearchResult[] } = await res.json()
-          results = data.results ?? []
+          const data: { results?: SearchResult[] } = await res.json();
+          results = data.results ?? [];
         }
       } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') return
+        if (err instanceof DOMException && err.name === "AbortError") return;
       }
-      setResolved({ query: q, results })
+      setResolved({ query: q, results });
     }
 
-    run()
-    return () => controller.abort()
-  }, [debouncedQuery])
+    run();
+    return () => controller.abort();
+  }, [debouncedQuery]);
 
   useEffect(() => {
-    document.body.style.overflow = 'hidden'
+    document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = ''
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [onClose])
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
 
-  const results = resolved.results
-  const isTyping = query.trim() !== debouncedQuery || resolved.query !== debouncedQuery
+  const results = resolved.results;
+  const isTyping = query.trim() !== debouncedQuery || resolved.query !== debouncedQuery;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4" role="dialog" aria-modal="true" aria-label="بحث">
@@ -94,7 +92,7 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
           {query && (
             <button
               type="button"
-              onClick={() => setQuery('')}
+              onClick={() => setQuery("")}
               aria-label="مسح البحث"
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-mist-50 transition hover:bg-night-60 hover:text-white"
             >
@@ -124,7 +122,7 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
                 </div>
               ))}
             </div>
-          ) : debouncedQuery === '' ? (
+          ) : debouncedQuery === "" ? (
             <div className="px-2 py-1">
               <p className="flex items-center gap-2 px-2 py-2 text-sm font-bold text-mist-50">
                 <MdTrendingUp size={18} />
@@ -147,19 +145,15 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
             <ul className="flex flex-col gap-1">
               {results.map((game) => (
                 <li key={game.slug}>
-                  <Link
-                    href={`/game/${game.slug}/`}
-                    onClick={onClose}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-night-60"
-                  >
+                  <Link href={`/game/${game.slug}/`} onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-night-60">
                     <span className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-night-60">
                       {game.thumb ? (
                         <Image src={thumbUrl(game.thumb, MINI_THUMB_WIDTH) as string} alt="" width={80} height={80} sizes="40px" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                       ) : (
                         <span className="flex h-full w-full items-center justify-center text-brand-60">
                           {(() => {
-                            const Icon = categoryStyle(game.categorySlug).icon
-                            return <Icon size={22} />
+                            const Icon = categoryStyle(game.categorySlug).icon;
+                            return <Icon size={22} />;
                           })()}
                         </span>
                       )}
@@ -178,7 +172,7 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
           ) : (
             <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
               <MdSearch size={36} className="text-mist-50" />
-              <p className="font-bold text-white">لا توجد نتائج لـ &quot;{debouncedQuery}&quot;</p>
+              <p className="font-bold text-white">لا توجد نتائج لـ "{debouncedQuery}"</p>
               <p className="text-sm text-mist-50">جرّب كلمة مختلفة</p>
             </div>
           )}
@@ -189,5 +183,5 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

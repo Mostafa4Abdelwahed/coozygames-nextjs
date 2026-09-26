@@ -1,78 +1,76 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { FcGoogle } from 'react-icons/fc'
-import { MdVisibility, MdVisibilityOff } from 'react-icons/md'
-import { authClient } from '@/lib/auth-client'
-import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from '@/lib/phone'
-import { safePath } from '@/lib/navigation'
+import { useState } from "react";
+import { Link, useRouter } from "@/i18n/navigation";
+import { FcGoogle } from "react-icons/fc";
+import { MdVisibility, MdVisibilityOff } from "react-icons/md";
+import { authClient } from "@/lib/auth-client";
+import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from "@/lib/phone";
 
 function toServerMessage(message: string): string {
-  if (message.includes('Invalid phone number or password')) return 'رقم الهاتف أو كلمة المرور غير صحيحة'
-  if (message.includes('not found') || message.includes('User not found')) return 'لا يوجد حساب بهذا الرقم'
-  if (message.includes('not verified')) return 'رقم الهاتف غير مؤكد'
-  return 'حدث خطأ، حاول مرة أخرى'
+  if (message.includes("Invalid phone number or password")) return "رقم الهاتف أو كلمة المرور غير صحيحة";
+  if (message.includes("not found") || message.includes("User not found")) return "لا يوجد حساب بهذا الرقم";
+  if (message.includes("not verified")) return "رقم الهاتف غير مؤكد";
+  return "حدث خطأ، حاول مرة أخرى";
 }
 
 export function LoginForm({ next }: { next?: string }) {
-  const router = useRouter()
-  const nextPath = safePath(next, '/')
-  const [region, setRegion] = useState('EG')
-  const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [remember, setRemember] = useState(true)
-  const [phoneError, setPhoneError] = useState('')
-  const [passwordError, setPasswordError] = useState('')
-  const [serverError, setServerError] = useState('')
-  const [pending, setPending] = useState(false)
+  const router = useRouter();
+  const nextPath = next ?? "/";
+  const [region, setRegion] = useState("EG");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(true);
+  const [phoneError, setPhoneError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [serverError, setServerError] = useState("");
+  const [pending, setPending] = useState(false);
 
   function validatePhone(value: string): string {
-    return validatePhoneNumber(value, region)
+    return validatePhoneNumber(value, region);
   }
 
   const inputClass =
-    'h-12 w-full rounded-xl border border-transparent bg-night-40 px-4 text-start text-base font-bold text-white outline-none placeholder:text-mist-50 focus:border-brand-100'
+    "h-12 w-full rounded-xl border border-transparent bg-night-40 px-4 text-start text-base font-bold text-white outline-none placeholder:text-mist-50 focus:border-brand-100";
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const phoneErr = validatePhone(phone)
-    const passErr = password ? '' : 'كلمة المرور مطلوبة'
-    setPhoneError(phoneErr)
-    setPasswordError(passErr)
-    setServerError('')
-    if (phoneErr || passErr) return
+    e.preventDefault();
+    const phoneErr = validatePhone(phone);
+    const passErr = password ? "" : "كلمة المرور مطلوبة";
+    setPhoneError(phoneErr);
+    setPasswordError(passErr);
+    setServerError("");
+    if (phoneErr || passErr) return;
 
-    setPending(true)
-    const normalized = normalizePhoneNumber(phone, region)
+    setPending(true);
+    const normalized = normalizePhoneNumber(phone, region);
     if (!normalized) {
-      setPending(false)
-      setPhoneError('رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة')
-      return
+      setPending(false);
+      setPhoneError("رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة");
+      return;
     }
     const { error } = await authClient.signIn.phoneNumber({
       phoneNumber: normalized,
       password,
       rememberMe: remember,
-    })
-    setPending(false)
+    });
+    setPending(false);
     if (error) {
-      setServerError(toServerMessage(error.message ?? ''))
-      return
+      setServerError(toServerMessage(error.message ?? ""));
+      return;
     }
-    router.push(nextPath)
-    router.refresh()
+    router.push(nextPath);
+    router.refresh();
   }
 
   async function handleGoogle() {
-    setServerError('')
+    setServerError("");
     const { error } = await authClient.signIn.social({
-      provider: 'google',
+      provider: "google",
       callbackURL: nextPath,
-    })
-    if (error) setServerError(toServerMessage(error.message ?? ''))
+    });
+    if (error) setServerError(toServerMessage(error.message ?? ""));
   }
 
   return (
@@ -100,9 +98,9 @@ export function LoginForm({ next }: { next?: string }) {
           <select
             value={region}
             onChange={(e) => {
-              setRegion(e.target.value)
-              setPhoneError('')
-              setServerError('')
+              setRegion(e.target.value);
+              setPhoneError("");
+              setServerError("");
             }}
             aria-label="كود الدولة"
             className="h-12 w-28 shrink-0 rounded-xl border border-transparent bg-night-40 px-2 text-left text-sm font-bold text-white outline-none focus:border-brand-100"
@@ -121,17 +119,17 @@ export function LoginForm({ next }: { next?: string }) {
             required
             value={phone}
             onChange={(e) => {
-              setPhone(e.target.value)
-              setPhoneError('')
-              setServerError('')
+              setPhone(e.target.value);
+              setPhoneError("");
+              setServerError("");
             }}
             onBlur={() => {
-              if (phone) setPhoneError(validatePhone(phone))
+              if (phone) setPhoneError(validatePhone(phone));
             }}
             placeholder="1xxxxxxxxx"
-            aria-invalid={phoneError !== ''}
-            aria-describedby={phoneError ? 'login-phone-error' : undefined}
-            className={`${inputClass} text-left ${phoneError ? 'border-red-500 focus:border-red-500' : ''}`}
+            aria-invalid={phoneError !== ""}
+            aria-describedby={phoneError ? "login-phone-error" : undefined}
+            className={`${inputClass} text-left ${phoneError ? "border-red-500 focus:border-red-500" : ""}`}
           />
         </div>
         {phoneError && (
@@ -148,24 +146,24 @@ export function LoginForm({ next }: { next?: string }) {
         <div className="relative">
           <input
             id="login-password"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             required
             value={password}
             onChange={(e) => {
-              setPassword(e.target.value)
-              setPasswordError('')
-              setServerError('')
+              setPassword(e.target.value);
+              setPasswordError("");
+              setServerError("");
             }}
             placeholder="••••••••"
-            aria-invalid={passwordError !== ''}
-            aria-describedby={passwordError ? 'login-password-error' : undefined}
-            className={`${inputClass} pe-12 ${passwordError ? 'border-red-500 focus:border-red-500' : ''}`}
+            aria-invalid={passwordError !== ""}
+            aria-describedby={passwordError ? "login-password-error" : undefined}
+            className={`${inputClass} pe-12 ${passwordError ? "border-red-500 focus:border-red-500" : ""}`}
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+            aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
             className="absolute inset-e-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-mist-50 transition hover:text-white"
           >
             {showPassword ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
@@ -199,18 +197,15 @@ export function LoginForm({ next }: { next?: string }) {
         disabled={pending}
         className="flex h-12 items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70 disabled:opacity-60"
       >
-        {pending ? 'جارٍ تسجيل الدخول...' : 'تسجيل الدخول'}
+        {pending ? "جارٍ تسجيل الدخول..." : "تسجيل الدخول"}
       </button>
 
       <p className="text-center text-sm font-semibold text-mist-50">
-        جديد هنا؟{' '}
-        <Link
-          href={`/register/?next=${encodeURIComponent(nextPath)}`}
-          className="font-bold text-brand-60 transition hover:text-white"
-        >
+        جديد هنا؟{" "}
+        <Link href={`/register/?next=${encodeURIComponent(nextPath)}`} className="font-bold text-brand-60 transition hover:text-white">
           إنشاء حساب
         </Link>
       </p>
     </form>
-  )
+  );
 }

@@ -1,12 +1,11 @@
-'use client'
+"use client";
 
-import { useLayoutEffect, useState, type ReactNode } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { MdAdminPanelSettings } from 'react-icons/md'
-import { Home, LogOut, Menu, User, X } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import { useLayoutEffect, useState, type ReactNode } from "react";
+import { Link, useRouter } from "@/i18n/navigation";
+import { MdAdminPanelSettings } from "react-icons/md";
+import { Home, LogOut, Menu, User, X } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,24 +13,24 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { signOut } from '@/lib/auth-client'
-import { DashboardNav } from './dashboard-nav'
+} from "@/components/ui/dropdown-menu";
+import { signOut } from "@/lib/auth-client";
+import { DashboardNav } from "./dashboard-nav";
 
-type ShellUser = { name: string | null; role: string | null }
+type ShellUser = { name: string | null; role: string | null };
 
 export function DashboardShell({ user, children }: { user: ShellUser; children: ReactNode }) {
-  const router = useRouter()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useLayoutEffect(() => {
-    document.documentElement.classList.add('light')
-    return () => document.documentElement.classList.remove('light')
-  }, [])
+    document.documentElement.classList.add("light");
+    return () => document.documentElement.classList.remove("light");
+  }, []);
 
   async function handleSignOut() {
-    await signOut({ callbackURL: '/' })
-    router.push('/')
+    await signOut({ callbackURL: "/" });
+    router.push("/");
   }
 
   return (
@@ -50,11 +49,7 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
                 <X className="size-4" />
               </Button>
             </div>
-            <SidebarInner
-              user={user}
-              onNavigate={() => setMobileOpen(false)}
-              onSignOut={handleSignOut}
-            />
+            <SidebarInner user={user} onNavigate={() => setMobileOpen(false)} onSignOut={handleSignOut} />
           </aside>
         </div>
       )}
@@ -85,7 +80,7 @@ export function DashboardShell({ user, children }: { user: ShellUser; children: 
         </footer>
       </div>
     </div>
-  )
+  );
 }
 
 function SidebarInner({
@@ -93,9 +88,9 @@ function SidebarInner({
   onNavigate,
   onSignOut,
 }: {
-  user: ShellUser
-  onNavigate: () => void
-  onSignOut: () => void
+  user: ShellUser;
+  onNavigate: () => void;
+  onSignOut: () => void;
 }) {
   return (
     <>
@@ -114,13 +109,13 @@ function SidebarInner({
         <div className="flex items-center gap-3">
           <Avatar className="size-9">
             <AvatarFallback className="bg-primary/15 font-bold text-primary">
-              {(user.name ?? '؟').charAt(0)}
+              {(user.name ?? "؟").charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold">{user.name ?? 'أدمن'}</div>
+            <div className="truncate text-sm font-semibold">{user.name ?? "أدمن"}</div>
             <div className="text-xs font-medium text-muted-foreground">
-              {user.role === 'admin' ? 'أدمن' : user.role}
+              {user.role === "admin" ? "أدمن" : user.role}
             </div>
           </div>
         </div>
@@ -145,7 +140,7 @@ function SidebarInner({
         </div>
       </div>
     </>
-  )
+  );
 }
 
 function UserMenu({ user, onSignOut }: { user: ShellUser; onSignOut: () => void }) {
@@ -156,7 +151,7 @@ function UserMenu({ user, onSignOut }: { user: ShellUser; onSignOut: () => void 
       >
         <Avatar className="size-8">
           <AvatarFallback className="bg-primary/15 font-bold text-primary">
-            {(user.name ?? '؟').charAt(0)}
+            {(user.name ?? "؟").charAt(0)}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
@@ -165,13 +160,13 @@ function UserMenu({ user, onSignOut }: { user: ShellUser; onSignOut: () => void 
           <div className="flex items-center gap-3 rounded-md px-2.5 py-2">
             <Avatar className="size-10 shrink-0">
               <AvatarFallback className="bg-primary/15 font-bold text-primary">
-                {(user.name ?? '؟').charAt(0)}
+                {(user.name ?? "؟").charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-foreground">{user.name ?? 'أدمن'}</p>
+              <p className="truncate text-sm font-bold text-foreground">{user.name ?? "أدمن"}</p>
               <p className="truncate text-xs font-medium text-muted-foreground">
-                {user.role === 'admin' ? 'أدمن' : user.role}
+                {user.role === "admin" ? "أدمن" : user.role}
               </p>
             </div>
           </div>
@@ -180,7 +175,7 @@ function UserMenu({ user, onSignOut }: { user: ShellUser; onSignOut: () => void 
             <User />
             حسابي
           </DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/" />} className="gap-2 py-1.5">
+          <DropdownMenuItem render={<Link href="/dashboard/" />} className="gap-2 py-1.5">
             <Home />
             العودة للموقع
           </DropdownMenuItem>
@@ -191,5 +186,5 @@ function UserMenu({ user, onSignOut }: { user: ShellUser; onSignOut: () => void 
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

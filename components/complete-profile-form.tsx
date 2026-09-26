@@ -1,79 +1,79 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { authClient } from '@/lib/auth-client'
-import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from '@/lib/phone'
-import type { ProfileGap } from '@/lib/profile'
+import { useState } from "react";
+import { useRouter } from "@/i18n/navigation";
+import { authClient } from "@/lib/auth-client";
+import { COUNTRY_CODES, normalizePhoneNumber, validatePhoneNumber } from "@/lib/phone";
+import type { ProfileGap } from "@/lib/profile";
 
 type Props = {
-  missing: ProfileGap[]
-  currentName: string
-  redirectTo?: string
-}
+  missing: ProfileGap[];
+  currentName: string;
+  redirectTo?: string;
+};
 
-export function CompleteProfileForm({ missing, currentName, redirectTo = '/profile/' }: Props) {
-  const router = useRouter()
-  const [name, setName] = useState(currentName)
-  const [region, setRegion] = useState('EG')
-  const [phone, setPhone] = useState('')
-  const [phoneError, setPhoneError] = useState('')
-  const [error, setError] = useState('')
-  const [pending, setPending] = useState(false)
+export function CompleteProfileForm({ missing, currentName, redirectTo = "/profile/" }: Props) {
+  const router = useRouter();
+  const [name, setName] = useState(currentName);
+  const [region, setRegion] = useState("EG");
+  const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
 
-  const needsName = missing.includes('name')
-  const needsPhone = missing.includes('phoneNumber')
+  const needsName = missing.includes("name");
+  const needsPhone = missing.includes("phoneNumber");
 
   const inputClass =
-    'h-12 w-full rounded-xl border border-transparent bg-night-40 px-4 text-start text-base font-bold text-white outline-none placeholder:text-mist-50 focus:border-brand-100'
+    "h-12 w-full rounded-xl border border-transparent bg-night-40 px-4 text-start text-base font-bold text-white outline-none placeholder:text-mist-50 focus:border-brand-100";
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
 
     if (needsName) {
       if (name.trim().length < 2) {
-        setError('الاسم يجب أن يكون حرفين على الأقل')
-        return
+        setError("الاسم يجب أن يكون حرفين على الأقل");
+        return;
       }
-      setPending(true)
-      const { error } = await authClient.updateUser({ name: name.trim() })
+      setPending(true);
+      const { error } = await authClient.updateUser({ name: name.trim() });
       if (error) {
-        setPending(false)
-        setError('حدث خطأ أثناء حفظ الاسم')
-        return
+        setPending(false);
+        setError("حدث خطأ أثناء حفظ الاسم");
+        return;
       }
     }
 
     if (needsPhone) {
-      const phoneMsg = validatePhoneNumber(phone, region)
+      const phoneMsg = validatePhoneNumber(phone, region);
       if (phoneMsg) {
-        setPending(false)
-        setPhoneError(phoneMsg)
-        return
+        setPending(false);
+        setPhoneError(phoneMsg);
+        return;
       }
-      if (!needsName) setPending(true)
-      const normalized = normalizePhoneNumber(phone, region)
+      if (!needsName) setPending(true);
+      const normalized = normalizePhoneNumber(phone, region);
       if (!normalized) {
-        setPending(false)
-        setPhoneError('رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة')
-        return
+        setPending(false);
+        setPhoneError("رقم الهاتف غير صحيح، تحقق من الرقم وكود الدولة");
+        return;
       }
-      const res = await fetch('/api/profile/phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/profile/phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phoneNumber: normalized }),
-      })
-      setPending(false)
+      });
+      setPending(false);
       if (!res.ok) {
-        const data = (await res.json().catch(() => null)) as { message?: string } | null
-        setError(data?.message ?? 'حدث خطأ أثناء حفظ رقم الهاتف')
-        return
+        const data = (await res.json().catch(() => null)) as { message?: string } | null;
+        setError(data?.message ?? "حدث خطأ أثناء حفظ رقم الهاتف");
+        return;
       }
     }
 
-    router.push(redirectTo)
-    router.refresh()
+    router.push(redirectTo);
+    router.refresh();
   }
 
   return (
@@ -90,8 +90,8 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = '/profi
             required
             value={name}
             onChange={(e) => {
-              setName(e.target.value)
-              setError('')
+              setName(e.target.value);
+              setError("");
             }}
             placeholder="مثال: أحمد محمد"
             className={inputClass}
@@ -123,31 +123,31 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = '/profi
               inputMode="tel"
               autoComplete="tel"
               required
-                value={phone}
-                onChange={(e) => {
-                  setPhone(e.target.value)
-                  setPhoneError('')
-                  setError('')
-                }}
-                onBlur={() => {
-                  if (phone) {
-                    const message = validatePhoneNumber(phone, region)
-                    if (message) setPhoneError(message)
-                  }
-                }}
-                placeholder="1xxxxxxxxx"
-                aria-invalid={phoneError !== ''}
-                aria-describedby={phoneError ? 'complete-phone-error' : undefined}
-                className={`${inputClass} text-left ${phoneError ? 'border-red-500 focus:border-red-500' : ''}`}
-              />
-            </div>
-            {phoneError && (
-              <p id="complete-phone-error" role="alert" className="mt-1.5 text-xs font-bold text-red-400">
-                {phoneError}
-              </p>
-            )}
+              value={phone}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                setPhoneError("");
+                setError("");
+              }}
+              onBlur={() => {
+                if (phone) {
+                  const message = validatePhoneNumber(phone, region);
+                  if (message) setPhoneError(message);
+                }
+              }}
+              placeholder="1xxxxxxxxx"
+              aria-invalid={phoneError !== ""}
+              aria-describedby={phoneError ? "complete-phone-error" : undefined}
+              className={`${inputClass} text-left ${phoneError ? "border-red-500 focus:border-red-500" : ""}`}
+            />
           </div>
-        )}
+          {phoneError && (
+            <p id="complete-phone-error" role="alert" className="mt-1.5 text-xs font-bold text-red-400">
+              {phoneError}
+            </p>
+          )}
+        </div>
+      )}
 
       {error && (
         <p role="alert" className="rounded-xl bg-red-500/15 px-4 py-2.5 text-center text-sm font-bold text-red-400">
@@ -160,8 +160,8 @@ export function CompleteProfileForm({ missing, currentName, redirectTo = '/profi
         disabled={pending}
         className="flex h-12 items-center justify-center rounded-[30px] bg-brand-100 text-base font-extrabold text-white transition hover:bg-brand-80 active:opacity-70 disabled:opacity-60"
       >
-        {pending ? 'جارٍ الحفظ...' : 'حفظ البيانات'}
+        {pending ? "جارٍ الحفظ..." : "حفظ البيانات"}
       </button>
     </form>
-  )
+  );
 }

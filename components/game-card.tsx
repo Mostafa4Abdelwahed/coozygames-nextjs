@@ -1,19 +1,19 @@
-import Link from 'next/link'
-import type { Game } from '@/lib/games'
-import { categoryLabelAr } from '@/lib/category-meta'
-import { CARD_IMAGE_SIZES, CARD_THUMB_WIDTH, thumbUrl } from '@/lib/image'
-import Image from 'next/image'
+import Link from "next/link";
+import type { Game } from "@/lib/games";
+import { categoryLabelAr } from "@/lib/category-meta";
+import { CARD_IMAGE_SIZES, CARD_THUMB_WIDTH, thumbUrl } from "@/lib/image";
+import Image from "next/image";
 
 export function GameCard({
   game,
   priority = false,
 }: {
-  game: Game
+  game: Game;
   /** Mark as the LCP candidate: eager + fetchpriority=high. Use for one card only. */
-  priority?: boolean
+  priority?: boolean;
 }) {
-  const Icon = game.icon
-  const src = thumbUrl(game.thumb, CARD_THUMB_WIDTH)
+  const Icon = game.icon;
+  const src = thumbUrl(game.thumb, CARD_THUMB_WIDTH);
 
   return (
     <Link
@@ -28,8 +28,8 @@ export function GameCard({
             width={628}
             height={628}
             sizes={CARD_IMAGE_SIZES}
-            loading={priority ? 'eager' : 'lazy'}
-            fetchPriority={priority ? 'high' : undefined}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : undefined}
             decoding="async"
             className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
           />
@@ -49,5 +49,5 @@ export function GameCard({
         </p>
       </div>
     </Link>
-  )
+  );
 }

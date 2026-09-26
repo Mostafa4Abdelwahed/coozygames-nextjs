@@ -33,24 +33,24 @@
 
 ---
 
-## Phase 2 — نقل الصفحات والروابط
+## Phase 2 — نقل الصفحات والروابط (منتهي ✅)
 
 **الهدف:** كل التنقّل الداخلي واعي باللغة.
 
 ### المهام
 
-- [ ] استبدال `next/link` → `@/i18n/navigation` Link في كل الكومبوننتس والصفحات العامة.
-- [ ] استبدال `redirect`/`router.push`/`usePathname` بالنسخ من `@/i18n/navigation`.
-- [ ] تحديث `components/site-shell.tsx` (بايباس `/play` و`/dashboard` مع إزالة الـ locale).
-- [ ] تحديث `components/dashboard/shell.tsx` وروابط الداشبورد للـ prefix (النصوص تبقى عربي).
-- [ ] بناء `next` param واعي باللغة في login/register/complete.
-- [ ] `generateStaticParams` لصفحات `game/[slug]` و`game-category/[slug]` (locales × slugs).
+- [x] استبدال `next/link` → `@/i18n/navigation` Link في كل الكومبوننتس والصفحات العامة.
+- [x] استبدال `redirect`/`router.push`/`usePathname` بالنسخ من `@/i18n/navigation`.
+- [x] تحديث `components/site-shell.tsx` (بايباس `/play` و`/dashboard` مع إزالة الـ locale).
+- [x] تحديث `components/dashboard/shell.tsx` وروابط الداشبورد للـ prefix (النصوص تبقى عربي).
+- [x] بناء `next` param واعي باللغة في login/register/complete.
+- [x] `generateStaticParams` لصفحات `game/[slug]` و`game-category/[slug]` (locales × slugs).
 
 ### معايير القبول
 
-- التنقّل بين الصفحات يحافظ على اللغة الحالية.
-- صفحة اللعبة/التصنيف تعمل على اللغتين وتتولّد ساكنة.
-- لا روابط داخلية تفقد الـ prefix.
+- ✅ التنقّل بين الصفحات يحافظ على اللغة الحالية.
+- ✅ صفحة اللعبة/التصنيف تعمل على اللغتين وتتولّد ساكنة.
+- ✅ لا روابط داخلية تفقد الـ prefix.
 
 ---
 

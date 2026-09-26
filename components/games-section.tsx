@@ -1,6 +1,6 @@
-import Link from 'next/link'
-import type { Game } from '@/lib/games'
-import { GameCard } from './game-card'
+import Link from "next/link";
+import type { Game } from "@/lib/games";
+import { GameCard } from "./game-card";
 
 export function GamesSection({
   title,
@@ -8,11 +8,11 @@ export function GamesSection({
   games,
   priorityCount = 0,
 }: {
-  title: string
-  href: string
-  games: Game[]
+  title: string;
+  href: string;
+  games: Game[];
   /** When > 0, the first card is treated as the page LCP candidate. */
-  priorityCount?: number
+  priorityCount?: number;
 }) {
   return (
     <section>
@@ -28,5 +28,5 @@ export function GamesSection({
         ))}
       </div>
     </section>
-  )
+  );
 }
