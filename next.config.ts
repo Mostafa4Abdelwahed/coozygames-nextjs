@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['react-icons'],
   },
   images: {
-    localPatterns: [{ pathname: '/image/**' }, { pathname: '/icons/**' }],
+    localPatterns: [{ pathname: '/image/**' }, { pathname: '/icons/**' }, { pathname: '/flags/**' }],
   },
   async headers() {
     return [

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { MdClose, MdSearch, MdTrendingUp } from "react-icons/md";
 import { categoryLabel, categoryStyle } from "@/lib/category-meta";
 import { MINI_THUMB_WIDTH, thumbUrl } from "@/lib/image";
@@ -24,6 +24,7 @@ type SearchResult = {
 
 export function SearchOverlay({ onClose }: { onClose: () => void }) {
   const t = useTranslations("Search");
+  const locale = useLocale();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [resolved, setResolved] = useState<{ query: string; results: SearchResult[] }>({
@@ -76,7 +77,6 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
 
   const results = resolved.results;
   const isTyping = query.trim() !== debouncedQuery || resolved.query !== debouncedQuery;
-  const locale = document.documentElement.lang || "ar";
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4" role="dialog" aria-modal="true" aria-label={t("close")}>

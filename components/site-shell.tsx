@@ -29,12 +29,10 @@ export function SiteShell({
   const [searchOpen, setSearchOpen] = useState(false);
 
   // /play and /dashboard are dedicated full-screen routes: no header, sidebar or overlays.
-  // pathname includes locale prefix (e.g., /ar/play, /en/dashboard)
+  // pathname (from next-intl) has the locale prefix stripped (e.g., /play, /dashboard)
   if (
-    pathname?.startsWith("/ar/play") ||
-    pathname?.startsWith("/en/play") ||
-    pathname?.startsWith("/ar/dashboard") ||
-    pathname?.startsWith("/en/dashboard")
+    pathname?.startsWith("/play") ||
+    pathname?.startsWith("/dashboard")
   ) {
     return <>{children}</>;
   }

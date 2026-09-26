@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { Link } from "@/i18n/navigation"
 import { BarChart3, Users, Gamepad2, Clock3, TrendingUp, Folder } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getAnalytics } from '@/lib/dashboard/queries'

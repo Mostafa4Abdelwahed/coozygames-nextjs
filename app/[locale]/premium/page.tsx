@@ -1,6 +1,6 @@
 import { MdChevronLeft, MdHome, MdWorkspacePremium } from 'react-icons/md'
 import { headers } from 'next/headers'
-import Link from 'next/link'
+import { Link } from "@/i18n/navigation"
 import type { Metadata } from 'next'
 import { auth } from '@/lib/auth'
 import { getMonthlyPrice, getSubscriptionState, listPaymentMethods, formatMoney } from '@/lib/billing'

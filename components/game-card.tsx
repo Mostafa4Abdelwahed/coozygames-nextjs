@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import type { Game } from "@/lib/games";
 import { categoryLabel, categoryStyle } from "@/lib/category-meta";
 import { CARD_IMAGE_SIZES, CARD_THUMB_WIDTH, thumbUrl } from "@/lib/image";
@@ -20,8 +19,7 @@ export function GameCard({
   priority?: boolean;
 }) {
   const t = useTranslations("Game");
-  const pathname = usePathname();
-  const locale = pathname?.split("/")[1] || "ar";
+  const locale = useLocale();
   const style = categoryStyle(game.categorySlug);
   const Icon = style.icon;
   const src = thumbUrl(game.thumb, CARD_THUMB_WIDTH);

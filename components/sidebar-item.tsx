@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { IconType } from "react-icons";
 
 export function SidebarItem({

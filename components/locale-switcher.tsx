@@ -1,34 +1,53 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link, useRouter, usePathname } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
-import { MdLanguage, MdExpandMore } from "react-icons/md";
+import Image from "next/image";
+import { useRouter, usePathname } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { MdExpandMore } from "react-icons/md";
 import { routing } from "@/i18n/routing";
+
+const FLAGS: Record<string, { src: string; alt: string }> = {
+  ar: { src: "/flags/sa.png", alt: "Saudi Arabia" },
+  en: { src: "/flags/us.svg", alt: "United States" },
+};
 
 const LOCALE_LABELS: Record<string, string> = {
   ar: "العربية",
   en: "English",
 };
 
+function FlagIcon({ locale, className }: { locale: string; className?: string }) {
+  const flag = FLAGS[locale];
+  if (!flag) return <span className={className}>🌐</span>;
+  return (
+    <Image
+      src={flag.src}
+      alt={flag.alt}
+      width={28}
+      height={20}
+      className={`rounded-sm object-cover ${className ?? ""}`}
+    />
+  );
+}
+
 export function LocaleSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const t = useTranslations("Common");
+
+  // The button shows the language you'll switch to (the opposite of current).
+  const targetLocale = routing.locales.find((l) => l !== locale) ?? routing.defaultLocale;
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Extract current locale from pathname (e.g., /ar/games -> ar)
-  const currentLocale = pathname?.split("/")[1] || routing.defaultLocale;
-  const currentLabel = LOCALE_LABELS[currentLocale] || currentLocale;
-
-  function switchLocale(locale: string) {
-    const newPath = pathname?.replace(`/${currentLocale}/`, `/${locale}/`) || `/${locale}/`;
-    router.push(newPath);
+  function switchLocale(nextLocale: string) {
+    router.push(pathname || "/", { locale: nextLocale });
     router.refresh();
     setOpen(false);
   }
@@ -36,13 +55,13 @@ export function LocaleSwitcher() {
   if (!mounted) {
     return (
       <div className="relative">
-<button
-        type="button"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-mist-90 transition hover:text-mist-50"
-        aria-label={t("language")}
-      >
-        <MdLanguage size={22} />
-      </button>
+        <button
+          type="button"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+          aria-label={t("language")}
+        >
+          <FlagIcon locale={targetLocale} />
+        </button>
       </div>
     );
   }
@@ -52,12 +71,12 @@ export function LocaleSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-mist-90 transition hover:text-mist-50"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
         aria-label={t("language")}
         aria-expanded={open}
         aria-haspopup="true"
       >
-        <MdLanguage size={22} />
+        <FlagIcon locale={targetLocale} />
       </button>
 
       {open && (
@@ -68,22 +87,20 @@ export function LocaleSwitcher() {
             aria-hidden="true"
           />
           <div className="absolute right-0 top-full z-50 mt-2 min-w-[140px] rounded-xl border border-night-60 bg-night-80 py-1 shadow-lg">
-            {routing.locales.map((locale) => (
-              <Link
-                key={locale}
-                href={pathname?.replace(`/${currentLocale}/`, `/${locale}/`) || `/${locale}/`}
-                onClick={() => {
-                  switchLocale(locale);
-                }}
+            {routing.locales.map((nextLocale) => (
+              <button
+                key={nextLocale}
+                onClick={() => switchLocale(nextLocale)}
                 className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm font-bold transition ${
-                  locale === currentLocale
+                  nextLocale === locale
                     ? "bg-brand-100/10 text-brand-60"
                     : "text-white hover:bg-night-60"
                 }`}
               >
-                <span>{LOCALE_LABELS[locale]}</span>
-                {locale === currentLocale && <MdExpandMore size={18} className="ms-auto" />}
-              </Link>
+                <FlagIcon locale={nextLocale} />
+                <span>{LOCALE_LABELS[nextLocale]}</span>
+                {nextLocale === locale && <MdExpandMore size={18} className="ms-auto" />}
+              </button>
             ))}
           </div>
         </>

@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import type { Metadata } from 'next'
+import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import {

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { notFound } from "next/navigation";
 import { Cairo } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
@@ -62,7 +63,9 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} dir={dir} className={`${cairo.className} h-full antialiased`}>
       <body dir={dir} className="min-h-full flex flex-col">
-        <script
+        <Script
+          id="czy-dashboard-theme"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){var p=location.pathname;document.documentElement.classList.toggle('light',p.includes('/dashboard'))})()`,
           }}

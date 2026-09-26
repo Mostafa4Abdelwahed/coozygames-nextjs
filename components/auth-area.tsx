@@ -1,6 +1,7 @@
 "use client";
 
 import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { MdAdminPanelSettings, MdLogout, MdWorkspacePremium } from "react-icons/md";
 import { authClient, useSession } from "@/lib/auth-client";
 
@@ -11,6 +12,7 @@ import { authClient, useSession } from "@/lib/auth-client";
  */
 export function AuthArea() {
   const router = useRouter();
+  const t = useTranslations("Common");
   const { data: session, isPending } = useSession();
 
   async function handleLogout() {
@@ -29,7 +31,7 @@ export function AuthArea() {
         className="flex h-9 items-center justify-center rounded-[30px] bg-brand-100 px-3 text-sm font-extrabold whitespace-nowrap text-mist-100 transition hover:bg-brand-80 active:opacity-70 sm:h-10 sm:px-4 sm:text-base"
         href="/login/"
       >
-        <span>تسجيل الدخول</span>
+        <span>{t("login")}</span>
       </Link>
     );
   }
@@ -41,8 +43,8 @@ export function AuthArea() {
       {role === "admin" && (
         <Link
           href="/dashboard/"
-          aria-label="لوحة التحكم"
-          title="لوحة التحكم"
+          aria-label={t("dashboard")}
+          title={t("dashboard")}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-mist-90 transition hover:text-brand-60 sm:h-10 sm:w-10"
         >
           <MdAdminPanelSettings size={20} />
@@ -50,15 +52,15 @@ export function AuthArea() {
       )}
       <Link
         href="/premium/"
-        aria-label="الاشتراك المميز"
-        title="الاشتراك المميز"
+        aria-label={t("premium")}
+        title={t("premium")}
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-orange-300 transition hover:text-orange-200 sm:h-10 sm:w-10"
       >
         <MdWorkspacePremium size={20} />
       </Link>
       <Link
         href="/profile/"
-        aria-label="حسابي"
+        aria-label={t("profile")}
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#6842ff,#22d3ee)] text-sm font-extrabold text-white sm:h-10 sm:w-10"
       >
         {(session.user.name ?? "؟").charAt(0)}
@@ -66,7 +68,7 @@ export function AuthArea() {
       <button
         type="button"
         onClick={handleLogout}
-        aria-label="تسجيل الخروج"
+        aria-label={t("logout")}
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-mist-90 transition hover:text-mist-50 sm:h-10 sm:w-10"
       >
         <MdLogout size={20} />

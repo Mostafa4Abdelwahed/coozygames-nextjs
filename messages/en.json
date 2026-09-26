@@ -65,7 +65,8 @@
     "tryAnotherCategory": "Try another category from the sidebar",
     "games": "games",
     "playNow": "Play Now",
-    "playNowAria": "Play {title} now"
+    "playNowAria": "Play {title} now",
+    "playTitle": "Play {title} | Coozy Games"
   },
   "Search": {
     "placeholder": "Search games and categories",

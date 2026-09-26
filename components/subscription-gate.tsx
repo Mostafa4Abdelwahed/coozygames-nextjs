@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { MdArrowForward, MdLockOutline } from "react-icons/md";
 import { formatMoney } from "@/lib/money";

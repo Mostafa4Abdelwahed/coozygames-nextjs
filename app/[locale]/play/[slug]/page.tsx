@@ -6,14 +6,19 @@ import { auth } from '@/lib/auth'
 import { GameStage } from '@/components/game-stage'
 import { SubscriptionGate } from '@/components/subscription-gate'
 import { getMonthlyPrice, isPremiumActive } from '@/lib/billing'
+import { getTranslations } from 'next-intl/server'
+import { routing } from '@/i18n/routing'
+import { hasLocale } from 'next-intl'
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  const t = await getTranslations({ locale, namespace: 'Game' })
   const game = getGameBySlug(slug)
-  return { title: game ? `العب ${game.title} | Coozy Games` : 'Coozy Games' }
+  return { title: game ? t('playTitle', { title: game.title }) : 'Coozy Games' }
 }
 
-export default async function PlayPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function PlayPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { slug } = await params
   const game = getGameBySlug(slug)
   if (!game) notFound()

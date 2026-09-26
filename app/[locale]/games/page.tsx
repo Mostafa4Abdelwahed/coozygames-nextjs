@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { Metadata } from "next";
 import { ALL_GAMES, NEW_ALL, TRENDING_ALL } from "@/lib/games";
 import { applyOverrides, getPublicOverrides } from "@/lib/dashboard/overrides";

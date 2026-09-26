@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { MdPlayArrow } from "react-icons/md";
 import { POSTER_THUMB_WIDTH, thumbUrl } from "@/lib/image";

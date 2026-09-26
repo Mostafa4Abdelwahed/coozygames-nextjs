@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { MdCalendarMonth, MdLink, MdWorkspacePremium } from "react-icons/md";
 import { redeemLink, type RedeemLinkState } from "@/lib/actions/complete";
 import { formatDateAr } from "@/lib/money";

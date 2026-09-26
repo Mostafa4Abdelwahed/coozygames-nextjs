@@ -17,6 +17,11 @@ function normalize(path: string): string {
   return path.length > 1 ? path.replace(/\/+$/, "") : path;
 }
 
+/** Strip the leading locale prefix (e.g. /ar/games -> /games). */
+function stripLocale(path: string): string {
+  return path.replace(/^\/(ar|en)(?=\/|$)/, "") || "/";
+}
+
 function itemKey(href: string): string {
   const clean = normalize(href);
   if (clean === "/") return "/";
@@ -83,10 +88,11 @@ export const SidebarNav = memo(function SidebarNav({
   forceLabels: boolean;
   categories: NavCategory[];
 }) {
-  const pathname = normalize(usePathname());
+  const rawPathname = usePathname();
   const sort = useSearchParams().get("sort") ?? "hot";
+  const pathname = normalize(stripLocale(rawPathname));
   const activeKey = pathname === "/games" ? `games:${sort}` : pathname;
-  const locale = pathname.split("/")[1] === "en" ? "en" : "ar";
+  const locale = rawPathname.split("/")[1] === "en" ? "en" : "ar";
 
   return <SidebarNavList forceLabels={forceLabels} activeKey={activeKey} categories={categories} locale={locale} />;
 });

@@ -65,7 +65,8 @@
     "tryAnotherCategory": "جرّب تصنيفًا آخر من القائمة الجانبية",
     "games": "لعبة",
     "playNow": "العب الآن",
-    "playNowAria": "العب {title} الآن"
+    "playNowAria": "العب {title} الآن",
+    "playTitle": "العب {title} | Coozy Games"
   },
   "Search": {
     "placeholder": "ابحث عن الألعاب والتصنيفات",
