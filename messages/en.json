@@ -26,7 +26,11 @@
     "profile": "My Account",
     "premium": "Premium",
     "dashboard": "Dashboard",
-    "admin": "Admin"
+    "admin": "Admin",
+    "pagination": "Pagination",
+    "page": "Page {page}",
+    "previous": "Previous",
+    "next": "Next"
   },
   "Nav": {
     "home": "Home",
@@ -69,8 +73,10 @@
     "searchInBoth": "Search in Arabic or English for any game or category"
   },
   "Pager": {
+    "pagination": "Pagination",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "page": "Page {page}"
   },
   "Auth": {
     "loginTitle": "Login",
@@ -150,6 +156,21 @@
     "backToGame": "Back to Game",
     "signedIn": "Signed In",
     "notSignedIn": "Not Signed In"
+  },
+  "GameStage": {
+    "backToGame": "Back to Game",
+    "fullscreen": "Fullscreen",
+    "loading": "Loading game...",
+    "failedToLoad": "Failed to load game",
+    "retry": "Retry"
+  },
+  "SubscriptionGate": {
+    "title": "Subscription required to play games",
+    "description": "Browsing games and categories is free for everyone — but playing any game requires a Premium subscription at {price} per month.",
+    "subscribeNow": "Subscribe Now",
+    "login": "Login",
+    "register": "Create Account",
+    "backToGame": "Back to Game"
   },
   "Metadata": {
     "homeTitle": "Coozy Games - Play the Best Games",

@@ -1,54 +1,54 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import type { Metadata } from 'next'
-import { MdCategory, MdChevronLeft, MdChevronRight, MdHome, MdPlayArrow, MdStar, MdVideogameAsset } from 'react-icons/md'
-import { allGameSlugs, getGameBySlug, getGamesByCategory } from '@/lib/games'
-import { applyGameOverride, applyOverrides, getPublicOverrides } from '@/lib/dashboard/overrides'
-import { categoryLabelAr } from '@/lib/category-meta'
-import { HEADER_THUMB_WIDTH, thumbUrl } from '@/lib/image'
-import { GameCard } from '@/components/game-card'
-import { GamePoster } from '@/components/game-poster'
-import Image from 'next/image'
-import { getTranslations } from 'next-intl/server'
-import { routing } from '@/i18n/routing'
-import { hasLocale } from 'next-intl'
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { MdCategory, MdChevronLeft, MdChevronRight, MdHome, MdPlayArrow, MdStar, MdVideogameAsset } from "react-icons/md";
+import { allGameSlugs, getGameBySlug, getGamesByCategory } from "@/lib/games";
+import { applyGameOverride, applyOverrides, getPublicOverrides } from "@/lib/dashboard/overrides";
+import { categoryLabel } from "@/lib/category-meta";
+import { HEADER_THUMB_WIDTH, thumbUrl } from "@/lib/image";
+import { GameCard } from "@/components/game-card";
+import { GamePoster } from "@/components/game-poster";
+import Image from "next/image";
+import { getTranslations } from "next-intl/server";
+import { routing } from "@/i18n/routing";
+import { hasLocale } from "next-intl";
 
 // Prerender every game page for each locale
 export function generateStaticParams() {
   return routing.locales.flatMap((locale) =>
     allGameSlugs().map((slug) => ({ locale, slug }))
-  )
+  );
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
-  const { locale, slug } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
-  const game = getGameBySlug(slug)
-  if (!game) return { title: 'Coozy Games' }
-  const overrides = await getPublicOverrides()
-  const merged = applyGameOverride(game, overrides)
-  return { title: `${merged.title} | Coozy Games` }
+  const { locale, slug } = await params;
+  if (!hasLocale(routing.locales, locale)) notFound();
+  const game = getGameBySlug(slug);
+  if (!game) return { title: "Coozy Games" };
+  const overrides = await getPublicOverrides();
+  const merged = applyGameOverride(game, overrides);
+  return { title: `${merged.title} | Coozy Games` };
 }
 
 export default async function GamePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
-  const { locale, slug } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  const { locale, slug } = await params;
+  if (!hasLocale(routing.locales, locale)) notFound();
 
-  const t = await getTranslations({ locale, namespace: "Game" })
-  const common = await getTranslations({ locale, namespace: "Common" })
-  const game = getGameBySlug(slug)
-  if (!game) notFound()
+  const t = await getTranslations({ locale, namespace: "Game" });
+  const common = await getTranslations({ locale, namespace: "Common" });
+  const game = getGameBySlug(slug);
+  if (!game) notFound();
 
-  const overrides = await getPublicOverrides()
-  const merged = applyGameOverride(game, overrides)
-  const catSlug = game.categorySlug
+  const overrides = await getPublicOverrides();
+  const merged = applyGameOverride(game, overrides);
+  const catSlug = game.categorySlug;
   const related = applyOverrides(
     getGamesByCategory(catSlug).filter((g) => g.slug !== game.slug),
     overrides,
-  ).slice(0, 12)
+  ).slice(0, 12);
 
-  const dir = locale === "ar" ? "rtl" : "ltr"
-  const Chevron = dir === "rtl" ? MdChevronLeft : MdChevronRight
+  const dir = locale === "ar" ? "rtl" : "ltr";
+  const Chevron = dir === "rtl" ? MdChevronLeft : MdChevronRight;
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-3 sm:gap-8 sm:p-5">
@@ -59,7 +59,7 @@ export default async function GamePage({ params }: { params: Promise<{ locale: s
         </Link>
         <Chevron size={16} />
         <Link href={`/game-category/${catSlug}/`} className="transition hover:text-white">
-          {categoryLabelAr(catSlug, game.category)}
+          {categoryLabel(catSlug, locale, game.category)}
         </Link>
         <Chevron size={16} />
         <span className="truncate text-white">{merged.title}</span>
@@ -82,7 +82,7 @@ export default async function GamePage({ params }: { params: Promise<{ locale: s
               <MdCategory size={15} />
               {game.categories.map((cat) => (
                 <Link key={cat.slug} href={`/game-category/${cat.slug}/`} className="rounded-full bg-night-60 px-2.5 py-0.5 transition hover:bg-brand-100 hover:text-white">
-                  {categoryLabelAr(cat.slug, cat.label)}
+                  {categoryLabel(cat.slug, locale, cat.label)}
                 </Link>
               ))}
             </span>
@@ -114,5 +114,5 @@ export default async function GamePage({ params }: { params: Promise<{ locale: s
         </section>
       )}
     </div>
-  )
+  );
 }

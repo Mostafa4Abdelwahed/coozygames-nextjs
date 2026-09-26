@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const PAGE_SIZE = 40;
@@ -31,6 +34,7 @@ export function Pager({
   basePath: string;
   params?: Record<string, string>;
 }) {
+  const t = useTranslations("Pager");
   if (totalPages <= 1) return null;
 
   const href = (p: number) => {
@@ -42,11 +46,11 @@ export function Pager({
   };
 
   return (
-    <nav aria-label="التنقل بين الصفحات" className="flex flex-wrap items-center justify-center gap-1.5">
+    <nav aria-label={t("pagination")} className="flex flex-wrap items-center justify-center gap-1.5">
       {page > 1 ? (
         <Link
           href={href(page - 1)}
-          aria-label="الصفحة السابقة"
+          aria-label={t("previous")}
           className={`${btn} bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground`}
         >
           <ChevronRight className="size-4" />
@@ -66,7 +70,7 @@ export function Pager({
           <Link
             key={n}
             href={href(n)}
-            aria-label={`صفحة ${n}`}
+            aria-label={t("page", { page: n })}
             aria-current={n === page ? "page" : undefined}
             className={`${btn} ${
               n === page
@@ -82,7 +86,7 @@ export function Pager({
       {page < totalPages ? (
         <Link
           href={href(page + 1)}
-          aria-label="الصفحة التالية"
+          aria-label={t("next")}
           className={`${btn} bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground`}
         >
           <ChevronLeft className="size-4" />

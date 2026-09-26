@@ -26,7 +26,11 @@
     "profile": "حسابي",
     "premium": "الاشتراك المميز",
     "dashboard": "لوحة التحكم",
-    "admin": "إدارة"
+    "admin": "إدارة",
+    "pagination": "التنقل بين الصفحات",
+    "page": "صفحة {page}",
+    "previous": "السابق",
+    "next": "التالي"
   },
   "Nav": {
     "home": "الرئيسية",
@@ -69,8 +73,10 @@
     "searchInBoth": "ابحث بالعربية أو الإنجليزية عن أي لعبة أو تصنيف"
   },
   "Pager": {
+    "pagination": "التنقل بين الصفحات",
     "previous": "السابق",
-    "next": "التالي"
+    "next": "التالي",
+    "page": "صفحة {page}"
   },
   "Auth": {
     "loginTitle": "تسجيل الدخول",
@@ -150,6 +156,21 @@
     "backToGame": "العودة للعبة",
     "signedIn": "مسجل الدخول",
     "notSignedIn": "غير مسجل الدخول"
+  },
+  "GameStage": {
+    "backToGame": "العودة للعبة",
+    "fullscreen": "ملء الشاشة",
+    "loading": "جارٍ تحميل اللعبة...",
+    "failedToLoad": "تعذر تشغيل اللعبة",
+    "retry": "إعادة المحاولة"
+  },
+  "SubscriptionGate": {
+    "title": "الاشتراك مطلوب لتشغيل الألعاب",
+    "description": "تصفّح الألعاب والتصنيفات متاح مجانًا للجميع — لكن تشغيل أي لعبة يتطلب اشتراكًا مميزًا شهريًا بـ {price}.",
+    "subscribeNow": "الاشتراك الآن",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "backToGame": "العودة للعبة"
   },
   "Metadata": {
     "homeTitle": "Coozy Games - العب أحلى الألعاب",

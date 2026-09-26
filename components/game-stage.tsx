@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { MdArrowForward, MdFullscreen, MdRefresh } from "react-icons/md";
 import { createGameFrame, ensureProxy, type SjFrame } from "@/lib/proxy";
 
@@ -45,6 +46,7 @@ export function GameStage({
   playUrl?: string;
   backHref: string;
 }) {
+  const t = useTranslations("GameStage");
   const [status, setStatus] = useState<Status>("loading");
   const [attempt, setAttempt] = useState(0);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -117,7 +119,7 @@ export function GameStage({
       <div className="flex h-14 shrink-0 items-center gap-3 border-b border-night-60 bg-night-80 px-3">
         <Link
           href={backHref}
-          aria-label="رجوع إلى صفحة اللعبة"
+          aria-label={t("backToGame")}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-mist-90 transition-colors hover:text-white"
         >
           <MdArrowForward size={22} />
@@ -126,7 +128,7 @@ export function GameStage({
         <button
           type="button"
           onClick={goFullscreen}
-          aria-label="ملء الشاشة"
+          aria-label={t("fullscreen")}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-mist-90 transition-colors hover:text-white"
         >
           <MdFullscreen size={22} />
@@ -145,14 +147,14 @@ export function GameStage({
         {status === "loading" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black">
             <span className="h-10 w-10 animate-spin rounded-full border-2 border-night-60 border-t-brand-100" />
-            <p className="text-sm font-bold text-mist-50">جارٍ تحميل اللعبة...</p>
+            <p className="text-sm font-bold text-mist-50">{t("loading")}</p>
           </div>
         )}
 
         {status === "error" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/90 p-6 text-center">
             <MdRefresh size={36} className="text-mist-50" />
-            <p className="font-bold text-white">تعذر تشغيل اللعبة</p>
+            <p className="font-bold text-white">{t("failedToLoad")}</p>
             <p className="text-sm text-mist-50" dir="ltr">
               Run: npm run wisp
             </p>
@@ -161,7 +163,7 @@ export function GameStage({
               onClick={() => setAttempt((v) => v + 1)}
               className="rounded-full bg-brand-100 px-5 py-2 text-sm font-extrabold text-white transition-colors hover:bg-brand-80"
             >
-              إعادة المحاولة
+              {t("retry")}
             </button>
           </div>
         )}

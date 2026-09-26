@@ -23,8 +23,8 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const category = getCategory(slug);
-  const t = await getTranslations({ locale, namespace: "Game" });
-  return { title: category ? `${category.labelAr} | Coozy Games` : "Coozy Games" };
+  const label = category ? (locale === "ar" ? category.labelAr : category.labelEn) : "";
+  return { title: category ? `${label} | Coozy Games` : "Coozy Games" };
 }
 
 export default async function CategoryPage({
@@ -52,6 +52,7 @@ export default async function CategoryPage({
   );
   const visible = games.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const Icon = categoryStyle(category.slug).icon;
+  const label = locale === "ar" ? category.labelAr : category.labelEn;
 
   return (
     <div className="flex flex-col gap-6 p-3 sm:gap-8 sm:p-5">
@@ -61,7 +62,7 @@ export default async function CategoryPage({
         </span>
         <div className="min-w-0">
           <h1 className="truncate text-xl font-extrabold text-white sm:text-2xl">
-            {category.labelAr}
+            {label}
           </h1>
           <p className="text-sm font-semibold text-mist-50">
             {games.length} {common("games")}

@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { Link, usePathname } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { MdMenu, MdSearch } from "react-icons/md";
 import type { NavCategory } from "@/lib/category-meta";
 import { AuthArea } from "./auth-area";
@@ -21,6 +22,8 @@ export function SiteShell({
   categories,
 }: { children: ReactNode; categories: NavCategory[] }) {
   const pathname = usePathname();
+  const t = useTranslations("Common");
+  const nav = useTranslations("Nav");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -47,7 +50,7 @@ export function SiteShell({
             type="button"
             onClick={() => setSidebarOpen((v) => !v)}
             className="me-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-[30px] text-mist-90 transition hover:text-mist-50 sm:h-12 sm:w-12"
-            aria-label="فتح القائمة الجانبية أو إغلاقها"
+            aria-label={t("menu")}
             aria-controls="mainNav"
             aria-expanded={sidebarOpen}
           >
@@ -55,7 +58,7 @@ export function SiteShell({
           </button>
           <Link href="/" rel="home" className="min-w-0">
             <span className="block h-9 content-center truncate bg-[linear-gradient(90deg,#c4b5fd,#22d3ee)] bg-clip-text text-lg font-extrabold text-transparent sm:text-xl">
-              كوزي جيم
+              {nav("siteName")}
             </span>
           </Link>
         </div>
@@ -66,7 +69,7 @@ export function SiteShell({
           onClick={() => setSearchOpen(true)}
           className="absolute top-1/2 left-1/2 hidden h-10 w-115 -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-[30px] border border-transparent bg-night-40 px-4 text-start text-base font-bold text-mist-50 transition hover:border-night-60 min-[1082px]:flex"
         >
-          <span className="flex-1 truncate">ابحث عن الألعاب والتصنيفات</span>
+          <span className="flex-1 truncate">{t("searchPlaceholder")}</span>
           <MdSearch size={20} className="shrink-0" />
         </button>
 
@@ -75,7 +78,7 @@ export function SiteShell({
             type="button"
             onClick={() => setSearchOpen(true)}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-mist-90 transition hover:text-mist-50 min-[1082px]:hidden"
-            aria-label="بحث"
+            aria-label={t("search")}
           >
             <MdSearch size={22} />
           </button>
@@ -95,7 +98,7 @@ export function SiteShell({
       {/* Sidebar: off-canvas drawer on mobile, fixed rail on sm+ */}
       <nav
         id="mainNav"
-        aria-label="التنقل بين الألعاب"
+        aria-label={t("menu")}
         className={`group fixed top-header-mobile inset-s-0 z-30 h-[calc(100dvh-56px)] w-sidebar border-e border-night-60 bg-night-100 transition-[width] duration-200 ease-in-out sm:top-header sm:z-5 sm:h-[calc(100vh-60px)] min-[1910px]:w-sidebar ${
           sidebarOpen ? "sm:w-sidebar" : "sm:w-sidebar-collapsed"
         } ${

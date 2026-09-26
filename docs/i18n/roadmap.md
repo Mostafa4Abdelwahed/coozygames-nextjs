@@ -54,22 +54,23 @@
 
 ---
 
-## Phase 3 — ترجمة الموقع العام
+## Phase 3 — ترجمة الموقع العام (منتهي ✅)
 
 **الهدف:** إزالة كل النصوص العربية المكتوبة يدويًا من الواجهة العامة.
 
 ### المهام
 
-- [ ] تعبئة `messages/ar.json` و`messages/en.json` بالـ namespaces (`Common`, `Nav`, `Home`, `Games`, `Game`, `Search`, `Pager`, `Metadata`).
-- [ ] `lib/category-meta.ts`: إضافة `EN_LABELS` + تحويل `SIDEBAR_TOP` لمفاتيح.
-- [ ] ترجمة: `site-shell`, `sidebar-nav`, `games-section`, `search-overlay`, `pager`, `game-card/poster/stage`, الرئيسية، `/games`, `/game/[slug]`, `/game-category/[slug]`.
-- [ ] تدويل `metadata` لكل الصفحات العامة عبر `getTranslations`.
+- [x] تعبئة `messages/ar.json` و`messages/en.json` بالـ namespaces (`Common`, `Nav`, `Home`, `Games`, `Game`, `Search`, `Pager`, `Metadata`, `GameStage`, `SubscriptionGate`).
+- [x] `lib/category-meta.ts`: إضافة `EN_LABELS` + تحويل `SIDEBAR_TOP` لمفاتيح.
+- [x] ترجمة: `site-shell`, `sidebar-nav`, `games-section`, `search-overlay`, `pager`, `game-card/poster/stage`, الرئيسية، `/games`, `/game/[slug]`, `/game-category/[slug]`.
+- [x] تدويل `metadata` لكل الصفحات العامة عبر `getTranslations`.
+- [x] إضافة namespaces `GameStage` و `SubscriptionGate` للقوائم.
 
 ### معايير القبول
 
-- لا نصوص عربية hardcoded في الواجهة العامة (غير محتوى الكتالوج).
-- تبديل اللغة يعرض كل النصوص مترجمة بدون fallback عربي في `en`.
-- البحث يعمل بالعربية والإنجليزية.
+- ✅ لا نصوص عربية hardcoded في الواجهة العامة (غير محتوى الكتالوج).
+- ✅ تبديل اللغة يعرض كل النصوص مترجمة بدون fallback عربي في `en`.
+- ✅ البحث يعمل بالعربية والإنجليزية.
 
 ---
 
