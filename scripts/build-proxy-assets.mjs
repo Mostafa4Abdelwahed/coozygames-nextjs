@@ -120,6 +120,85 @@ const POKI_CSS_SHIM = `
 })();
 `;
 
+// Poki SDK shim: neuters rewarded/commercial break ads so games grant the reward
+// (skip level, extra life, etc.) without waiting for or playing an ad. Appended to
+// scramjet.all.js so it executes inside every proxied game document, before the
+// game's own scripts. Network ad-blocking lives in sw.js; this handles games that
+// gate progression on SDK callbacks that a blocked network request would never fire.
+const POKI_SDK_SHIM = `
+;(function () {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+    try {
+        if (window.__adblockSdkShim === 1) return;
+        window.__adblockSdkShim = 1;
+    } catch (e) { return; }
+
+    function wrapInit(sdk) {
+        if (!sdk || sdk.__adblockInitWrapped) return;
+        var original = sdk.init;
+        if (typeof original !== "function") return;
+        sdk.init = function () {
+            var p;
+            try { p = original.apply(this, arguments); }
+            catch (e) { return Promise.resolve(); }
+            if (p && typeof p.then === "function") {
+                return Promise.race([
+                    p,
+                    new Promise(function (resolve) { setTimeout(resolve, 3000); })
+                ]);
+            }
+            return p;
+        };
+        try { sdk.__adblockInitWrapped = true; } catch (e) {}
+    }
+
+    function patch(sdk) {
+        if (!sdk || (typeof sdk !== "object" && typeof sdk !== "function")) return sdk;
+        function noop() {}
+        try {
+            sdk.rewardedBreak = function (cb) {
+                if (typeof cb === "function") { try { cb(true); } catch (e) {} }
+                return Promise.resolve(true);
+            };
+        } catch (e) {}
+        try {
+            sdk.commercialBreak = function (cb) {
+                if (typeof cb === "function") { try { cb(); } catch (e) {} }
+                return Promise.resolve();
+            };
+        } catch (e) {}
+        try { sdk.rewardedBreakEnd = function (cb) { if (typeof cb === "function") cb(true); }; } catch (e) {}
+        try { sdk.gameLoadingFinished = noop; } catch (e) {}
+        try { sdk.gameplayStart = noop; } catch (e) {}
+        try { sdk.gameplayStop = noop; } catch (e) {}
+        try { sdk.setDebug = noop; } catch (e) {}
+        try { sdk.isAdBlocked = function () { return false; }; } catch (e) {}
+        try { if (typeof sdk.getLanguage !== "function") sdk.getLanguage = function () { return "en"; }; } catch (e) {}
+        wrapInit(sdk);
+        return sdk;
+    }
+
+    var current;
+    try { current = window.PokiSDK ? patch(window.PokiSDK) : undefined; } catch (e) { current = undefined; }
+
+    try {
+        Object.defineProperty(window, "PokiSDK", {
+            configurable: true,
+            enumerable: true,
+            get: function () { return current; },
+            set: function (v) { current = patch(v); }
+        });
+    } catch (e) {}
+
+    var ticks = 0;
+    var iv = setInterval(function () {
+        ticks++;
+        try { if (window.PokiSDK) patch(window.PokiSDK); } catch (e) {}
+        if (ticks > 240) clearInterval(iv);
+    }, 250);
+})();
+`;
+
 async function copyTree(src, dest) {
   await mkdir(dest, { recursive: true });
   await cp(src, dest, { recursive: true, force: true });
@@ -139,8 +218,8 @@ for (const v of vendors) {
   console.log(`[proxy-assets] copied ${v.desc} -> ${path.relative(root, v.dest)}`);
 }
 
-// 3) append full CSS shim to scramjet.all.js
+// 3) append full CSS shim + adblock SDK shim to scramjet.all.js
 const scramjetAll = path.join(publicDir, "scram", "scramjet.all.js");
-const bundle = (await readFile(scramjetAll, "utf8")) + POKI_CSS_SHIM;
+const bundle = (await readFile(scramjetAll, "utf8")) + POKI_CSS_SHIM + POKI_SDK_SHIM;
 await writeFile(scramjetAll, bundle);
-console.log("[proxy-assets] appended full Poki CSS shim to public/scram/scramjet.all.js");
+console.log("[proxy-assets] appended Poki CSS shim + adblock SDK shim to public/scram/scramjet.all.js");
