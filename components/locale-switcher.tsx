@@ -84,7 +84,7 @@ export function LocaleSwitcher() {
           </button>
         }
       />
-      <DropdownMenuContent align="end" className="min-w-[160px]">
+      <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
           <DropdownMenuLabel>{t("language")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
