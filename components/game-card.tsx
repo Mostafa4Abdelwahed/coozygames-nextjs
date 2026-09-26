@@ -1,25 +1,24 @@
-"use client";
-
 import { Link } from "@/i18n/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { getLocale } from "next-intl/server";
 import type { Game } from "@/lib/games";
 import { categoryLabel, categoryStyle } from "@/lib/category-meta";
 import { CARD_IMAGE_SIZES, CARD_THUMB_WIDTH, thumbUrl } from "@/lib/image";
 import Image from "next/image";
 
-// Game type without the icon function (not serializable)
-type GameCardData = Omit<Game, "icon">;
-
-export function GameCard({
+/**
+ * Server component: the card is static markup, so keeping it on the server
+ * avoids hydrating dozens of identical islands per grid and skips serializing
+ * each game (categories, playUrl, ...) into the RSC payload.
+ */
+export async function GameCard({
   game,
   priority = false,
 }: {
-  game: GameCardData;
+  game: Game;
   /** Mark as the LCP candidate: eager + fetchpriority=high. Use for one card only. */
   priority?: boolean;
 }) {
-  const t = useTranslations("Game");
-  const locale = useLocale();
+  const locale = await getLocale();
   const style = categoryStyle(game.categorySlug);
   const Icon = style.icon;
   const src = thumbUrl(game.thumb, CARD_THUMB_WIDTH);

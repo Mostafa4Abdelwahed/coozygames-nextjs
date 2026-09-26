@@ -18,6 +18,28 @@ export type GameSearchResult = {
   thumb?: string
 }
 
+type SearchRow = { haystack: string; result: GameSearchResult }
+
+/**
+ * Built once at module load: the catalog is immutable, so lowercasing every
+ * title/label on each request is wasted work and shows up under search load.
+ */
+const SEARCH_ROWS: SearchRow[] = ALL_GAMES.map((game) => {
+  const categoryLabel = categoryLabelAr(game.categorySlug, game.category)
+  return {
+    haystack: `${game.title}\n${game.category}\n${categoryLabel}`.toLowerCase(),
+    result: {
+      slug: game.slug,
+      title: game.title,
+      categorySlug: game.categorySlug,
+      categoryLabel,
+      plays: game.plays,
+      rating: game.rating,
+      thumb: game.thumb,
+    },
+  }
+})
+
 export function GET(request: Request) {
   const q = new URL(request.url).searchParams.get('q')?.trim() ?? ''
 
@@ -25,28 +47,18 @@ export function GET(request: Request) {
     return NextResponse.json({ results: [] as GameSearchResult[] })
   }
 
-  const lower = q.toLowerCase()
+  const needle = q.toLowerCase()
   const results: GameSearchResult[] = []
 
-  for (const game of ALL_GAMES) {
-    const matches =
-      game.title.toLowerCase().includes(lower) ||
-      game.category.toLowerCase().includes(lower) ||
-      categoryLabelAr(game.categorySlug, game.category).includes(q)
-
-    if (matches) {
-      results.push({
-        slug: game.slug,
-        title: game.title,
-        categorySlug: game.categorySlug,
-        categoryLabel: categoryLabelAr(game.categorySlug, game.category),
-        plays: game.plays,
-        rating: game.rating,
-        thumb: game.thumb,
-      })
+  for (const row of SEARCH_ROWS) {
+    if (row.haystack.includes(needle)) {
+      results.push(row.result)
       if (results.length >= RESULT_LIMIT) break
     }
   }
 
-  return NextResponse.json({ results })
+  return NextResponse.json(
+    { results },
+    { headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' } },
+  )
 }

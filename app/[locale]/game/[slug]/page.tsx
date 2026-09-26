@@ -12,7 +12,6 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { hasLocale } from "next-intl";
-import type { IconType } from "react-icons";
 
 // Prerender every game page for each locale
 export function generateStaticParams() {
@@ -51,8 +50,6 @@ export default async function GamePage({ params }: { params: Promise<{ locale: s
   const dir = locale === "ar" ? "rtl" : "ltr";
   const Chevron = dir === "rtl" ? MdChevronLeft : MdChevronRight;
 
-  // Create client-safe game objects without icon functions
-  const clientSafeRelated = related.map(({ icon, ...g }) => g);
   const HeaderIcon = categoryStyle(catSlug).icon;
 
   return (
@@ -105,14 +102,14 @@ export default async function GamePage({ params }: { params: Promise<{ locale: s
 
       <GamePoster slug={game.slug} title={merged.title} thumb={merged.thumb} />
 
-      {clientSafeRelated.length > 0 && (
+      {related.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
             <MdVideogameAsset size={22} className="text-brand-60" />
             <h2 className="text-lg font-extrabold text-white sm:text-xl">{t("similarGames")}</h2>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
-            {clientSafeRelated.map((g) => (
+            {related.map((g) => (
               <GameCard key={g.slug} game={g} />
             ))}
           </div>

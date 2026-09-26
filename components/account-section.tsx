@@ -1,7 +1,4 @@
-"use client";
-
 import type { ReactNode } from "react";
-import { useTranslations } from "next-intl";
 
 export function AccountSection({
   icon,
@@ -14,7 +11,6 @@ export function AccountSection({
   action?: ReactNode;
   children: ReactNode;
 }) {
-  const t = useTranslations("Common");
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">

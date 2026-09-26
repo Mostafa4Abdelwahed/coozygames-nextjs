@@ -121,9 +121,21 @@ export const NEW_GAMES: Game[] = ALL_GAMES.slice(400, 412)
 export const ACTION_GAMES: Game[] = ALL_GAMES.filter((g) => g.categorySlug === 'action').slice(0, 6)
 export const PUZZLE_GAMES: Game[] = ALL_GAMES.filter((g) => g.categorySlug === 'puzzle').slice(0, 6)
 
+// O(1) lookups: the catalog is scanned dozens of times per static page, so
+// precompute slug + category indexes once at module load.
+const GAME_BY_SLUG = new Map<string, Game>(ALL_GAMES.map((g) => [g.slug, g]))
+
+const GAMES_BY_CATEGORY = new Map<string, Game[]>()
+for (const game of ALL_GAMES) {
+  for (const { slug } of game.categories) {
+    const list = GAMES_BY_CATEGORY.get(slug)
+    if (list) list.push(game)
+    else GAMES_BY_CATEGORY.set(slug, [game])
+  }
+}
+
 export function getGamesByCategory(slug: string): Game[] {
-  const resolved = resolveCategorySlug(slug)
-  return ALL_GAMES.filter((g) => g.categories.some((c) => c.slug === resolved))
+  return GAMES_BY_CATEGORY.get(resolveCategorySlug(slug)) ?? []
 }
 
 /** Legacy slugs from the old hardcoded list that no longer exist in data. */
@@ -139,7 +151,7 @@ export function resolveCategorySlug(slug: string): string {
 }
 
 export function getGameBySlug(slug: string): Game | undefined {
-  return ALL_GAMES.find((g) => g.slug === slug)
+  return GAME_BY_SLUG.get(slug)
 }
 
 /** All game slugs (for static generation of /game/[slug]). */

@@ -1,13 +1,9 @@
-"use client";
-
 import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import type { Game } from "@/lib/games";
 import { GameCard } from "./game-card";
 
-type GameSectionGame = Omit<Game, "icon">;
-
-export function GamesSection({
+export async function GamesSection({
   title,
   href,
   games,
@@ -15,11 +11,11 @@ export function GamesSection({
 }: {
   title: string;
   href: string;
-  games: GameSectionGame[];
+  games: Game[];
   /** When > 0, the first card is treated as the page LCP candidate. */
   priorityCount?: number;
 }) {
-  const t = useTranslations("Common");
+  const t = await getTranslations("Common");
 
   return (
     <section>
