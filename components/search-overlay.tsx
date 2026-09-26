@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { MdChevronLeft, MdClose, MdSearch, MdTrendingUp } from "react-icons/md";
-import { categoryLabelAr, categoryStyle } from "@/lib/category-meta";
+import { MdClose, MdSearch, MdTrendingUp } from "react-icons/md";
+import { categoryLabel, categoryStyle } from "@/lib/category-meta";
 import { MINI_THUMB_WIDTH, thumbUrl } from "@/lib/image";
 import Image from "next/image";
 
@@ -76,6 +76,7 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
 
   const results = resolved.results;
   const isTyping = query.trim() !== debouncedQuery || resolved.query !== debouncedQuery;
+  const locale = document.documentElement.lang || "ar";
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4" role="dialog" aria-modal="true" aria-label={t("close")}>
@@ -163,10 +164,12 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
                     <span className="flex min-w-0 flex-1 flex-col text-start">
                       <span className="truncate text-[15px] font-bold text-white">{game.title}</span>
                       <span className="text-xs font-semibold text-mist-50">
-                        {categoryLabelAr(game.categorySlug, game.categoryLabel)} • {game.plays} • ★ {game.rating}
+                        {categoryLabel(game.categorySlug, locale, game.categoryLabel)} • {game.plays} • ★ {game.rating}
                       </span>
                     </span>
-                    <MdChevronLeft size={20} className="shrink-0 text-mist-50" />
+                    <span className="shrink-0 text-mist-50" dir={locale === "ar" ? "rtl" : "ltr"}>
+                      {locale === "ar" ? "›" : "‹"}
+                    </span>
                   </Link>
                 </li>
               ))}

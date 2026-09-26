@@ -1,18 +1,29 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import type { Game } from "@/lib/games";
-import { categoryLabelAr } from "@/lib/category-meta";
+import { categoryLabel, categoryStyle } from "@/lib/category-meta";
 import { CARD_IMAGE_SIZES, CARD_THUMB_WIDTH, thumbUrl } from "@/lib/image";
 import Image from "next/image";
+
+// Game type without the icon function (not serializable)
+type GameCardData = Omit<Game, "icon">;
 
 export function GameCard({
   game,
   priority = false,
 }: {
-  game: Game;
+  game: GameCardData;
   /** Mark as the LCP candidate: eager + fetchpriority=high. Use for one card only. */
   priority?: boolean;
 }) {
-  const Icon = game.icon;
+  const t = useTranslations("Game");
+  const pathname = usePathname();
+  const locale = pathname?.split("/")[1] || "ar";
+  const style = categoryStyle(game.categorySlug);
+  const Icon = style.icon;
   const src = thumbUrl(game.thumb, CARD_THUMB_WIDTH);
 
   return (
@@ -45,7 +56,7 @@ export function GameCard({
       <div className="p-2.5">
         <h3 className="truncate text-sm font-bold text-white">{game.title}</h3>
         <p className="mt-0.5 truncate text-xs font-semibold text-mist-50">
-          {categoryLabelAr(game.categorySlug, game.category)} • {game.plays}
+          {categoryLabel(game.categorySlug, locale, game.category)} • {game.plays}
         </p>
       </div>
     </Link>

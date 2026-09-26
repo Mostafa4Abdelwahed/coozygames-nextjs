@@ -9,6 +9,11 @@ import { routing } from "@/i18n/routing";
 // First visible row of the page: load eagerly and mark the LCP candidate.
 const FIRST_ROW = 6;
 
+// Helper to strip icon function for client component serialization
+function stripIcon(games: Awaited<ReturnType<typeof applyOverrides>>) {
+  return games.map(({ icon, ...g }) => g);
+}
+
 export async function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
@@ -22,10 +27,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
   return (
     <div className="flex flex-col gap-6 p-3 sm:gap-8 sm:p-5">
-      <GamesSection title={t("trendingSection")} href="/games/?sort=hot" games={applyOverrides(TRENDING_GAMES, overrides)} priorityCount={FIRST_ROW} />
-      <GamesSection title={t("newSection")} href="/games/?sort=new" games={applyOverrides(NEW_GAMES, overrides)} />
-      <GamesSection title={t("actionSection")} href="/game-category/action/" games={applyOverrides(ACTION_GAMES, overrides)} />
-      <GamesSection title={t("puzzleSection")} href="/game-category/puzzle/" games={applyOverrides(PUZZLE_GAMES, overrides)} />
+      <GamesSection title={t("trendingSection")} href="/games/?sort=hot" games={stripIcon(applyOverrides(TRENDING_GAMES, overrides))} priorityCount={FIRST_ROW} />
+      <GamesSection title={t("newSection")} href="/games/?sort=new" games={stripIcon(applyOverrides(NEW_GAMES, overrides))} />
+      <GamesSection title={t("actionSection")} href="/game-category/action/" games={stripIcon(applyOverrides(ACTION_GAMES, overrides))} />
+      <GamesSection title={t("puzzleSection")} href="/game-category/puzzle/" games={stripIcon(applyOverrides(PUZZLE_GAMES, overrides))} />
     </div>
   );
 }

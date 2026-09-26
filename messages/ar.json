@@ -63,7 +63,9 @@
     "breadcrumb": "مسار التنقل",
     "noGamesYet": "لا توجد ألعاب هنا بعد",
     "tryAnotherCategory": "جرّب تصنيفًا آخر من القائمة الجانبية",
-    "games": "لعبة"
+    "games": "لعبة",
+    "playNow": "العب الآن",
+    "playNowAria": "العب {title} الآن"
   },
   "Search": {
     "placeholder": "ابحث عن الألعاب والتصنيفات",

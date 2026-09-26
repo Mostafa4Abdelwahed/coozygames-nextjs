@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { MdPlayArrow } from "react-icons/md";
 import { POSTER_THUMB_WIDTH, thumbUrl } from "@/lib/image";
 
@@ -7,12 +10,13 @@ import { POSTER_THUMB_WIDTH, thumbUrl } from "@/lib/image";
  * at /play/[slug]. No proxy code is loaded here.
  */
 export function GamePoster({ slug, title, thumb }: { slug: string; title: string; thumb?: string }) {
+  const t = useTranslations("Game");
   const poster = thumbUrl(thumb, POSTER_THUMB_WIDTH);
 
   return (
     <Link
       href={`/play/${slug}/`}
-      aria-label={`العب ${title} الآن`}
+      aria-label={t("playNowAria", { title })}
       className="group relative block aspect-video w-full overflow-hidden rounded-2xl border border-night-60 bg-black"
     >
       {poster && (
@@ -32,7 +36,7 @@ export function GamePoster({ slug, title, thumb }: { slug: string; title: string
         <span className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-100 text-white shadow-2xl transition-transform duration-200 group-hover:scale-105 group-hover:bg-brand-80">
           <MdPlayArrow size={44} />
         </span>
-        <span className="text-lg font-extrabold text-white">العب الآن</span>
+        <span className="text-lg font-extrabold text-white">{t("playNow")}</span>
       </span>
     </Link>
   );

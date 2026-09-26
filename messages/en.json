@@ -63,7 +63,9 @@
     "breadcrumb": "Breadcrumb",
     "noGamesYet": "No games here yet",
     "tryAnotherCategory": "Try another category from the sidebar",
-    "games": "games"
+    "games": "games",
+    "playNow": "Play Now",
+    "playNowAria": "Play {title} now"
   },
   "Search": {
     "placeholder": "Search games and categories",
