@@ -6,8 +6,8 @@ const THEME_COLOR = "#0c0d14";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "كوزي جيم — Coozy Games",
-    short_name: "كوزي جيم",
+    name: "كوزي جيمز — Coozy Games",
+    short_name: "كوزي جيمز",
     description: "العب أحلى الألعاب أونلاين مجاناً",
     lang: "ar",
     dir: "rtl",

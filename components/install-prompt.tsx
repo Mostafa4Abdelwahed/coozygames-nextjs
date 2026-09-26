@@ -88,7 +88,7 @@ export function InstallPrompt() {
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-sm font-bold text-mist-100">
             <MdInstallMobile className="shrink-0 text-brand-60" size={17} aria-hidden />
-            ثبّت كوزي جيم على جهازك
+            ثبّت كوزي جيمز على جهازك
           </p>
           {deferred ? (
             <p className="mt-0.5 text-xs text-mist-50">
