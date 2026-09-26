@@ -12,6 +12,7 @@ import {
   KeyRound,
   FileKey,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import {
   deleteSetting,
   saveSetting,
@@ -46,10 +47,27 @@ import {
 
 const initState: SettingActionState = { done: false }
 
-function Msg({ state, success }: { state: SettingActionState; success: string }) {
+function safeTranslate(t: (key: string) => string, key?: string): string | null {
+  if (!key) return null
+  try {
+    return t(key as Parameters<typeof t>[0])
+  } catch {
+    return key
+  }
+}
+
+function Msg({
+  state,
+  success,
+  tActions,
+}: {
+  state: SettingActionState
+  success: string
+  tActions: (key: string) => string
+}) {
   return state.done ? (
     <p className={`text-xs font-medium ${state.error ? 'text-destructive' : 'text-emerald-600'}`}>
-      {state.error ?? success}
+      {safeTranslate(tActions, state.error) ?? success}
     </p>
   ) : null
 }
@@ -62,18 +80,15 @@ type SecretCheckboxProps = {
   checked: boolean
   onChange: (checked: boolean) => void
   id: string
+  label: string
 }
 
-function SecretCheckbox({ checked, onChange, id }: SecretCheckboxProps) {
+function SecretCheckbox({ checked, onChange, id, label }: SecretCheckboxProps) {
   return (
     <div className="flex items-center gap-2">
-      <Checkbox
-        id={id}
-        checked={checked}
-        onCheckedChange={(next) => onChange(Boolean(next))}
-      />
+      <Checkbox id={id} checked={checked} onCheckedChange={(next) => onChange(Boolean(next))} />
       <Label htmlFor={id} className="text-muted-foreground">
-        قيمة سرّية (مخفية في الجدول)
+        {label}
       </Label>
       <input type="hidden" name="isSecret" value={checked ? '1' : ''} />
     </div>
@@ -109,6 +124,8 @@ function SettingEditor({
   const [reveal, setReveal] = useState(false)
   const [open, setOpen] = useState(false)
   const [state, action, saving] = useActionState(saveSetting, initState)
+  const t = useTranslations('Dashboard.settings')
+  const tActions = useTranslations('Dashboard.actions')
 
   const showEye = secret && revealable
   const valueType = showEye && !reveal ? 'password' : 'text'
@@ -127,7 +144,7 @@ function SettingEditor({
         <form action={action} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor={`key-${defaultKey}`} className="text-muted-foreground">
-              المفتاح
+              {t('key')}
             </Label>
             {allowKeyChange ? (
               <Input
@@ -151,7 +168,7 @@ function SettingEditor({
 
           <div className="grid gap-2">
             <Label htmlFor={`value-${defaultKey}`} className="text-muted-foreground">
-              القيمة
+              {t('value')}
             </Label>
             <div className="relative">
               <Input
@@ -167,7 +184,7 @@ function SettingEditor({
                 <button
                   type="button"
                   onClick={() => setReveal((r) => !r)}
-                  aria-label={reveal ? 'إخفاء القيمة' : 'إظهار القيمة'}
+                  aria-label={reveal ? t('hideValue') : t('showValue')}
                   className="absolute end-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
                 >
                   {reveal ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -180,12 +197,13 @@ function SettingEditor({
             id={`secret-${defaultKey}`}
             checked={secret}
             onChange={setSecret}
+            label={t('secret')}
           />
 
-          <Msg state={state} success="تم الحفظ" />
+          <Msg state={state} success={t('saved')} tActions={tActions} />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              إلغاء
+              {t('cancel')}
             </Button>
             <Button type="submit" disabled={saving}>
               {confirmLabel}
@@ -200,6 +218,8 @@ function SettingEditor({
 function SettingDeleter({ settingKey }: { settingKey: string }) {
   const [state, action, deleting] = useActionState(deleteSetting, initState)
   const [open, setOpen] = useState(false)
+  const t = useTranslations('Dashboard.settings')
+  const tActions = useTranslations('Dashboard.actions')
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -208,7 +228,7 @@ function SettingDeleter({ settingKey }: { settingKey: string }) {
           <Button
             variant="outline"
             size="icon"
-            aria-label="حذف"
+            aria-label={t('deleteAria')}
             className="border-destructive/50 text-destructive hover:bg-destructive/10"
           >
             <Trash2 className="size-3.5" />
@@ -217,23 +237,19 @@ function SettingDeleter({ settingKey }: { settingKey: string }) {
       />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>حذف التجاوز؟</AlertDialogTitle>
+          <AlertDialogTitle>{t('confirmDeleteTitle')}</AlertDialogTitle>
           <AlertDialogDescription>
-            سيتم حذف القيمة المحفوظة في قاعدة البيانات للمفتاح
-            <span className="mx-1 font-mono" dir="ltr">
-              {settingKey}
-            </span>
-            والعودة للقيمة من الـ env (إن وُجدت).
+            {t('confirmDeleteMessage', { key: settingKey })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <form action={action}>
           <input type="hidden" name="key" value={settingKey} />
-          <Msg state={state} success="تم الحذف" />
+          <Msg state={state} success={t('deleted')} tActions={tActions} />
           <AlertDialogFooter>
-            <AlertDialogCancel type="button">إلغاء</AlertDialogCancel>
+            <AlertDialogCancel type="button">{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction type="submit" disabled={deleting} className="gap-2">
               <Trash2 className="size-4" />
-              {deleting ? 'جارٍ الحذف...' : 'حذف'}
+              {deleting ? t('deleting') : t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </form>
@@ -243,6 +259,8 @@ function SettingDeleter({ settingKey }: { settingKey: string }) {
 }
 
 export function SettingsManager({ rows }: { rows: SettingView[] }) {
+  const t = useTranslations('Dashboard.settings')
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end border-b pb-4">
@@ -252,13 +270,13 @@ export function SettingsManager({ rows }: { rows: SettingView[] }) {
           defaultValue=""
           isSecret={false}
           revealable={false}
-          title="إضافة متغير جديد"
-          description="المفتاح بأحرف كبيرة وأرقام و _ فقط (مثال: WISP_HEALTH_URL)."
-          confirmLabel="حفظ"
+          title={t('addTitle')}
+          description={t('addDescription')}
+          confirmLabel={t('saveOverride')}
           trigger={
             <>
               <Plus className="size-3.5" />
-              إضافة متغير
+              {t('add')}
             </>
           }
         />
@@ -278,9 +296,9 @@ export function SettingsManager({ rows }: { rows: SettingView[] }) {
                 >
                   {row.key}
                 </span>
-                {row.hasDb && row.hasEnv && <Badge variant="default">تجاوز</Badge>}
-                {row.hasDb && !row.hasEnv && <Badge variant="secondary">مخصّص</Badge>}
-                {!row.hasDb && row.hasEnv && <Badge variant="outline">من الـ env</Badge>}
+                {row.hasDb && row.hasEnv && <Badge variant="default">{t('badgeOverride')}</Badge>}
+                {row.hasDb && !row.hasEnv && <Badge variant="secondary">{t('badgeCustom')}</Badge>}
+                {!row.hasDb && row.hasEnv && <Badge variant="outline">{t('badgeFromEnv')}</Badge>}
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="text-muted-foreground">{row.label}</span>
@@ -306,7 +324,7 @@ export function SettingsManager({ rows }: { rows: SettingView[] }) {
                   </span>
                 ) : (
                   <Badge variant="outline" className="w-fit">
-                    بدون قيمة
+                    {t('noValue')}
                   </Badge>
                 )}
               </div>
@@ -320,13 +338,15 @@ export function SettingsManager({ rows }: { rows: SettingView[] }) {
                   defaultValue={row.value}
                   isSecret={row.isSecret}
                   revealable={row.isSecret && row.hasDb}
-                  title="تجاوز من لوحة التحكم"
-                  description={`القيمة الحالية: ${row.isSecret ? 'سرّية (لم تُعرض)' : row.value || 'غير مضبوطة'}.`}
-                  confirmLabel="حفظ التجاوز"
+                  title={t('overrideTitle')}
+                  description={`${t('currentValue')}: ${
+                    row.isSecret ? t('currentValueSecret') : row.value || t('unset')
+                  }.`}
+                  confirmLabel={t('saveOverrideConfirm')}
                   trigger={
                     <>
                       <FileKey className="size-3.5" />
-                      تجاوز
+                      {t('saveOverride')}
                     </>
                   }
                 />
@@ -338,13 +358,13 @@ export function SettingsManager({ rows }: { rows: SettingView[] }) {
                     defaultValue={row.value}
                     isSecret={row.isSecret}
                     revealable={row.isSecret && row.hasDb}
-                    title="تعديل القيمة"
-                    description="حفظ قيمة جديدة أو تغيير سمة السرّية."
-                    confirmLabel="حفظ"
+                    title={t('editTitle')}
+                    description={t('editDescription')}
+                    confirmLabel={t('save')}
                     trigger={
                       <>
                         <Pencil className="size-3.5" />
-                        تعديل
+                        {t('edit')}
                       </>
                     }
                   />
@@ -358,9 +378,7 @@ export function SettingsManager({ rows }: { rows: SettingView[] }) {
         {rows.length === 0 && (
           <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-10 text-center text-muted-foreground">
             <TriangleAlert className="size-6" />
-            <p className="text-sm font-medium">
-              لا توجد متغيرات مضبوطة — أضف أول متغير من الزر بالأعلى.
-            </p>
+            <p className="text-sm font-medium">{t('empty')}</p>
           </div>
         )}
       </div>

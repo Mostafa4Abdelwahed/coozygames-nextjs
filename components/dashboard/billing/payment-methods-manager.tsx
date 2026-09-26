@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useActionState } from 'react'
 import { Pencil, Plus, Trash2, WalletCards } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import type { PaymentMethod } from '@/lib/billing'
 import {
   addPaymentMethod,
@@ -25,16 +26,25 @@ import {
 
 const initState: BillingActionState = { done: false }
 
-function Msg({ state, success }: { state: BillingActionState; success: string }) {
+function Msg({ state, success, tActions }: { state: BillingActionState; success: string; tActions: (k: string) => string }) {
   return state.done ? (
     <p className={`text-xs font-medium ${state.error ? 'text-destructive' : 'text-emerald-600'}`}>
-      {state.error ?? success}
+      {state.error
+        ? (() => {
+            try {
+              return tActions(state.error as Parameters<typeof tActions>[0])
+            } catch {
+              return state.error
+            }
+          })()
+        : success}
     </p>
   ) : null
 }
 
 function ToggleMethod({ id, enabled }: { id: string; enabled: boolean }) {
   const [, action, pending] = useActionState(togglePaymentMethod, initState)
+  const t = useTranslations('Dashboard.billing')
   return (
     <form action={action}>
       <input type="hidden" name="id" value={id} />
@@ -46,7 +56,7 @@ function ToggleMethod({ id, enabled }: { id: string; enabled: boolean }) {
         disabled={pending}
         className="text-xs"
       >
-        {enabled ? 'تعطيل' : 'تفعيل'}
+        {enabled ? t('disableMethod') : t('enableMethod')}
       </Button>
     </form>
   )
@@ -54,6 +64,8 @@ function ToggleMethod({ id, enabled }: { id: string; enabled: boolean }) {
 
 function DeleteMethod({ id }: { id: string }) {
   const [state, action, pending] = useActionState(deletePaymentMethod, initState)
+  const t = useTranslations('Dashboard.billing')
+  const tActions = useTranslations('Dashboard.actions')
   return (
     <form action={action}>
       <input type="hidden" name="id" value={id} />
@@ -63,7 +75,7 @@ function DeleteMethod({ id }: { id: string }) {
         type="submit"
         disabled={pending}
         className="text-destructive hover:text-destructive"
-        title={state.error ?? 'حذف'}
+        title={state.error ? safeAct(tActions, state.error) : t('deleteMethod')}
       >
         <Trash2 className="size-3.5" />
       </Button>
@@ -71,8 +83,18 @@ function DeleteMethod({ id }: { id: string }) {
   )
 }
 
+function safeAct(tActions: (k: string) => string, key: string) {
+  try {
+    return tActions(key as Parameters<typeof tActions>[0])
+  } catch {
+    return key
+  }
+}
+
 function AddMethodForm({ onClose }: { onClose: () => void }) {
   const [state, action, pending] = useActionState(addPaymentMethod, initState)
+  const t = useTranslations('Dashboard.billing')
+  const tActions = useTranslations('Dashboard.actions')
 
   useEffect(() => {
     if (state.done && !state.error) onClose()
@@ -82,24 +104,36 @@ function AddMethodForm({ onClose }: { onClose: () => void }) {
     <form action={action} className="grid gap-4">
       <div>
         <Label htmlFor="nm-name" className="text-muted-foreground">
-          اسم الطريقة
+          {t('methodName')}
         </Label>
-        <Input id="nm-name" name="name" placeholder="مثال: فوري" required autoFocus className="mt-1" />
+        <Input
+          id="nm-name"
+          name="name"
+          placeholder={t('methodNamePlaceholder')}
+          required
+          autoFocus
+          className="mt-1"
+        />
       </div>
       <div>
         <Label htmlFor="nm-details" className="text-muted-foreground">
-          بيانات القبض (رقم + الاسم)
+          {t('methodDetails')}
         </Label>
-        <Input id="nm-details" name="details" placeholder="رقم المحفظة / الحساب + اسم صاحبه" className="mt-1" />
+        <Input
+          id="nm-details"
+          name="details"
+          placeholder={t('methodDetailsPlaceholder')}
+          className="mt-1"
+        />
       </div>
       <div className="flex items-center justify-end gap-2">
-        <DialogClose render={<Button variant="outline">إلغاء</Button>} />
+        <DialogClose render={<Button variant="outline">{t('cancel')}</Button>} />
         <Button type="submit" disabled={pending} className="gap-1.5">
           <Plus className="size-3.5" />
-          إضافة الطريقة
+          {t('addMethod')}
         </Button>
       </div>
-      <Msg state={state} success="تمت إضافة الطريقة" />
+      <Msg state={state} success={t('methodAdded')} tActions={tActions} />
     </form>
   )
 }
@@ -108,6 +142,8 @@ export function PaymentMethodsManager({ methods }: { methods: PaymentMethod[] })
   const [addOpen, setAddOpen] = useState(false)
   const [editing, setEditing] = useState<PaymentMethod | null>(null)
   const [editState, editAction, editPending] = useActionState(updatePaymentMethod, initState)
+  const t = useTranslations('Dashboard.billing')
+  const tActions = useTranslations('Dashboard.actions')
 
   const enabledCount = methods.filter((m) => m.enabled).length
 
@@ -115,17 +151,17 @@ export function PaymentMethodsManager({ methods }: { methods: PaymentMethod[] })
     <div className="grid gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-medium text-muted-foreground">
-          {methods.length > 0 && `${enabledCount} مفعلة من أصل ${methods.length}`}
+          {methods.length > 0 && t('enabledCount', { enabled: enabledCount, total: methods.length })}
         </p>
         <Button size="sm" className="gap-1.5" onClick={() => setAddOpen(true)}>
           <Plus className="size-3.5" />
-          إضافة طريقة
+          {t('addMethod')}
         </Button>
       </div>
 
       {methods.length === 0 ? (
         <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-          لا توجد طرق دفع بعد — اضغط «إضافة طريقة» لتشغيل الدفع اليدوي.
+          {t('noMethodsEmpty')}
         </p>
       ) : (
         methods.map((m) => (
@@ -136,7 +172,9 @@ export function PaymentMethodsManager({ methods }: { methods: PaymentMethod[] })
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium">{m.name}</span>
-                <Badge variant={m.enabled ? 'default' : 'outline'}>{m.enabled ? 'مفعلة' : 'معطلة'}</Badge>
+                <Badge variant={m.enabled ? 'default' : 'outline'}>
+                  {m.enabled ? t('methodEnabled') : t('methodDisabled')}
+                </Badge>
               </div>
               {m.details && (
                 <p className="truncate text-xs text-muted-foreground" dir="ltr">
@@ -148,7 +186,7 @@ export function PaymentMethodsManager({ methods }: { methods: PaymentMethod[] })
               <ToggleMethod id={m.id} enabled={m.enabled} />
               <Button size="sm" variant="outline" onClick={() => setEditing(m)} className="gap-1 text-xs">
                 <Pencil className="size-3" />
-                تعديل
+                {t('editMethod')}
               </Button>
               <DeleteMethod id={m.id} />
             </div>
@@ -159,10 +197,8 @@ export function PaymentMethodsManager({ methods }: { methods: PaymentMethod[] })
       <Dialog open={addOpen} onOpenChange={(open) => !open && setAddOpen(false)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>إضافة طريقة دفع</DialogTitle>
-            <DialogDescription>
-              بيانات القبض اللي هيعرضها المستخدم عند الدفع (رقم المحفظة / الحساب + اسم صاحبه).
-            </DialogDescription>
+            <DialogTitle>{t('addMethodTitle')}</DialogTitle>
+            <DialogDescription>{t('addMethodDescription')}</DialogDescription>
           </DialogHeader>
           <AddMethodForm onClose={() => setAddOpen(false)} />
         </DialogContent>
@@ -171,35 +207,35 @@ export function PaymentMethodsManager({ methods }: { methods: PaymentMethod[] })
       <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>تعديل طريقة الدفع</DialogTitle>
+            <DialogTitle>{t('editMethodTitle')}</DialogTitle>
           </DialogHeader>
           <form action={editAction} className="grid gap-3">
             <input type="hidden" name="id" value={editing?.id ?? ''} />
             <div>
               <Label htmlFor="me-name" className="text-muted-foreground">
-                الاسم
+                {t('methodName')}
               </Label>
               <Input id="me-name" name="name" defaultValue={editing?.name} required className="mt-1" />
             </div>
             <div>
               <Label htmlFor="me-details" className="text-muted-foreground">
-                بيانات القبض
+                {t('methodDetails')}
               </Label>
               <Input
                 id="me-details"
                 name="details"
                 defaultValue={editing?.details ?? ''}
-                placeholder="رقم المحفظة / الحساب + اسم صاحبه"
+                placeholder={t('methodDetailsPlaceholder')}
                 className="mt-1"
               />
             </div>
             <div className="flex items-center justify-end gap-2">
-              <DialogClose render={<Button variant="outline">إلغاء</Button>} />
+              <DialogClose render={<Button variant="outline">{t('cancel')}</Button>} />
               <Button type="submit" disabled={editPending}>
-                حفظ التعديلات
+                {t('saveEdits')}
               </Button>
             </div>
-            <Msg state={editState} success="تم حفظ التعديل" />
+            <Msg state={editState} success={t('editSaved')} tActions={tActions} />
           </form>
         </DialogContent>
       </Dialog>

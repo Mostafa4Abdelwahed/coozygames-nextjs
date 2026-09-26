@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { Check, Eye, X } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import type { PaymentRecord } from '@/lib/billing'
 import { reviewPayment, type BillingActionState } from '@/lib/actions/dashboard-billing'
 import { formatMoney } from '@/lib/money'
@@ -20,16 +21,18 @@ import {
 
 const initState: BillingActionState = { done: false }
 
-const STATUS_LABEL: Record<PaymentRecord['status'], { label: string; variant: 'default' | 'secondary' | 'destructive' }> = {
-  pending: { label: 'معلّقة', variant: 'secondary' },
-  approved: { label: 'موافَق', variant: 'default' },
-  rejected: { label: 'مرفوض', variant: 'destructive' },
+const STATUS_VARIANT: Record<PaymentRecord['status'], 'default' | 'secondary' | 'destructive'> = {
+  pending: 'secondary',
+  approved: 'default',
+  rejected: 'destructive',
 }
 
 export function ReceiptDialog({ payment }: { payment: PaymentRecord }) {
   const [state, formAction, pending] = useActionState(reviewPayment, initState)
   const [note, setNote] = useState('')
-  const status = STATUS_LABEL[payment.status]
+  const t = useTranslations('Dashboard.billing')
+  const tStatus = useTranslations('Dashboard.status')
+  const tActions = useTranslations('Dashboard.actions')
 
   return (
     <Dialog>
@@ -37,13 +40,13 @@ export function ReceiptDialog({ payment }: { payment: PaymentRecord }) {
         render={
           <Button variant="outline" size="sm" className="gap-1.5">
             <Eye className="size-3.5" />
-            عرض
+            {t('view')}
           </Button>
         }
       />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>مراجعة دفعة</DialogTitle>
+          <DialogTitle>{t('reviewTitle')}</DialogTitle>
           <DialogDescription dir="ltr" className="text-xs">
             {payment.id}
           </DialogDescription>
@@ -54,7 +57,7 @@ export function ReceiptDialog({ payment }: { payment: PaymentRecord }) {
             <div className="relative h-64 w-full overflow-hidden rounded-lg border bg-muted">
               <Image
                 src={`/api/uploads/receipt/${payment.id}`}
-                alt="صورة إيصال الدفع"
+                alt={t('noImage')}
                 fill
                 unoptimized
                 className="object-contain"
@@ -62,45 +65,45 @@ export function ReceiptDialog({ payment }: { payment: PaymentRecord }) {
             </div>
           ) : (
             <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-              لا توجد صورة إيصال
+              {t('noImage')}
             </p>
           )}
 
           <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
             <div>
-              <dt className="text-xs text-muted-foreground">المبلغ</dt>
+              <dt className="text-xs text-muted-foreground">{t('amount')}</dt>
               <dd className="font-semibold">{formatMoney(payment.amount, payment.currency)}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">الطريقة</dt>
+              <dt className="text-xs text-muted-foreground">{t('method')}</dt>
               <dd className="font-semibold">{payment.methodName}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">المُرسِل</dt>
+              <dt className="text-xs text-muted-foreground">{t('sender')}</dt>
               <dd>{payment.senderName}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">رقم العملية</dt>
+              <dt className="text-xs text-muted-foreground">{t('txId')}</dt>
               <dd dir="ltr" className="truncate">
                 {payment.providerTransactionId}
               </dd>
             </div>
             {payment.recipientNote && (
               <div className="col-span-2">
-                <dt className="text-xs text-muted-foreground">ملاحظة المستخدم</dt>
+                <dt className="text-xs text-muted-foreground">{t('userNote')}</dt>
                 <dd>{payment.recipientNote}</dd>
               </div>
             )}
             {payment.adminNote && (
               <div className="col-span-2">
-                <dt className="text-xs text-muted-foreground">ملاحظة الأدمن</dt>
+                <dt className="text-xs text-muted-foreground">{t('adminNote')}</dt>
                 <dd>{payment.adminNote}</dd>
               </div>
             )}
             <div className="col-span-2">
-              <dt className="text-xs text-muted-foreground">الحالة</dt>
+              <dt className="text-xs text-muted-foreground">{t('status')}</dt>
               <dd className="pt-1">
-                <Badge variant={status.variant}>{status.label}</Badge>
+                <Badge variant={STATUS_VARIANT[payment.status]}>{tStatus(payment.status)}</Badge>
               </dd>
             </div>
           </dl>
@@ -110,7 +113,7 @@ export function ReceiptDialog({ payment }: { payment: PaymentRecord }) {
               <input type="hidden" name="paymentId" value={payment.id} />
               <div>
                 <Label htmlFor={`note-${payment.id}`} className="text-muted-foreground">
-                  ملاحظة للأدمن (اختياري)
+                  {t('adminNotePlaceholder')}
                 </Label>
                 <input
                   id={`note-${payment.id}`}
@@ -124,16 +127,24 @@ export function ReceiptDialog({ payment }: { payment: PaymentRecord }) {
               <div className="grid grid-cols-2 gap-2">
                 <Button type="submit" name="decision" value="reject" variant="outline" disabled={pending} className="gap-1.5 text-destructive hover:text-destructive">
                   <X className="size-3.5" />
-                  رفض
+                  {t('reject')}
                 </Button>
                 <Button type="submit" name="decision" value="approve" disabled={pending} className="gap-1.5">
                   <Check className="size-3.5" />
-                  موافقة
+                  {t('approve')}
                 </Button>
               </div>
               {state.done && (
                 <p className={`text-xs font-medium ${state.error ? 'text-destructive' : 'text-emerald-600'}`}>
-                  {state.error ?? 'تم تنفيذ المراجعة'}
+                  {state.error
+                    ? (() => {
+                        try {
+                          return tActions(state.error as Parameters<typeof tActions>[0])
+                        } catch {
+                          return state.error
+                        }
+                      })()
+                    : t('reviewSuccess')}
                 </p>
               )}
             </form>

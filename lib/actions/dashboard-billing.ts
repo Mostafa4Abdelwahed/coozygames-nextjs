@@ -17,7 +17,7 @@ export async function saveMonthlyPrice(
   const raw = String(formData.get('price') ?? '').trim()
   const value = Number(raw)
   if (!Number.isFinite(value) || value < 1 || value > 999999) {
-    return { done: true, error: 'أدخل سعرًا صحيحًا أكبر من صفر' }
+    return { done: true, error: 'invalidPrice' }
   }
   await pool.query(
     `INSERT INTO app_settings (key_name, value, is_secret)
@@ -41,8 +41,8 @@ export async function reviewPayment(
   const decision = String(formData.get('decision') ?? '') as 'approve' | 'reject'
   const note = String(formData.get('adminNote') ?? '').trim().slice(0, 300)
 
-  if (!paymentId) return { done: true, error: 'الدفعة غير محددة' }
-  if (decision !== 'approve' && decision !== 'reject') return { done: true, error: 'قرار غير صالح' }
+  if (!paymentId) return { done: true, error: 'paymentNotFound' }
+  if (decision !== 'approve' && decision !== 'reject') return { done: true, error: 'invalidDecision' }
 
   const status = decision === 'approve' ? 'approved' : 'rejected'
   const client = await pool.connect()
@@ -58,7 +58,7 @@ export async function reviewPayment(
     )
     if ((updated.rowCount ?? 0) === 0) {
       await client.query('ROLLBACK')
-      return { done: true, error: 'هذه الدفعة سبقت مراجعتها' }
+      return { done: true, error: 'paymentAlreadyReviewed' }
     }
     if (decision === 'approve') {
       const userId = updated.rows[0].user_id
@@ -105,14 +105,14 @@ export async function addPaymentMethod(
   const details = String(formData.get('details') ?? '').trim().slice(0, 200)
 
   if (name.length < 2 || name.length > 40) {
-    return { done: true, error: 'الاسم يجب أن يكون بين حرفين و40 حرفًا' }
+    return { done: true, error: 'methodNameLength' }
   }
 
   try {
     await pool.query('INSERT INTO payment_methods (name, details) VALUES ($1, $2)', [name, details])
   } catch (err) {
     if ((err as { code?: string }).code === '23505') {
-      return { done: true, error: 'يوجد طريقة بنفس الاسم' }
+      return { done: true, error: 'methodDuplicate' }
     }
     throw err
   }
@@ -132,9 +132,9 @@ export async function updatePaymentMethod(
   const name = String(formData.get('name') ?? '').trim()
   const details = String(formData.get('details') ?? '').trim().slice(0, 200)
 
-  if (!id) return { done: true, error: 'الطريقة غير محددة' }
+  if (!id) return { done: true, error: 'methodNotFound' }
   if (name.length < 2 || name.length > 40) {
-    return { done: true, error: 'الاسم يجب أن يكون بين حرفين و40 حرفًا' }
+    return { done: true, error: 'methodNameLength' }
   }
 
   try {
@@ -145,11 +145,10 @@ export async function updatePaymentMethod(
     ])
   } catch (err) {
     if ((err as { code?: string }).code === '23505') {
-      return { done: true, error: 'يوجد طريقة بنفس الاسم' }
+      return { done: true, error: 'methodDuplicate' }
     }
     throw err
   }
-
   await logAudit(actor.id, 'billing.method.update', 'payment_methods', id, { name, details })
   revalidatePath('/dashboard/billing', 'page')
   return { done: true }
@@ -164,7 +163,7 @@ export async function togglePaymentMethod(
   const id = String(formData.get('id') ?? '')
   const enabled = formData.get('enabled') === '1'
 
-  if (!id) return { done: true, error: 'الطريقة غير محددة' }
+  if (!id) return { done: true, error: 'methodNotFound' }
 
   await pool.query('UPDATE payment_methods SET enabled = $2, updated_at = now() WHERE id = $1', [id, enabled])
   await logAudit(actor.id, 'billing.method.toggle', 'payment_methods', id, { enabled })
@@ -180,11 +179,11 @@ export async function deletePaymentMethod(
   const actor = await requireAdmin()
   const id = String(formData.get('id') ?? '')
 
-  if (!id) return { done: true, error: 'الطريقة غير محددة' }
+  if (!id) return { done: true, error: 'methodNotFound' }
 
   const { rows } = await pool.query<{ n: number }>('SELECT count(*)::int AS n FROM payments WHERE method_id = $1', [id])
   if ((rows[0]?.n ?? 0) > 0) {
-    return { done: true, error: 'لا يمكن الحذف — يوجد دفعات مرتبطة بهذه الطريقة. عطّلها بدلًا من ذلك.' }
+    return { done: true, error: 'methodHasPayments' }
   }
 
   await pool.query('DELETE FROM payment_methods WHERE id = $1', [id])

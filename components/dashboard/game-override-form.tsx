@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Pencil, RotateCcw } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import {
   clearGameOverride,
   upsertGameOverride,
@@ -27,11 +28,27 @@ export type OverrideInitial = Pick<GameOverride, 'hidden' | 'featured' | 'sortWe
 
 const initState: OverrideState = { done: false }
 
-function ErrorMessage({ state }: { state: OverrideState }) {
-  if (!state.error) return null
+function translateKey(t: (key: string) => string, key?: string): string | null {
+  if (!key) return null
+  try {
+    return t(key as Parameters<typeof t>[0])
+  } catch {
+    return key
+  }
+}
+
+function ErrorMessage({
+  state,
+  tActions,
+}: {
+  state: OverrideState
+  tActions: (key: string) => string
+}) {
+  const translated = translateKey(tActions, state.error)
+  if (!translated) return null
   return (
     <Alert variant="destructive">
-      <AlertDescription>{state.error}</AlertDescription>
+      <AlertDescription>{translated}</AlertDescription>
     </Alert>
   )
 }
@@ -44,6 +61,9 @@ export function GameOverrideForm({ slug, initial }: { slug: string; initial: Ove
   const [clearState, setClearState] = useState<OverrideState>(initState)
   const [saving, setSaving] = useState(false)
   const [clearing, setClearing] = useState(false)
+  const t = useTranslations('Dashboard.games.form')
+  const tRoot = useTranslations('Dashboard.games')
+  const tActions = useTranslations('Dashboard.actions')
 
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -69,12 +89,12 @@ export function GameOverrideForm({ slug, initial }: { slug: string; initial: Ove
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="secondary" size="sm" className="gap-1.5 w-full" />}>
         <Pencil className="size-3.5" />
-        تعديل العرض
+        {tRoot('editOverride')}
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>تعديل عرض اللعبة</DialogTitle>
+          <DialogTitle>{t('editTitle')}</DialogTitle>
           <DialogDescription dir="ltr" className="text-xs">
             {slug}
           </DialogDescription>
@@ -91,7 +111,7 @@ export function GameOverrideForm({ slug, initial }: { slug: string; initial: Ove
                 onCheckedChange={(checked) => setHidden(Boolean(checked))}
               />
               <Label htmlFor={`hidden-${slug}`} className="text-foreground">
-                إخفاء اللعبة
+                {t('hideGame')}
               </Label>
               <input type="hidden" name="hidden" value={hidden ? 'on' : ''} />
             </div>
@@ -103,7 +123,7 @@ export function GameOverrideForm({ slug, initial }: { slug: string; initial: Ove
                 onCheckedChange={(checked) => setFeatured(Boolean(checked))}
               />
               <Label htmlFor={`featured-${slug}`} className="text-foreground">
-                تمييز (أول القائمة)
+                {t('featureGame')}
               </Label>
               <input type="hidden" name="featured" value={featured ? 'on' : ''} />
             </div>
@@ -111,7 +131,7 @@ export function GameOverrideForm({ slug, initial }: { slug: string; initial: Ove
 
           <div className="grid gap-2">
             <Label htmlFor={`weight-${slug}`} className="text-muted-foreground">
-              وزن الترتيب (تنازلي)
+              {t('sortWeight')}
             </Label>
             <Input
               id={`weight-${slug}`}
@@ -123,20 +143,20 @@ export function GameOverrideForm({ slug, initial }: { slug: string; initial: Ove
 
           <div className="grid gap-2">
             <Label htmlFor={`title-${slug}`} className="text-muted-foreground">
-              عنوان عربي
+              {t('titleAr')}
             </Label>
             <Input
               id={`title-${slug}`}
               type="text"
               name="titleAr"
               defaultValue={initial.titleAr ?? ''}
-              placeholder="يُترك فارغًا لاستخدام العنوان الأصلي"
+              placeholder={t('titleArPlaceholder')}
             />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor={`thumb-${slug}`} className="text-muted-foreground">
-              صورة مصغّرة (تبدأ بـ /image/)
+              {t('thumb')}
             </Label>
             <Input
               id={`thumb-${slug}`}
@@ -148,16 +168,16 @@ export function GameOverrideForm({ slug, initial }: { slug: string; initial: Ove
             />
           </div>
 
-          <ErrorMessage state={state} />
+          <ErrorMessage state={state} tActions={tActions} />
 
           <Button type="submit" disabled={saving}>
-            {saving ? 'جارٍ الحفظ...' : 'حفظ'}
+            {saving ? t('saving') : t('save')}
           </Button>
         </form>
 
         <form onSubmit={handleClear} className="border-t pt-4">
           <input type="hidden" name="slug" value={slug} />
-          <ErrorMessage state={clearState} />
+          <ErrorMessage state={clearState} tActions={tActions} />
           <Button
             type="submit"
             variant="destructive"
@@ -166,13 +186,13 @@ export function GameOverrideForm({ slug, initial }: { slug: string; initial: Ove
             disabled={clearing}
           >
             <RotateCcw className="size-3.5" />
-            {clearing ? 'جارٍ الإزالة...' : 'إعادة تعيين (حذف الـ override)'}
+            {clearing ? t('clearing') : t('reset')}
           </Button>
         </form>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            إغلاق
+            {t('close')}
           </Button>
         </DialogFooter>
       </DialogContent>

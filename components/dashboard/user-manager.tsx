@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useActionState } from 'react'
 import { ShieldCheck, Ban, Unlock, LogOut, UserRoundCog } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import {
   banUser,
   revokeUserSessions,
@@ -29,12 +30,26 @@ const initState: UserActionState = { done: false }
 const ROLE_SELECT_STYLE =
   'h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm whitespace-nowrap outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50'
 
-function Msg({ state, success }: { state: UserActionState; success: string }) {
+function Msg({
+  state,
+  success,
+  tActions,
+}: {
+  state: UserActionState
+  success: string
+  tActions: (k: string) => string
+}) {
   return state.done ? (
-    <p
-      className={`text-xs font-medium ${state.error ? 'text-destructive' : 'text-emerald-600'}`}
-    >
-      {state.error ?? success}
+    <p className={`text-xs font-medium ${state.error ? 'text-destructive' : 'text-emerald-600'}`}>
+      {state.error
+        ? (() => {
+            try {
+              return tActions(state.error as Parameters<typeof tActions>[0])
+            } catch {
+              return state.error
+            }
+          })()
+        : success}
     </p>
   ) : null
 }
@@ -55,17 +70,19 @@ export function UserManager({
   const [unbanState, unbanAction, unbanSaving] = useActionState(unbanUser, initState)
   const [banState, banAction, banSaving] = useActionState(banUser, initState)
   const [revokeState, revokeAction, revokeSaving] = useActionState(revokeUserSessions, initState)
+  const t = useTranslations('Dashboard.users')
+  const tActions = useTranslations('Dashboard.actions')
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="outline" size="sm" className="gap-1.5" />}>
         <UserRoundCog className="size-3.5" />
-        إدارة
+        {t('manageButton')}
       </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>إدارة الحساب</DialogTitle>
+          <DialogTitle>{t('dialogTitle')}</DialogTitle>
           <DialogDescription dir="ltr" className="text-xs">
             {userId}
           </DialogDescription>
@@ -75,7 +92,7 @@ export function UserManager({
           <form action={roleAction} className="grid gap-2">
             <input type="hidden" name="userId" value={userId} />
             <Label htmlFor={`role-${userId}`} className="text-muted-foreground">
-              الدور
+              {t('role')}
             </Label>
             <div className="flex items-end gap-2">
               <select
@@ -85,18 +102,16 @@ export function UserManager({
                 disabled={isSelf}
                 className={`${ROLE_SELECT_STYLE} flex-1`}
               >
-                <option value="user">مستخدم</option>
-                <option value="admin">أدمن</option>
+                <option value="user">{t('roleUser')}</option>
+                <option value="admin">{t('roleAdmin')}</option>
               </select>
               <Button type="submit" size="sm" disabled={roleSaving || isSelf}>
                 <ShieldCheck className="size-3.5" />
-                حفظ
+                {t('save')}
               </Button>
             </div>
-            <Msg state={roleState} success="تم تحديث الدور" />
-            {isSelf && (
-              <p className="text-xs text-muted-foreground">لا يمكنك تغيير دورك من هنا.</p>
-            )}
+            <Msg state={roleState} success={t('roleUpdated')} tActions={tActions} />
+            {isSelf && <p className="text-xs text-muted-foreground">{t('cannotChangeOwnRoleHint')}</p>}
           </form>
 
           <div className="h-px bg-border" />
@@ -104,7 +119,7 @@ export function UserManager({
           {banned ? (
             <form action={unbanAction} className="grid gap-2">
               <input type="hidden" name="userId" value={userId} />
-              <Msg state={unbanState} success="تم فك الحظر" />
+              <Msg state={unbanState} success={t('unbanned')} tActions={tActions} />
               <Button
                 type="submit"
                 variant="outline"
@@ -112,45 +127,41 @@ export function UserManager({
                 disabled={unbanSaving || isSelf}
               >
                 <Unlock className="size-4" />
-                {unbanSaving ? 'جارٍ التنفيذ...' : 'فك الحظر'}
+                {unbanSaving ? t('pending') : t('unban')}
               </Button>
             </form>
           ) : (
             <form action={banAction} className="grid gap-2">
               <input type="hidden" name="userId" value={userId} />
               <Label htmlFor={`ban-reason-${userId}`} className="text-muted-foreground">
-                سبب الحظر (اختياري)
+                {t('banReasonLabel')}
               </Label>
               <Input
                 id={`ban-reason-${userId}`}
                 type="text"
                 name="banReason"
-                placeholder="سبب الحظر (اختياري)"
+                placeholder={t('banReasonPlaceholder')}
               />
               <Label htmlFor={`ban-expires-${userId}`} className="text-muted-foreground">
-                مدة الحظر بالثواني (فارغة = دائم)
+                {t('banDurationLabel')}
               </Label>
               <Input
                 id={`ban-expires-${userId}`}
                 type="number"
                 name="banExpiresIn"
-                placeholder="فارغة = دائم"
+                placeholder={t('banDurationPlaceholder')}
               />
-              <Msg state={banState} success="تم الحظر" />
-              <Button
-                type="submit"
-                variant="destructive"
-                disabled={banSaving || isSelf}
-              >
+              <Msg state={banState} success={t('banned')} tActions={tActions} />
+              <Button type="submit" variant="destructive" disabled={banSaving || isSelf}>
                 <Ban className="size-4" />
-                {banSaving ? 'جارٍ التنفيذ...' : 'حظر'}
+                {banSaving ? t('pending') : t('ban')}
               </Button>
             </form>
           )}
 
           <form action={revokeAction} className="grid gap-2">
             <input type="hidden" name="userId" value={userId} />
-            <Msg state={revokeState} success="تم إنهاء كل الجلسات" />
+            <Msg state={revokeState} success={t('sessionsRevoked')} tActions={tActions} />
             <Button
               type="submit"
               variant="outline"
@@ -158,18 +169,18 @@ export function UserManager({
               disabled={revokeSaving || isSelf}
             >
               <LogOut className="size-4" />
-              {revokeSaving ? 'جارٍ التنفيذ...' : 'إنهاء كل الجلسات'}
+              {revokeSaving ? t('pending') : t('revokeSessions')}
             </Button>
           </form>
 
           <Badge variant={banned ? 'destructive' : isSelf ? 'secondary' : 'outline'} className="w-fit">
-            {banned ? 'محظور' : isSelf ? 'أنت' : 'نشط'}
+            {banned ? t('statusBanned') : isSelf ? t('isSelfBadge') : t('statusActive')}
           </Badge>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            إغلاق
+            {t('close')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -23,11 +23,12 @@ export async function saveSetting(
   const value = String(formData.get('value') ?? '')
   const isSecret = formData.get('isSecret') === '1'
 
+  if (!key) return { done: true, error: 'settingsKeyRequired' }
   if (!KEY_RE.test(key)) {
-    return { done: true, error: 'الصيغة غير صالحة — أحرف كبيرة وأرقام و _ فقط' }
+    return { done: true, error: 'settingsKeyInvalid' }
   }
   if (value.length > MAX_VALUE_LEN) {
-    return { done: true, error: 'القيمة طويلة جدًا (الحد ' + MAX_VALUE_LEN + ' حرف)' }
+    return { done: true, error: 'settingsValueTooLong' }
   }
 
   await pool.query(
@@ -51,11 +52,11 @@ export async function deleteSetting(
   const actor = await requireAdmin()
   const key = normalizeKey(String(formData.get('key') ?? ''))
 
-  if (!key) return { done: true, error: 'المفتاح غير موجود' }
+  if (!key) return { done: true, error: 'settingsKeyRequired' }
 
   const { rowCount } = await pool.query('DELETE FROM app_settings WHERE key_name = $1', [key])
   if ((rowCount ?? 0) === 0) {
-    return { done: true, error: 'لا يوجد تجاوز محفوظ لهذا المفتاح' }
+    return { done: true, error: 'settingNoOverride' }
   }
   await logAudit(actor.id, 'settings.delete', 'app_settings', key, {})
   revalidatePath('/dashboard/settings', 'page')

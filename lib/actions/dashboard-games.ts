@@ -28,20 +28,20 @@ export async function upsertGameOverride(_state: OverrideState, formData: FormDa
   const actor = await requireAdmin()
   const slug = String(formData.get('slug') ?? '')
   const game = getGameBySlug(slug)
-  if (!game) return { done: true, error: 'اللعبة غير موجودة' }
+  if (!game) return { done: true, error: 'gameNotFound' }
 
   const rawTitle = String(formData.get('titleAr') ?? '').trim()
   const titleAr = rawTitle ? rawTitle.slice(0, MAX_TITLE_AR) : null
   const rawThumb = String(formData.get('thumb') ?? '').trim()
   const thumb = rawThumb ? rawThumb.slice(0, MAX_THUMB) : null
   if (thumb && !thumb.startsWith(THUMB_PREFIX)) {
-    return { done: true, error: 'رابط الصورة يجب أن يبدأ بـ /image/' }
+    return { done: true, error: 'thumbInvalidPrefix' }
   }
 
   let sortWeight = 0
   {
     const parsed = Number(formData.get('sortWeight') ?? '0')
-    if (!Number.isFinite(parsed)) return { done: true, error: 'الوزن غير صالح' }
+    if (!Number.isFinite(parsed)) return { done: true, error: 'weightInvalid' }
     sortWeight = Math.max(-MAX_WEIGHT, Math.min(MAX_WEIGHT, Math.round(parsed)))
   }
 
@@ -72,7 +72,7 @@ export async function clearGameOverride(_state: OverrideState, formData: FormDat
   const actor = await requireAdmin()
   const slug = String(formData.get('slug') ?? '')
   const game = getGameBySlug(slug)
-  if (!game) return { done: true, error: 'اللعبة غير موجودة' }
+  if (!game) return { done: true, error: 'gameNotFound' }
 
   await pool.query('DELETE FROM game_overrides WHERE slug = $1', [slug])
   await logAudit(actor.id, 'game.override.clear', 'game', slug, {})

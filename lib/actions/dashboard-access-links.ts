@@ -22,10 +22,10 @@ export async function createLink(
   const validity = Number(rawValidity)
 
   if (!Number.isInteger(days) || days < 1 || days > 36500) {
-    return { done: true, error: 'أيام الاشتراك يجب أن تكون رقمًا صحيحًا من 1 إلى 36500' }
+    return { done: true, error: 'invalidDays' }
   }
   if (!Number.isInteger(validity) || validity < 0 || validity > 36500) {
-    return { done: true, error: 'صلاحية الرابط يجب أن تكون 0 (لا تنتهي) أو رقمًا صحيحًا من 1 إلى 36500 يوم' }
+    return { done: true, error: 'invalidValidity' }
   }
 
   const token = generateAccessToken()
@@ -49,10 +49,10 @@ export async function createLink(
 export async function deleteLink(_state: AccessLinksActionState, formData: FormData): Promise<AccessLinksActionState> {
   const actor = await requireAdmin()
   const token = String(formData.get('token') ?? '').trim()
-  if (!token) return { done: true, error: 'الرابط غير محدد' }
+  if (!token) return { done: true, error: 'tokenRequired' }
 
   const existed = await deleteAccessLink(token)
   await logAudit(actor.id, 'access_links.delete', 'access_links', token, {})
   revalidatePath('/dashboard/access-links', 'page')
-  return { done: true, error: existed ? undefined : 'الرابط غير موجود أو سبق استخدامه' }
+  return { done: true, error: existed ? undefined : 'tokenNotFound' }
 }
