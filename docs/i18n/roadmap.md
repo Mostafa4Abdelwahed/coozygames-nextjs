@@ -1,4 +1,4 @@
-# Roadmap — i18n
+﻿# Roadmap — i18n
 
 ## Phase 0 — تخطيط (منتهي)
 
@@ -131,7 +131,7 @@
 
 ---
 
-## Phase 6 — Dashboard localization (مخطّط 📝)
+## Phase 6 — Dashboard localization (منتهي ✅)
 
 **الهدف:** ترجمة واجهة الداشبورد كاملة (`/ar/dashboard` و `/en/dashboard`) مع إضافة `LocaleSwitcher` في الهيدر، وأرقام Western ثابتة في كل الإحصائيات.
 
@@ -149,7 +149,7 @@
 
 #### المهام
 
-- [ ] إنشاء namespace **`Dashboard`** في `messages/ar.json` و `messages/en.json`، مقسّم كالتالي:
+- [x] إنشاء namespace **`Dashboard`** في `messages/ar.json` و `messages/en.json`، مقسّم كالتالي:
   - `Dashboard.common` → `dashboard`, `menu`, `menuOpen`, `menuClose`, `goToSite`, `signOut`, `myAccount`, `admin`, `user`,
   - `Dashboard.nav` → `overview`, `analytics`, `users`, `billing`, `accessLinks`, `games`, `ops`, `settings`, `section.general`, `section.admin`
   - `Dashboard.overview` → `title`, `subtitle`, `users`, `activeSessions`, `plays24h`, `playsTotal`, `games`, `categories`
@@ -163,16 +163,16 @@
   - `Dashboard.actions` (مفاتيح أخطاء الـ Server Actions): `invalidDays`, `invalidValidity`, `tokenRequired`, `tokenNotFound`, `daysOutOfRange`, `validityOutOfRange`, `invalidPrice`, `invalidPaymentMethod`, `settingsKeyRequired`, `settingsValueRequired`, `settingsKeyInvalid`, `gameNotFound`, `roleRequired`, `cannotDeleteSelf`, `cannotChangeOwnRole`, `cannotDeleteAdmin`
   - `Dashboard.status` (شارات/حالات عامة): `pending`, `approved`, `rejected`, `cancelled`, `active`, `expired`, `used`
 
-- [ ] `components/dashboard/shell.tsx`:
+- [x] `components/dashboard/shell.tsx`:
   - استبدال كل النصوص العربية (`القائمة`, `إغلاق القائمة`, `فتح القائمة`, `لوحة التحكم`, `الموقع`, `خروج`, `حسابي`, `العودة للموقع`, `تسجيل الخروج`, `أدمن`, `؟`) بـ `useTranslations('Dashboard.common')` و `useTranslations('Dashboard.nav')`.
   - إضافة `<LocaleSwitcher />` (المكوّن الموجود فعلاً في `components/locale-switcher.tsx`) في الـ `<header>` قبل `UserMenu` (مع `ms-auto` يحركه، أو في مجموعة آيقونات يمين الهيدر).
   - التأكد أن `aria-label` للأزرار مأخوذة من `t(...)` بدل النصوص الصلبة.
   - إضافة `getTranslations({ locale, namespace: 'Dashboard.common' })` للـ `aria-label` و الـ fallback إن احتاج (`fallback` للأحرف `admin` switch).
 
-- [ ] `components/dashboard/dashboard-nav.tsx`:
+- [x] `components/dashboard/dashboard-nav.tsx`:
   - تحويل الـ `navItems` من `{ label: 'نص عربي' }` إلى `{ labelKey: 'overview' }` (اسم المفتاح داخل `Dashboard.nav`) والـ component يحوّله عبر `t(labelKey)`.
 
-- [ ] `app/[locale]/dashboard/layout.tsx`:
+- [x] `app/[locale]/dashboard/layout.tsx`:
   - تحويل `metadata` (الـ title العربي الثابت `لوحة التحكم | Coozy Games`) إلى `generateMetadata({ params })` مع `getTranslations({ locale, namespace: 'Dashboard.common' })` يستخدم `t('dashboard')` ثم يُركّب `|` + site name.
 
 ---
@@ -181,35 +181,35 @@
 
 #### المهام
 
-- [ ] `app/[locale]/dashboard/page.tsx` (`overview`):
+- [x] `app/[locale]/dashboard/page.tsx` (`overview`):
   - توقيع جديد: `params: Promise<{ locale: string }>`.
   - `await getTranslations({ locale, namespace: 'Dashboard.overview' })`.
   - ترجمة كل `label` الـ 6 بطاقات + الـ `<h1>` والـ `<p>` الوصفي.
 
-- [ ] `app/[locale]/dashboard/analytics/page.tsx`:
+- [x] `app/[locale]/dashboard/analytics/page.tsx`:
   - توقيع جديد + `getTranslations({ locale, namespace: 'Dashboard.analytics' })`.
   - نصوص البطاقات + العنوان + الوصف + صفوف الجدول + وقت (`formatDate` مدركة للـ locale: `new Intl.DateTimeFormat(locale, {...})`).
   - الأرقام تبقى `toLocaleString('en-US')`.
 
-- [ ] `app/[locale]/dashboard/users/page.tsx`:
+- [x] `app/[locale]/dashboard/users/page.tsx`:
   - ترجمة العنوان والوصف وسطور الجدول (role, name, email, createdAt) + الترقيم + رسالة الفراغ.
 
-- [ ] `app/[locale]/dashboard/games/page.tsx`:
+- [x] `app/[locale]/dashboard/games/page.tsx`:
   - ترجمة العنوان والوصف + أعمدة الجدول + `totalGames` + رسالة الفراغ + نص العدّاد (`{total} لعبة`).
 
-- [ ] `app/[locale]/dashboard/billing/page.tsx`:
+- [x] `app/[locale]/dashboard/billing/page.tsx`:
   - ترجمة العنوان والوصف + بطاقات الإحصاء الثلاث + رسالة الفراغ + أرباح المستلمة (تستدعي `receiptDialog`).
 
-- [ ] `app/[locale]/dashboard/access-links/page.tsx`:
+- [x] `app/[locale]/dashboard/access-links/page.tsx`:
   - ترجمة العنوان والوصف + بطاقات الإحصاء الثلاث + جدول القائمة + رسالة الفراغ + النصوص داخل الجدول (`روابط مستخدمة` بالإنجليزية `Used links`).
 
-- [ ] `app/[locale]/dashboard/ops/page.tsx`:
+- [x] `app/[locale]/dashboard/ops/page.tsx`:
   - ترجمة العنوان والوصف + قسم الكاش + قسم الـ DB + النصائح.
 
-- [ ] `app/[locale]/dashboard/settings/page.tsx`:
+- [x] `app/[locale]/dashboard/settings/page.tsx`:
   - ترجمة العنوان والوصف + رسائل placeholder.
 
-- [ ] كل الصفحات تضيف `if (!hasLocale(routing.locales, locale)) notFound()` قبل `getTranslations` (نفس النمط في صفحات الـ Game).
+- [x] كل الصفحات تضيف `if (!hasLocale(routing.locales, locale)) notFound()` قبل `getTranslations` (نفس النمط في صفحات الـ Game).
 
 #### قرارات
 
@@ -222,46 +222,46 @@
 
 #### المهام
 
-- [ ] **`app/[locale]/dashboard/access-links/actions.ts`**:
+- [x] **`app/[locale]/dashboard/access-links/actions.ts`**:
   - `createLink` → `error: 'invalidDays'`، `error: 'invalidValidity'`.
   - `deleteLink` → `error: 'tokenRequired'`، `error: 'tokenNotFound'`.
 
-- [ ] **`app/[locale]/dashboard/billing/actions.ts`**:
+- [x] **`app/[locale]/dashboard/billing/actions.ts`**:
   - `error: 'invalidPrice'`، `error: 'invalidPaymentMethod'`، `error: 'txIdRequired'`، `error: 'senderRequired'`، `error: 'receiptRequired'`، `error: 'fileTooLarge'`، `error: 'fileTypeInvalid'`، `error: 'fileNotImage'`، `error: 'paymentMethodInvalid'`.
   - تأكد أن المفاتيح متطابقة مع `lib/actions/premium` (نفس الأسماء) أو متطابقة مع `Dashboard.actions` keys الجديدة.
 
-- [ ] **`app/[locale]/dashboard/games/actions.ts`**:
+- [x] **`app/[locale]/dashboard/games/actions.ts`**:
   - `error: 'gameNotFound'`، `error: 'invalidSlug'`.
 
-- [ ] **`app/[locale]/dashboard/settings/actions.ts`**:
+- [x] **`app/[locale]/dashboard/settings/actions.ts`**:
   - `error: 'settingsKeyInvalid'`، `error: 'settingsKeyRequired'`.
 
-- [ ] **`app/[locale]/dashboard/users/actions.ts`**:
+- [x] **`app/[locale]/dashboard/users/actions.ts`**:
   - `error: 'cannotDeleteSelf'`، `error: 'cannotChangeOwnRole'`، `error: 'cannotDeleteAdmin'`، `error: 'userNotFound'`.
 
-- [ ] **`components/dashboard/access-links/access-link-form.tsx`**:
+- [x] **`components/dashboard/access-links/access-link-form.tsx`**:
   - استبدال كل النصوص بـ `useTranslations('Dashboard.accessLinks')`.
   - `state.error` يمر من خلال `t(state.error)` بدل العرض الخام.
 
-- [ ] **`components/dashboard/access-links/access-link-actions.tsx`**:
+- [x] **`components/dashboard/access-links/access-link-actions.tsx`**:
   - ترجمة `aria-label` (نسخ/حذف) + أزرار التنبيه.
 
-- [ ] **`components/dashboard/billing/receipt-dialog.tsx`**:
+- [x] **`components/dashboard/billing/receipt-dialog.tsx`**:
   - ترجمة كل النصوص (الحالات الثلاث كبادج + أزرار approve/reject + admin note + التحقق من الصورة) + `t(state.error)`.
 
-- [ ] **`components/dashboard/billing/price-form.tsx`** + **`payment-methods-manager.tsx`**: ترجمة كل النصوص.
+- [x] **`components/dashboard/billing/price-form.tsx`** + **`payment-methods-manager.tsx`**: ترجمة كل النصوص.
 
-- [ ] **`components/dashboard/user-manager.tsx`**: ترجمة دور المستخدم + أعمدة + تأكيدات الحذف + تعريب `state.error` (مع `'cannotDeleteSelf'` رسالة تظهر كـ danger).
+- [x] **`components/dashboard/user-manager.tsx`**: ترجمة دور المستخدم + أعمدة + تأكيدات الحذف + تعريب `state.error` (مع `'cannotDeleteSelf'` رسالة تظهر كـ danger).
 
-- [ ] **`components/dashboard/game-override-form.tsx`**: ترجمة كل الحقول + placeholder + أزرار الحفظ/الإزالة + aria-label.
+- [x] **`components/dashboard/game-override-form.tsx`**: ترجمة كل الحقول + placeholder + أزرار الحفظ/الإزالة + aria-label.
 
-- [ ] **`components/dashboard/settings-manager.tsx`**: ترجمة كل النصوص (إضافة/تعديل/حذف/سرّي/عام/إظهار/إخفاء/المفاتيح الحالية). الـ badges (`تجاوز/مخصّص/من الـ env`) تأخذ من المفاتيح الجديدة.
+- [x] **`components/dashboard/settings-manager.tsx`**: ترجمة كل النصوص (إضافة/تعديل/حذف/سرّي/عام/إظهار/إخفاء/المفاتيح الحالية). الـ badges (`تجاوز/مخصّص/من الـ env`) تأخذ من المفاتيح الجديدة.
 
-- [ ] **`components/dashboard/ops-purger.tsx`**: ترجمة كل الرسائل، واستبدال `data?.error` الخام بـ `t(state.error ?? 'cleanFailed')`، و fallback `t('connectionError')`.
+- [x] **`components/dashboard/ops-purger.tsx`**: ترجمة كل الرسائل، واستبدال `data?.error` الخام بـ `t(state.error ?? 'cleanFailed')`، و fallback `t('connectionError')`.
 
-- [ ] **`components/dashboard/filter-select.tsx`**: حاليًا خالي من العربي لكن يجب التأكد أنه يستخدم `aria-label` من الـ parent (أو إضافة `t('filterAria')` إذا احتاج).
+- [x] **`components/dashboard/filter-select.tsx`**: حاليًا خالي من العربي لكن يجب التأكد أنه يستخدم `aria-label` من الـ parent (أو إضافة `t('filterAria')` إذا احتاج).
 
-- [ ] جميع الـ Client Components تضيف `"use client"` في أول سطر (بعضها قد يكون missing — تأكد).
+- [x] جميع الـ Client Components تضيف `"use client"` في أول سطر (بعضها قد يكون missing — تأكد).
 
 #### قرارات
 
@@ -273,17 +273,17 @@
 
 #### المهام
 
-- [ ] فحص `rg "[\p{Arabic}]"` داخل `app/[locale]/dashboard/**` و`components/dashboard/**` — الباقي المتوقع فقط: قوائم `LOG_LEVEL`/'-----' في التعليقات إن وُجد، ومسارات الـ regex.
-- [ ] `npm run build` ومراجعة أنه لا يوجد `MISSING_MESSAGE` جديد في السجلات (سيظهر في الـ static generation لو في مفتاح ناقص).
-- [ ] تأكيد يدوي (في المتصفح أو بسكربت `next dev`) لـ `/ar/dashboard` و `/en/dashboard`:
+- [x] فحص `rg "[\p{Arabic}]"` داخل `app/[locale]/dashboard/**` و`components/dashboard/**` — الباقي المتوقع فقط: قوائم `LOG_LEVEL`/'-----' في التعليقات إن وُجد، ومسارات الـ regex.
+- [x] `npm run build` ومراجعة أنه لا يوجد `MISSING_MESSAGE` جديد في السجلات (سيظهر في الـ static generation لو في مفتاح ناقص).
+- [x] تأكيد يدوي (في المتصفح أو بسكربت `next dev`) لـ `/ar/dashboard` و `/en/dashboard`:
   - التبديل من الداشبورد عبر `LocaleSwitcher` يحافظ على نفس الصفحة.
   - تشغيل كل action (create link, revoke, approve/reject, settings save/delete, user edit/delete, game override) على اللغتين بدون نص مكشوف.
   - توجيه الأدمن العادي من `/en/dashboard` يذهب إلى `/en/` بدل `/`.
-- [ ] تأكيد أن التبديل يحافظ على الحالة: rollback من action موجه للـ URL المحلي.
-- [ ] فحص `aria-label` على الأزرار الأيقونية في `shell.tsx` و `dashboard-nav.tsx`.
-- [ ] تأكيد أن badges الـ settingsManager و receiptDialog تعرض النص المترجم، لا الـ enum من DB.
+- [x] تأكيد أن التبديل يحافظ على الحالة: rollback من action موجه للـ URL المحلي.
+- [x] فحص `aria-label` على الأزرار الأيقونية في `shell.tsx` و `dashboard-nav.tsx`.
+- [x] تأكيد أن badges الـ settingsManager و receiptDialog تعرض النص المترجم، لا الـ enum من DB.
 
-### معايير قبول Phase 6
+### Outcome — Phase 6 acceptance
 
 - ✅ الداشبورد كامل بكل أقسامه مترجم على `/ar/dashboard` و `/en/dashboard`.
 - ✅ `LocaleSwitcher` ظاهر في هيدر الداشبورد ويعمل في الاتجاهين.
