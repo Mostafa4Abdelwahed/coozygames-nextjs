@@ -86,15 +86,15 @@ export function LocaleSwitcher() {
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute right-0 top-full z-50 mt-2 min-w-[140px] rounded-xl border border-night-60 bg-night-80 py-1 shadow-lg">
+          <div className="absolute right-0 top-full z-50 mt-2 min-w-[140px] rounded-xl border bg-popover py-1 text-popover-foreground shadow-lg">
             {routing.locales.map((nextLocale) => (
               <button
                 key={nextLocale}
                 onClick={() => switchLocale(nextLocale)}
                 className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm font-bold transition ${
                   nextLocale === locale
-                    ? "bg-brand-100/10 text-brand-60"
-                    : "text-white hover:bg-night-60"
+                    ? "bg-accent text-accent-foreground"
+                    : "hover:bg-accent"
                 }`}
               >
                 <FlagIcon locale={nextLocale} />
