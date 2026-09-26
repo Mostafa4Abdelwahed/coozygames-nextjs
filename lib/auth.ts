@@ -13,6 +13,14 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  advanced: {
+    ipAddress: {
+      // Behind Cloudflare -> Caddy -> app the x-forwarded-for chain has multiple
+      // hops, which better-auth cannot resolve without trustedProxies (it stores
+      // "" instead of an IP). Prefer the single-value client headers first.
+      ipAddressHeaders: ['cf-connecting-ip', 'true-client-ip', 'x-real-ip', 'x-forwarded-for'],
+    },
+  },
   databaseHooks: {
     session: {
       create: {

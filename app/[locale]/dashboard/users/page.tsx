@@ -1,10 +1,12 @@
 ﻿import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
-import { UserPlus } from 'lucide-react'
+import { Link } from '@/i18n/navigation'
+import { Eye, UserPlus } from 'lucide-react'
 import { Pager } from '@/components/pager'
 import { listUsers, type UserFilters } from '@/lib/dashboard/queries'
 import { auth } from '@/lib/auth'
 import { UserManager } from '@/components/dashboard/user-manager'
+import { buttonVariants } from '@/components/ui/button'
 import { FilterSelect, FilterSearch } from '@/components/dashboard/filter-select'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -118,9 +120,12 @@ export default async function DashboardUsersPage({
               data.rows.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
-                    <div className="font-medium text-foreground">
+                    <Link
+                      href={`/dashboard/users/${user.id}`}
+                      className="font-medium text-foreground hover:underline"
+                    >
                       {user.name || <span className="text-muted-foreground">—</span>}
-                    </div>
+                    </Link>
                     <div className="text-xs text-muted-foreground" dir="ltr">
                       {user.email}
                     </div>
@@ -146,12 +151,21 @@ export default async function DashboardUsersPage({
                     <span dir="ltr">{formatDate(user.createdAt)}</span>
                   </TableCell>
                   <TableCell>
-                    <UserManager
-                      userId={user.id}
-                      role={user.role}
-                      banned={user.banned}
-                      isSelf={user.id === currentUserId}
-                    />
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/dashboard/users/${user.id}`}
+                        className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                      >
+                        <Eye className="size-3.5" />
+                        {t('view')}
+                      </Link>
+                      <UserManager
+                        userId={user.id}
+                        role={user.role}
+                        banned={user.banned}
+                        isSelf={user.id === currentUserId}
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
