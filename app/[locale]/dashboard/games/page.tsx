@@ -1,4 +1,5 @@
-﻿import { Gamepad2, EyeOff, Star, PenLine } from 'lucide-react'
+﻿import { notFound } from 'next/navigation'
+import { Gamepad2, EyeOff, Star, PenLine } from 'lucide-react'
 import Image from 'next/image'
 import { Pager } from '@/components/pager'
 import { listGames, getPlayCounts, type GamesFilters } from '@/lib/dashboard/queries'
@@ -9,20 +10,18 @@ import { CATEGORIES } from '@/lib/categories'
 import { thumbUrl } from '@/lib/image'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { getTranslations } from 'next-intl/server'
+import { hasLocale } from 'next-intl'
+import { routing } from '@/i18n/routing'
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'كل الألعاب' },
-  { value: 'hidden', label: 'مخفية' },
-  { value: 'featured', label: 'مميّزة' },
-  { value: 'modified', label: 'معدّلة' },
-] as const
+const STATUS_VALUES = ['hidden', 'featured', 'modified'] as const
 
 type SearchParams = { q?: string; category?: string; status?: string; page?: string }
 
 function parseFilters(sp: SearchParams): GamesFilters {
   const category = CATEGORIES.some((c) => c.slug === sp.category) ? (sp.category ?? '') : ''
-  const statuses = STATUS_OPTIONS.map((o) => o.value)
-  const status = (statuses as string[]).includes(sp.status ?? '') ? (sp.status as GamesFilters['status']) : ''
+  const statuses: string[] = [...STATUS_VALUES]
+  const status = statuses.includes(sp.status ?? '') ? (sp.status as GamesFilters['status']) : ''
   return { q: sp.q ?? '', category, status }
 }
 
@@ -34,23 +33,29 @@ function pagerParams(filters: GamesFilters): Record<string, string> {
   return params
 }
 
-function OverrideBadges({ override }: { override?: GameOverride }) {
+function OverrideBadges({
+  override,
+  labels,
+}: {
+  override?: GameOverride
+  labels: { hidden: string; featured: string; modified: string }
+}) {
   if (!override) return null
   return (
     <div className="flex flex-wrap gap-1">
       {override.hidden && (
         <Badge variant="destructive" className="gap-1">
-          <EyeOff className="size-3" /> مخفية
+          <EyeOff className="size-3" /> {labels.hidden}
         </Badge>
       )}
       {override.featured && (
         <Badge variant="secondary" className="gap-1 border-amber-500/50 bg-amber-500/10 text-amber-600">
-          <Star className="size-3" /> مميّزة
+          <Star className="size-3" /> {labels.featured}
         </Badge>
       )}
       {(override.titleAr || override.thumb) && (
         <Badge variant="secondary" className="gap-1 border-primary/40 bg-primary/10 text-primary">
-          <PenLine className="size-3" /> معدّلة
+          <PenLine className="size-3" /> {labels.modified}
         </Badge>
       )}
     </div>
@@ -58,10 +63,15 @@ function OverrideBadges({ override }: { override?: GameOverride }) {
 }
 
 export default async function DashboardGamesPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>
   searchParams: Promise<SearchParams>
 }) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  const t = await getTranslations({ locale, namespace: 'Dashboard.games' })
   const sp = await searchParams
   const filters = parseFilters(sp)
   const page = parseInt(sp.page ?? '1', 10) || 1
@@ -69,34 +79,50 @@ export default async function DashboardGamesPage({
   const playCounts = await getPlayCounts()
   const data = listGames(filters, page, overrides)
 
+  const statusFilterOptions = [
+    { value: STATUS_VALUES[0], label: t('statusHidden') },
+    { value: STATUS_VALUES[1], label: t('statusFeatured') },
+    { value: STATUS_VALUES[2], label: t('statusModified') },
+  ]
+
+  const overrideLabels = {
+    hidden: t('overrideBadgeHidden'),
+    featured: t('overrideBadgeFeatured'),
+    modified: t('overrideBadgeModified'),
+  }
+
+  const categoryOptions = CATEGORIES.map((cat) => ({
+    value: cat.slug,
+    label: locale === 'ar' ? cat.labelAr : cat.labelEn,
+  }))
+
+  const playsLabel = (count: number) => t('playsCount', { count: count.toLocaleString('en-US') })
+
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">الألعاب</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('title')}</h1>
         <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-          {data.total.toLocaleString('en-US')} لعبة
-          {filters.status !== '' && <Badge variant="secondary">مفلتر</Badge>}
+          {t('totalGames', { total: data.total.toLocaleString('en-US') })}
+          {filters.status !== '' && <Badge variant="secondary">{t('filterBadge')}</Badge>}
         </p>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <FilterSearch q={filters.q} placeholder="بحث بالاسم" />
+        <FilterSearch q={filters.q} placeholder={t('searchPlaceholder')} />
         <FilterSelect
           param="category"
           value={CATEGORIES.some((c) => c.slug === filters.category) ? filters.category : ''}
-          placeholder="كل التصنيفات"
-          ariaLabel="التصنيف"
-          options={CATEGORIES.map((cat) => ({ value: cat.slug, label: cat.labelAr }))}
+          placeholder={t('categoryAll')}
+          ariaLabel={t('category')}
+          options={categoryOptions}
         />
         <FilterSelect
           param="status"
           value={filters.status}
-          placeholder="كل الألعاب"
-          ariaLabel="الحالة"
-          options={STATUS_OPTIONS.filter((o) => o.value !== '').map((o) => ({
-            value: o.value,
-            label: o.label,
-          }))}
+          placeholder={t('statusAll')}
+          ariaLabel={t('status')}
+          options={statusFilterOptions}
         />
       </div>
 
@@ -104,7 +130,7 @@ export default async function DashboardGamesPage({
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-16 text-center">
             <Gamepad2 className="size-9 text-muted-foreground" />
-            <p className="font-medium text-foreground">لا توجد ألعاب مطابقة</p>
+            <p className="font-medium text-foreground">{t('empty')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -128,9 +154,13 @@ export default async function DashboardGamesPage({
                         {game.title}
                       </div>
                       <div className="text-xs font-medium text-muted-foreground">
-                        {game.category} • {playCounts[game.slug]?.toLocaleString('en-US') ?? 0} لعب
+                        {locale === 'ar'
+                          ? CATEGORIES.find((c) => c.slug === game.category)?.labelAr ?? game.category
+                          : CATEGORIES.find((c) => c.slug === game.category)?.labelEn ?? game.category}
+                        {' • '}
+                        {playsLabel(playCounts[game.slug] ?? 0)}
                       </div>
-                      <OverrideBadges override={override} />
+                      <OverrideBadges override={override} labels={overrideLabels} />
                     </div>
                   </div>
                   <GameOverrideForm

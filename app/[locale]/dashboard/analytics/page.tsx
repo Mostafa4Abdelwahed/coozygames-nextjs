@@ -1,14 +1,24 @@
-import { Link } from "@/i18n/navigation"
+import { notFound } from 'next/navigation'
+import { Link } from '@/i18n/navigation'
 import { BarChart3, Users, Gamepad2, Clock3, TrendingUp, Folder } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getAnalytics } from '@/lib/dashboard/queries'
+import { getTranslations, getLocale } from 'next-intl/server'
+import { hasLocale } from 'next-intl'
+import { routing } from '@/i18n/routing'
 
-const DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
-
-function formatDay(day: string): string {
+function formatDay(day: string, locale: string): string {
   const date = new Date(`${day}T00:00:00Z`)
-  const label = DAYS[date.getUTCDay()] ?? ''
-  return `${label} ${date.getUTCDate()}/${date.getUTCMonth() + 1}`
+  return new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'numeric',
+  }).format(date)
+}
+
+function formatUsers(count: number): string {
+  const formatted = count.toLocaleString('en-US')
+  return formatted
 }
 
 function BarRow({ label, sub, count, max }: { label: string; sub?: string; count: number; max: number }) {
@@ -31,15 +41,19 @@ function BarRow({ label, sub, count, max }: { label: string; sub?: string; count
   )
 }
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  const t = await getTranslations({ locale, namespace: 'Dashboard.analytics' })
+  const localeTag = await getLocale()
   const data = await getAnalytics()
   const { overview } = data
 
   const cards = [
-    { label: 'إجمالي اللعب', value: overview.total.toLocaleString('en-US'), icon: Gamepad2 },
-    { label: 'آخر 24 ساعة', value: overview.last24h.toLocaleString('en-US'), icon: Clock3 },
-    { label: 'آخر 7 أيام', value: overview.last7d.toLocaleString('en-US'), icon: TrendingUp },
-    { label: 'آخر 30 يومًا', value: overview.last30d.toLocaleString('en-US'), icon: Clock3 },
+    { labelKey: 'totalPlays', value: overview.total.toLocaleString('en-US'), icon: Gamepad2 },
+    { labelKey: 'last24h', value: overview.last24h.toLocaleString('en-US'), icon: Clock3 },
+    { labelKey: 'last7d', value: overview.last7d.toLocaleString('en-US'), icon: TrendingUp },
+    { labelKey: 'last30d', value: overview.last30d.toLocaleString('en-US'), icon: Clock3 },
   ]
 
   const maxTop = Math.max(...data.topGames.map((g) => g.plays), 1)
@@ -50,23 +64,23 @@ export default async function AnalyticsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">التحليلات</h1>
-        <p className="text-sm font-medium text-muted-foreground">أرقام لعب فعلية من play_events</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('title')}</h1>
+        <p className="text-sm font-medium text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       {overview.total === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-16 text-center">
             <BarChart3 className="size-9 text-muted-foreground" />
-            <p className="font-medium text-foreground">لا توجد بيانات لعب بعد</p>
-            <p className="text-sm text-muted-foreground">ستظهر الأرقام هنا بمجرد بدء تشغيل أي لعبة</p>
+            <p className="font-medium text-foreground">{t('noData')}</p>
+            <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
           </CardContent>
         </Card>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {cards.map(({ label, value, icon: Icon }) => (
-              <Card key={label}>
+            {cards.map(({ labelKey, value, icon: Icon }) => (
+              <Card key={labelKey}>
                 <CardHeader className="px-4 pt-4">
                   <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
                     <Icon className="size-4" />
@@ -74,7 +88,7 @@ export default async function AnalyticsPage() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-0.5 px-4 pb-4">
                   <span className="text-2xl font-bold tracking-tight">{value}</span>
-                  <span className="text-xs font-medium text-muted-foreground">{label}</span>
+                  <span className="text-xs font-medium text-muted-foreground">{t(labelKey)}</span>
                 </CardContent>
               </Card>
             ))}
@@ -85,12 +99,12 @@ export default async function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="size-4 text-primary" />
-                  أشهر الألعاب (آخر 7 أيام)
+                  {t('topGames7d')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3">
                 {data.topGames.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">لا لعب خلال آخر 7 أيام</p>
+                  <p className="text-sm text-muted-foreground">{t('noPlaysLast7d')}</p>
                 ) : (
                   data.topGames.map((g) => (
                     <BarRow key={g.slug} label={g.title} count={g.plays} max={maxTop} />
@@ -103,12 +117,12 @@ export default async function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Folder className="size-4 text-primary" />
-                  أشهر التصنيفات (آخر 7 أيام)
+                  {t('topCategories7d')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3">
                 {data.topCategories.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">لا لعب خلال آخر 7 أيام</p>
+                  <p className="text-sm text-muted-foreground">{t('noPlaysLast7d')}</p>
                 ) : (
                   data.topCategories.map((c) => (
                     <BarRow key={c.slug} label={c.labelAr} count={c.plays} max={maxCat} />
@@ -121,18 +135,18 @@ export default async function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="size-4 text-primary" />
-                  النشاط اليومي (آخر 14 يومًا)
+                  {t('dau14d')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3">
                 {data.dau.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">لا بيانات بعد</p>
+                  <p className="text-sm text-muted-foreground">{t('noData')}</p>
                 ) : (
                   data.dau.map((d) => (
                     <BarRow
                       key={d.day}
-                      label={formatDay(d.day)}
-                      sub={`${d.users} مستخدم`}
+                      label={formatDay(d.day, localeTag)}
+                      sub={formatUsers(d.users)}
                       count={d.plays}
                       max={maxDau}
                     />
@@ -145,12 +159,12 @@ export default async function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock3 className="size-4 text-primary" />
-                  توزيع الساعات (آخر 7 أيام)
+                  {t('hourly7d')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-3">
                 {data.hourly.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">لا بيانات بعد</p>
+                  <p className="text-sm text-muted-foreground">{t('noData')}</p>
                 ) : (
                   data.hourly.map((h) => (
                     <BarRow
@@ -166,7 +180,7 @@ export default async function AnalyticsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-medium text-muted-foreground">اللعبة:</span>
+            <span className="text-xs font-medium text-muted-foreground">{t('gameLabel')}:</span>
             {data.topGames.slice(0, 6).map((g) => (
               <Link
                 key={g.slug}

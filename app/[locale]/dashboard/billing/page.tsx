@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation'
 import { Banknote, CheckCheck, Clock3, WalletCards, Wallet } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -20,12 +21,21 @@ import {
   type PaymentStatus,
 } from '@/lib/billing'
 import { getSetting } from '@/lib/dashboard/settings'
-import { formatDateAr, formatMoney } from '@/lib/money'
+import { formatMoney } from '@/lib/money'
 import { PriceForm } from '@/components/dashboard/billing/price-form'
 import { PaymentMethodsManager } from '@/components/dashboard/billing/payment-methods-manager'
 import { ReceiptDialog } from '@/components/dashboard/billing/receipt-dialog'
+import { getTranslations } from 'next-intl/server'
+import { hasLocale } from 'next-intl'
+import { routing } from '@/i18n/routing'
 
-export const metadata = { title: 'الفواتير | لوحة التحكم' }
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  const t = await getTranslations({ locale, namespace: 'Dashboard.billing' })
+  const tCommon = await getTranslations({ locale, namespace: 'Dashboard.common' })
+  return { title: `${t('title')} | ${tCommon('dashboard')}` }
+}
 
 type SearchParams = { status?: string; page?: string }
 
@@ -37,7 +47,17 @@ function pagerParams(status: 'all' | PaymentStatus): Record<string, string> {
   return status === 'all' ? {} : { status }
 }
 
-export default async function BillingPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function BillingPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<SearchParams>
+}) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  const t = await getTranslations({ locale, namespace: 'Dashboard.billing' })
+  const tStatus = await getTranslations({ locale, namespace: 'Dashboard.status' })
   const sp = await searchParams
   const status = parseStatus(sp.status)
   const page = parseInt(sp.page ?? '1', 10) || 1
@@ -51,24 +71,22 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
   ])
 
   const cards = [
-    { label: 'طلبات معلّقة', value: summary.pending.toLocaleString('en-US'), icon: Clock3 },
-    { label: 'موافقات هذا الشهر', value: summary.approvedThisMonth.toLocaleString('en-US'), icon: CheckCheck },
-    { label: 'إيراد هذا الشهر', value: formatMoney(summary.revenueThisMonth, 'EGP'), icon: Banknote },
-    { label: 'مشتركين نشطين', value: summary.activeSubscribers.toLocaleString('en-US'), icon: Wallet },
+    { labelKey: 'pending', value: summary.pending.toLocaleString('en-US'), icon: Clock3 },
+    { labelKey: 'approvedThisMonth', value: summary.approvedThisMonth.toLocaleString('en-US'), icon: CheckCheck },
+    { labelKey: 'revenueThisMonth', value: formatMoney(summary.revenueThisMonth, 'EGP'), icon: Banknote },
+    { labelKey: 'activeSubscribers', value: summary.activeSubscribers.toLocaleString('en-US'), icon: Wallet },
   ]
 
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">الفواتير والاشتراكات</h1>
-        <p className="text-sm font-medium text-muted-foreground">
-          مراجعة الدفعات اليدوية، سعر الخطة الشهرية، وطرق الدفع
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('title')}</h1>
+        <p className="text-sm font-medium text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {cards.map(({ label, value, icon: Icon }) => (
-          <Card key={label}>
+        {cards.map(({ labelKey, value, icon: Icon }) => (
+          <Card key={labelKey}>
             <CardHeader className="px-4 pt-4">
               <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <Icon className="size-4" />
@@ -76,7 +94,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
             </CardHeader>
             <CardContent className="flex flex-col gap-0.5 px-4 pb-4">
               <span className="text-xl font-bold tracking-tight sm:text-2xl">{value}</span>
-              <span className="text-xs font-medium text-muted-foreground">{label}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t(labelKey)}</span>
             </CardContent>
           </Card>
         ))}
@@ -85,7 +103,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">سعر الخطة الشهرية</CardTitle>
+            <CardTitle className="text-base">{t('priceCardTitle')}</CardTitle>
           </CardHeader>
           <CardContent>
             <PriceForm current={currentPrice ?? String(DEFAULT_MONTHLY_PRICE)} price={price} />
@@ -96,7 +114,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <WalletCards className="size-4 text-primary" />
-              طرق الدفع
+              {t('manageMethods')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -109,18 +127,18 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <span>طلبات الدفع</span>
-              {status !== 'all' && <Badge variant="secondary">مفلتر</Badge>}
+              <span>{t('paymentRequests')}</span>
+              {status !== 'all' && <Badge variant="secondary">{t('filterBadge')}</Badge>}
             </CardTitle>
             <FilterSelect
               param="status"
               value={status === 'all' ? '' : status}
-              placeholder="كل الحالات"
-              ariaLabel="حالة الدفعة"
+              placeholder={t('statusAll')}
+              ariaLabel={t('statusAria')}
               options={[
-                { value: 'pending', label: 'معلّقة' },
-                { value: 'approved', label: 'موافَق' },
-                { value: 'rejected', label: 'مرفوض' },
+                { value: 'pending', label: t('statusPending') },
+                { value: 'approved', label: t('statusApproved') },
+                { value: 'rejected', label: t('statusRejected') },
               ]}
             />
           </div>
@@ -130,20 +148,20 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead>المستخدم</TableHead>
-                  <TableHead>الطريقة</TableHead>
-                  <TableHead>المبلغ</TableHead>
-                  <TableHead>رقم العملية</TableHead>
-                  <TableHead>الحالة</TableHead>
-                  <TableHead>التاريخ</TableHead>
-                  <TableHead>إجراءات</TableHead>
+                  <TableHead>{t('userHeader')}</TableHead>
+                  <TableHead>{t('methodHeader')}</TableHead>
+                  <TableHead>{t('amountHeader')}</TableHead>
+                  <TableHead>{t('txIdHeader')}</TableHead>
+                  <TableHead>{t('statusHeader')}</TableHead>
+                  <TableHead>{t('dateHeader')}</TableHead>
+                  <TableHead>{t('actionsHeader')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {list.rows.length === 0 ? (
                   <TableRow className="hover:bg-transparent">
                     <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
-                      لا توجد دفعات مطابقة
+                      {t('empty')}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -161,10 +179,10 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                         {p.providerTransactionId}
                       </TableCell>
                       <TableCell>
-                        <StatusCell p={p} />
+                        <StatusCell p={p} tStatus={tStatus} />
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-muted-foreground">
-                        {formatDateAr(p.createdAt)}
+                        {p.createdAt.toLocaleDateString('en-US')}
                       </TableCell>
                       <TableCell>
                         <ReceiptDialog payment={p} />
@@ -183,7 +201,13 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
   )
 }
 
-function StatusCell({ p }: { p: { status: PaymentStatus; adminNote: string | null } }) {
+function StatusCell({
+  p,
+  tStatus,
+}: {
+  p: { status: PaymentStatus; adminNote: string | null }
+  tStatus: (key: string) => string
+}) {
   const meta: Record<PaymentStatus, string> = {
     pending: 'bg-amber-500/15 text-amber-600',
     approved: 'bg-emerald-500/15 text-emerald-600',
@@ -192,7 +216,7 @@ function StatusCell({ p }: { p: { status: PaymentStatus; adminNote: string | nul
   return (
     <div className="flex flex-col gap-0.5">
       <Badge variant="secondary" className={meta[p.status]}>
-        {p.status === 'pending' ? 'معلّقة' : p.status === 'approved' ? 'موافَق' : 'مرفوض'}
+        {tStatus(p.status)}
       </Badge>
       {p.adminNote && (
         <span className="max-w-36 truncate text-xs text-muted-foreground" title={p.adminNote}>

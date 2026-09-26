@@ -1,4 +1,5 @@
-﻿import { headers } from 'next/headers'
+﻿import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import { UserPlus } from 'lucide-react'
 import { Pager } from '@/components/pager'
 import { listUsers, type UserFilters } from '@/lib/dashboard/queries'
@@ -14,8 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-
-const ROLE_LABELS: Record<string, string> = { admin: 'أدمن', user: 'مستخدم' }
+import { getTranslations } from 'next-intl/server'
+import { hasLocale } from 'next-intl'
+import { routing } from '@/i18n/routing'
 
 type SearchParams = { q?: string; role?: string; banned?: string; page?: string }
 
@@ -38,10 +40,15 @@ function pagerParams(filters: UserFilters): Record<string, string> {
 }
 
 export default async function DashboardUsersPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>
   searchParams: Promise<SearchParams>
 }) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  const t = await getTranslations({ locale, namespace: 'Dashboard.users' })
   const sp = await searchParams
   const filters = parseFilters(sp)
   const page = parseInt(sp.page ?? '1', 10) || 1
@@ -53,36 +60,36 @@ export default async function DashboardUsersPage({
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">المستخدمون</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('title')}</h1>
           <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-            {data.total.toLocaleString('en-US')} مستخدم
+            {t('totalCount', { total: data.total.toLocaleString('en-US') })}
             {(filters.q || filters.role || filters.banned !== 'all') && (
-              <Badge variant="secondary">مفلتر</Badge>
+              <Badge variant="secondary">{t('filterBadge')}</Badge>
             )}
           </p>
         </div>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <FilterSearch q={filters.q} placeholder="بحث بالاسم أو الإيميل أو الهاتف" />
+        <FilterSearch q={filters.q} placeholder={t('searchPlaceholder')} />
         <FilterSelect
           param="role"
           value={filters.role}
-          placeholder="كل الأدوار"
-          ariaLabel="الدور"
+          placeholder={t('roleAll')}
+          ariaLabel={t('role')}
           options={[
-            { value: 'admin', label: 'أدمن' },
-            { value: 'user', label: 'مستخدم' },
+            { value: 'admin', label: t('roleAdmin') },
+            { value: 'user', label: t('roleUser') },
           ]}
         />
         <FilterSelect
           param="banned"
           value={filters.banned}
-          placeholder="كل الحالات"
-          ariaLabel="الحالة"
+          placeholder={t('statusAll')}
+          ariaLabel={t('statusAria')}
           options={[
-            { value: 'banned', label: 'محظور' },
-            { value: 'active', label: 'نشط' },
+            { value: 'banned', label: t('statusBanned') },
+            { value: 'active', label: t('statusActive') },
           ]}
         />
       </div>
@@ -91,12 +98,12 @@ export default async function DashboardUsersPage({
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>المستخدم</TableHead>
-              <TableHead>الهاتف</TableHead>
-              <TableHead>الدور</TableHead>
-              <TableHead>الحالة</TableHead>
-              <TableHead>تاريخ التسجيل</TableHead>
-              <TableHead>إدارة</TableHead>
+              <TableHead>{t('userHeader')}</TableHead>
+              <TableHead>{t('phoneHeader')}</TableHead>
+              <TableHead>{t('roleHeader')}</TableHead>
+              <TableHead>{t('statusHeader')}</TableHead>
+              <TableHead>{t('createdAtHeader')}</TableHead>
+              <TableHead>{t('actionsHeader')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -104,7 +111,7 @@ export default async function DashboardUsersPage({
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
                   <UserPlus className="mx-auto mb-2 size-7" />
-                  لا يوجد مستخدمون مطابقون
+                  {t('empty')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -123,15 +130,15 @@ export default async function DashboardUsersPage({
                   </TableCell>
                   <TableCell>
                     <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                      {ROLE_LABELS[(user.role ?? 'user')] ?? user.role}
+                      {user.role === 'admin' ? t('roleAdmin') : t('roleUser')}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     {user.banned ? (
-                      <Badge variant="destructive">محظور</Badge>
+                      <Badge variant="destructive">{t('statusBanned')}</Badge>
                     ) : (
                       <Badge variant="secondary" className="border-emerald-500/50 bg-emerald-500/10 text-emerald-600">
-                        نشط
+                        {t('statusActive')}
                       </Badge>
                     )}
                   </TableCell>

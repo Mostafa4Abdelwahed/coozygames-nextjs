@@ -1,4 +1,5 @@
-﻿import {
+﻿import { notFound } from 'next/navigation'
+import {
   HardDrive,
   CircleCheck,
   CircleX,
@@ -21,8 +22,15 @@ import { OpsPurger } from '@/components/dashboard/ops-purger'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { getTranslations } from 'next-intl/server'
+import { hasLocale } from 'next-intl'
+import { routing } from '@/i18n/routing'
 
-export default async function OpsPage() {
+export default async function OpsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  const t = await getTranslations({ locale, namespace: 'Dashboard.ops' })
+
   const [cache, db, wisp, wispUrl] = await Promise.all([
     getImageCacheStats(),
     getDbStats(),
@@ -31,18 +39,18 @@ export default async function OpsPage() {
   ])
 
   const cacheCards = [
-    { label: 'إجمالي الملفات', value: cache.files.toLocaleString('en-US'), icon: HardDrive },
-    { label: 'الحجم الكلي', value: cache.sizePretty, icon: FileArchive },
-    { label: 'ملفات أصلية', value: cache.originals.toLocaleString('en-US'), icon: ImageIcon },
-    { label: 'نسخ محوّلة', value: cache.variants.toLocaleString('en-US'), icon: FileImage },
-    { label: 'أكبر من 1MB', value: cache.largeFiles.toLocaleString('en-US'), icon: Layers },
+    { labelKey: 'filesTotal', value: cache.files.toLocaleString('en-US'), icon: HardDrive },
+    { labelKey: 'totalSize', value: cache.sizePretty, icon: FileArchive },
+    { labelKey: 'originalFiles', value: cache.originals.toLocaleString('en-US'), icon: ImageIcon },
+    { labelKey: 'convertedCopies', value: cache.variants.toLocaleString('en-US'), icon: FileImage },
+    { labelKey: 'largerThan1mb', value: cache.largeFiles.toLocaleString('en-US'), icon: Layers },
   ]
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">مراقبة التشغيل</h1>
-        <p className="text-sm font-medium text-muted-foreground">حالة النظام والكاش وقاعدة البيانات</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('title')}</h1>
+        <p className="text-sm font-medium text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -52,7 +60,7 @@ export default async function OpsPage() {
               <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <Server className="size-4" />
               </span>
-              سيرفر Wisp (البروفايل)
+              {t('wispCardTitle')}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
@@ -67,7 +75,7 @@ export default async function OpsPage() {
             )}
             <div className="grid gap-0.5">
               <span className={`text-lg font-semibold ${wisp.ok ? 'text-emerald-600' : 'text-destructive'}`}>
-                {wisp.ok ? 'متصل' : 'غير متصل'}
+                {wisp.ok ? t('wispConnected') : t('wispDisconnected')}
               </span>
               <span className="text-xs font-medium text-muted-foreground" dir="ltr">
                 {wispUrl}
@@ -84,8 +92,8 @@ export default async function OpsPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        {cacheCards.map(({ label, value, icon: Icon }) => (
-          <Card key={label}>
+        {cacheCards.map(({ labelKey, value, icon: Icon }) => (
+          <Card key={labelKey}>
             <CardHeader className="px-4 pt-4">
               <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <Icon className="size-4" />
@@ -93,7 +101,7 @@ export default async function OpsPage() {
             </CardHeader>
             <CardContent className="flex flex-col gap-0.5 px-4 pb-4">
               <span className="text-xl font-bold tracking-tight">{value}</span>
-              <span className="text-xs font-medium text-muted-foreground">{label}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t(labelKey)}</span>
             </CardContent>
           </Card>
         ))}
@@ -104,7 +112,7 @@ export default async function OpsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FolderOpen className="size-4 text-primary" />
-              أكبر ملفات الكاش
+              {t('largestFiles')}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
@@ -127,19 +135,19 @@ export default async function OpsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Database className="size-4 text-primary" />
-            قاعدة البيانات
+            {t('sectionDb')}
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             {[
-              { label: 'أحداث اللعب', value: db.playEvents.toLocaleString('en-US') },
-              { label: 'سجل التدقيق', value: db.auditLogs.toLocaleString('en-US') },
-              { label: 'تجاوزات الكتالوج', value: db.overrides.toLocaleString('en-US') },
-            ].map(({ label, value }) => (
-              <div key={label} className="rounded-lg bg-muted/50 p-3">
+              { labelKey: 'eventsPlays', value: db.playEvents.toLocaleString('en-US') },
+              { labelKey: 'auditLogs', value: db.auditLogs.toLocaleString('en-US') },
+              { labelKey: 'overrides', value: db.overrides.toLocaleString('en-US') },
+            ].map(({ labelKey, value }) => (
+              <div key={labelKey} className="rounded-lg bg-muted/50 p-3">
                 <div className="text-lg font-semibold text-foreground">{value}</div>
-                <div className="text-xs font-medium text-muted-foreground">{label}</div>
+                <div className="text-xs font-medium text-muted-foreground">{t(labelKey)}</div>
               </div>
             ))}
           </div>
@@ -147,18 +155,18 @@ export default async function OpsPage() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>الجدول</TableHead>
-                <TableHead className="text-end">الحجم</TableHead>
+                <TableHead>{t('tableHeader')}</TableHead>
+                <TableHead className="text-end">{t('sizeHeader')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {db.tables.map((t) => (
-                <TableRow key={t.name}>
+              {db.tables.map((t_row) => (
+                <TableRow key={t_row.name}>
                   <TableCell className="font-medium" dir="ltr">
-                    {t.name}
+                    {t_row.name}
                   </TableCell>
                   <TableCell className="text-end text-muted-foreground">
-                    <Badge variant="secondary">{t.sizePretty}</Badge>
+                    <Badge variant="secondary">{t_row.sizePretty}</Badge>
                   </TableCell>
                 </TableRow>
               ))}
